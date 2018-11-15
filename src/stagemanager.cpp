@@ -38,7 +38,7 @@ struct GameState {
     GameState() : sm(eq1, eq2), rm(eq2, eq1), thr([this]{return sm.run();}) {
         black_tex.create(1, 1);
         black_tex.clear(sf::Color::Black);
-        font.loadFromFile("font.pcf");
+        font.loadFromFile("data/fonts/font.pcf");
         const_cast<sf::Texture&>(font.getTexture(12)).setSmooth(false);
     }
     ~GameState() {
