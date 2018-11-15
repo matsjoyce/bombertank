@@ -1,0 +1,73 @@
+/*
+ * <one line to give the program's name and a brief idea of what it does.>
+ * Copyright (C) 2018  <copyright holder> <email>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef MAP_HPP
+#define MAP_HPP
+
+#include <map>
+#include <memory>
+#include <set>
+#include "eventqueue.hpp"
+#include "object.hpp"
+#include "signal.hpp"
+
+class Map {
+protected:
+    Map(EventPipe& sep, EventPipe& rep);
+    virtual ~Map() = default;
+    EventServer es;
+    std::map<unsigned int, std::function<objptr(unsigned int, Map*)>> object_creators;
+    std::map<unsigned int, objptr> objects;
+    objptr add(unsigned int type, unsigned int id);
+    virtual void remove(objptr obj);
+    bool is_paused_ = false;
+public:
+    inline void event(Message&& m) {
+        es.send(std::forward<Message>(m));
+    }
+    inline objptr get_object(unsigned int id) {
+        return objects[id];
+    }
+    Signal<> paused;
+    Signal<> resumed;
+    inline bool is_paused() const {
+        return is_paused_;
+    }
+    friend class Object;
+};
+
+class ServerMap : public Map {
+    unsigned int next_id = 1;
+    void remove(objptr obj) override;
+    std::set<unsigned int> defered_destroy;
+    bool in_update = false;
+    bool is_running = false;
+public:
+    ServerMap(EventPipe& sep, EventPipe& rep);
+    void update();
+    void run();
+    void halt();
+    objptr add(unsigned int type);
+    std::vector<objptr> objs_at_dir(objptr obj, Orientation::Orientation dir);
+    std::vector<objptr> collides(int ox, int oy, int ow, int oh);
+    std::vector<objptr> collides(int ox, int oy, int ow, int oh, Orientation::Orientation dir, int movement);
+};
+
+std::vector<objptr> load_objects_from_file(std::istream& f, ServerMap& map);
+
+#endif // MAP_HPP

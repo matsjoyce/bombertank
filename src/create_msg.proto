@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+message CreateMessage {
+    uint32 type = 1;
+    uint32 id = 2;
+}
+
