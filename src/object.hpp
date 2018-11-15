@@ -46,6 +46,7 @@ public:
     Object(unsigned int id_, Map* map_);
     const unsigned int id;
     virtual unsigned int layer();
+    virtual unsigned int type();
     unsigned int width = STANDARD_OBJECT_SIZE, height = STANDARD_OBJECT_SIZE;
 
     Signal<> destroyed;

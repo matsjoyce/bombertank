@@ -31,7 +31,9 @@ public:
 struct GameState;
 
 class LoadStage : public Stage {
+    bool load_editor;
 public:
+    LoadStage(bool is_editor=false);
     std::unique_ptr<Stage> update(sf::RenderWindow& window) override;
 };
 
@@ -55,12 +57,23 @@ public:
     void render(sf::RenderWindow& window) override;
 };
 
+class EditorStage : public Stage {
+    std::unique_ptr<GameState> gstate;
+    int placing = 1;
+    int last_x = 0, last_y = 0;
+    int last_dx = 0, last_dy = 0;
+public:
+    EditorStage(std::unique_ptr<GameState> gs);
+    std::unique_ptr<Stage> update(sf::RenderWindow& window) override;
+    void render(sf::RenderWindow& window) override;
+};
+
 class StageManager {
     std::unique_ptr<Stage> current_stage;
 public:
-    StageManager();
     void update(sf::RenderWindow& window);
     void render(sf::RenderWindow& window);
+    void start_stage(std::unique_ptr<Stage>&& stage);
 };
 
 #endif // STAGEMANAGER_HPP

@@ -66,6 +66,7 @@ public:
     std::vector<objptr> objs_at_dir(objptr obj, Orientation::Orientation dir);
     std::vector<objptr> collides(int ox, int oy, int ow, int oh);
     std::vector<objptr> collides(int ox, int oy, int ow, int oh, Orientation::Orientation dir, int movement);
+    void save_objects_to_map(std::ostream& f);
 };
 
 std::vector<objptr> load_objects_from_file(std::istream& f, ServerMap& map);

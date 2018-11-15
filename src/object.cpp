@@ -241,3 +241,8 @@ unsigned int Object::max_hp() {
 unsigned int Object::layer() {
     return 0;
 }
+
+unsigned int Object::type() {
+    return -1;
+}
+

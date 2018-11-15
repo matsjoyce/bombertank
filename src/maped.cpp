@@ -16,39 +16,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "loader.hpp"
-
-#include "walls.hpp"
-#include "player.hpp"
-#include "bomb.hpp"
+#include <SFML/Graphics.hpp>
+#include "stagemanager.hpp"
 
 using namespace std;
 
-
-template<class T> objptr creator(unsigned int id, Map* m) {
-    return make_shared<T>(id, m);
-}
-
-bool loaded;
-map<unsigned int, function<objptr(unsigned int, Map*)>> object_creators;
-
-template<class T> void load() {
-    if (object_creators.count(T::TYPE)) {
-        throw runtime_error("Duplicate ids");
+int main() {
+    sf::RenderWindow window(sf::VideoMode::getDesktopMode(), "BomberTank Map Editor");
+    window.setFramerateLimit(60);
+    window.setKeyRepeatEnabled(false);
+    StageManager sm;
+    sm.start_stage(make_unique<LoadStage>(true));
+    while (window.isOpen()) {
+        sm.update(window);
+        window.clear(sf::Color::White);
+        sm.render(window);
+        window.display();
     }
-    object_creators[T::TYPE] = &creator<T>;
 }
 
-map<unsigned int, function<objptr(unsigned int, Map*)>> load_objects() {
-    if (!loaded) {
-        load<Wall>();
-        load<IndestructableWall>();
-        load<PlacedWall>();
-        load<Player>();
-        load<StaticBomb>();
-        load<TimedBomb>();
-        load<RoboBomb>();
-        loaded = true;
-    }
-    return object_creators;
-}

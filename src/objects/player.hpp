@@ -28,7 +28,10 @@ class Player : public Object {
     int num;
     int num_walls = 5;
 public:
-    constexpr static const int type = 3;
+    constexpr static const int TYPE = 3;
+    virtual unsigned int type() override {
+        return 3;
+    }
     unsigned int layer() override;
     Player(unsigned int id_, Map* map_);
     void render(sf::RenderTarget& rt) override;

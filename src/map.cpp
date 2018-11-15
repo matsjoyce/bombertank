@@ -92,7 +92,10 @@ void ServerMap::run() {
                 }
                 default: {
                     if (event.id()) {
-                        if (objects.count(event.id())) {
+                        if (is_paused_) {
+                            cout << "Event " << event.type() << " for obj " << event.id() << " while paused!" << endl;
+                        }
+                        else if (objects.count(event.id())) {
                             objects[event.id()]->handle(event);
                         }
                         else {
@@ -168,6 +171,12 @@ void ServerMap::remove(objptr obj) {
     }
 }
 
+void ServerMap::save_objects_to_map(std::ostream& f) {
+    for (auto& obj : objects) {
+        f << obj.second->type() << " " << obj.second->tx() << " " << obj.second->ty() << endl;
+    }
+}
+
 
 std::vector<objptr> load_objects_from_file(std::istream& f, ServerMap& map) {
     int type, x, y;
@@ -175,7 +184,7 @@ std::vector<objptr> load_objects_from_file(std::istream& f, ServerMap& map) {
     while (f >> type >> x >> y) {
         auto obj = map.add(type);
         obj->place_on_tile(x, y);
-        if (type == Player::type) {
+        if (type == Player::TYPE) {
             ret.push_back(obj);
         }
     }

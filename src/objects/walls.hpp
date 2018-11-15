@@ -23,7 +23,10 @@
 
 class Wall : public Object {
 public:
-    constexpr static const int type = 0;
+    constexpr static const int TYPE = 0;
+    virtual unsigned int type() override {
+        return 0;
+    }
     using Object::Object;
     unsigned int layer() override;
     void render(sf::RenderTarget& rt) override;
@@ -32,7 +35,10 @@ public:
 
 class IndestructableWall : public Object {
 public:
-    constexpr static const int type = 1;
+    constexpr static const int TYPE = 1;
+    virtual unsigned int type() override {
+        return 1;
+    }
     using Object::Object;
     unsigned int layer() override;
     void render(sf::RenderTarget& rt) override;
@@ -41,7 +47,10 @@ public:
 
 class PlacedWall : public Object {
 public:
-    constexpr static const int type = 2;
+    constexpr static const int TYPE = 2;
+    virtual unsigned int type() override {
+        return 2;
+    }
     using Object::Object;
     void render(sf::RenderTarget& rt) override;
     unsigned int max_hp() override;

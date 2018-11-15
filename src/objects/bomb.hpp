@@ -25,7 +25,10 @@
 class StaticBomb : public Object {
     int power = 3;
 public:
-    constexpr static const int type = 5;
+    constexpr static const int TYPE = 5;
+    virtual unsigned int type() override {
+        return 5;
+    }
     using Object::Object;
     unsigned int layer() override;
     void render(sf::RenderTarget& rt) override;
@@ -36,7 +39,10 @@ public:
 class TimedBomb : public StaticBomb {
     int time_left = 60;
 public:
-    constexpr static const int type = 6;
+    constexpr static const int TYPE = 6;
+    virtual unsigned int type() override {
+        return 6;
+    }
     using StaticBomb::StaticBomb;
     void update() override;
 };
@@ -46,7 +52,10 @@ class RoboBomb : public StaticBomb {
     sf::Clock clock;
     bool stuck;
 public:
-    constexpr static const int type = 7;
+    constexpr static const int TYPE = 7;
+    virtual unsigned int type() override {
+        return 7;
+    }
     RoboBomb(unsigned int id_, Map* map_);
     void update() override;
     void render(sf::RenderTarget& rt) override;

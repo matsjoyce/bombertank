@@ -18,5 +18,10 @@ protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS
     generic_msg.proto
 )
 
-add_executable(main ${SOURCE} main.cpp ${PROTO_SRCS})
-target_link_libraries(main sfml-graphics sfml-audio ${Protobuf_LIBRARIES})
+add_library(bomertank STATIC ${SOURCE} ${PROTO_SRCS})
+
+add_executable(main main.cpp)
+target_link_libraries(main bomertank sfml-graphics sfml-audio ${Protobuf_LIBRARIES})
+
+add_executable(maped maped.cpp)
+target_link_libraries(maped bomertank sfml-graphics sfml-audio ${Protobuf_LIBRARIES})

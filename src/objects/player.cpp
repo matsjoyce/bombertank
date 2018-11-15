@@ -121,7 +121,7 @@ void Player::handle(Message m) {
                 case DROP_BOMB: {
                     if (num_bombs) {
                         --num_bombs;
-                        auto obj = server_map()->add(TimedBomb::type);
+                        auto obj = server_map()->add(TimedBomb::TYPE);
                         obj->place(tcx(), tcy());
                         obj->destroyed.connect([this]{++num_bombs;});
                     }
@@ -130,7 +130,7 @@ void Player::handle(Message m) {
                 case DROP_WALL: {
                     if (num_walls) {
                         --num_walls;
-                        auto obj = server_map()->add(PlacedWall::type);
+                        auto obj = server_map()->add(PlacedWall::TYPE);
                         obj->place(tcx(), tcy());
                         obj->destroyed.connect([this]{++num_walls;});
                     }

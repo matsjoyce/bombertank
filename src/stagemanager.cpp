@@ -47,24 +47,37 @@ struct GameState {
     }
 };
 
-unique_ptr<Stage> Stage::update(sf::RenderWindow& window) {
+unique_ptr<Stage> Stage::update(sf::RenderWindow& /*window*/) {
     return {};
 }
 
-void Stage::render(sf::RenderWindow& rt) {
+void Stage::render(sf::RenderWindow& /*window*/) {
 }
 
-unique_ptr<Stage> LoadStage::update(sf::RenderWindow& window) {
-    auto gs = make_unique<GameState>();
-    auto f = ifstream("map.btm");
-    gs->players = load_objects_from_file(f, gs->sm);
-    int i = 0;
-    for (auto& player : gs->players) {
-        gs->starting_positions.emplace_back(make_pair(player->x(), player->y()));
-        gs->current_positions.emplace_back(make_pair(player->x(), player->y()));
-        dynamic_cast<Player*>(player.get())->set_num(i++);
-    };
-    return make_unique<PlayStage>(move(gs));
+LoadStage::LoadStage(bool is_editor) : load_editor(is_editor) {
+}
+
+
+unique_ptr<Stage> LoadStage::update(sf::RenderWindow& /*window*/) {
+    if (load_editor) {
+        auto gs = make_unique<GameState>();
+        auto f = ifstream("map_save.btm");
+        load_objects_from_file(f, gs->sm);
+        gs->rm.pause();
+        return make_unique<EditorStage>(move(gs));
+    }
+    else {
+        auto gs = make_unique<GameState>();
+        auto f = ifstream("map.btm");
+        gs->players = load_objects_from_file(f, gs->sm);
+        int i = 0;
+        for (auto& player : gs->players) {
+            gs->starting_positions.emplace_back(make_pair(player->x(), player->y()));
+            gs->current_positions.emplace_back(make_pair(player->x(), player->y()));
+            dynamic_cast<Player*>(player.get())->set_num(i++);
+        };
+        return make_unique<PlayStage>(move(gs));
+    }
 }
 
 PlayStage::PlayStage(std::unique_ptr<GameState> gs) : gstate(move(gs)), text("Paused", gstate->font, 12) {
@@ -143,7 +156,6 @@ void draw_darkbg_text(sf::View& view, sf::RenderTarget& window, unique_ptr<GameS
 void PlayStage::render(sf::RenderWindow& window) {
     sf::View view;
     view.reset(sf::FloatRect(0, 0, window.getSize().x / 4, window.getSize().y / 8));
-    window.clear(sf::Color::White);
 
     view.setCenter(sf::Vector2f(gstate->current_positions[0].first, gstate->current_positions[0].second));
     view.setViewport(sf::FloatRect(0, 0, 1.0, 0.5));
@@ -165,8 +177,6 @@ void PlayStage::render(sf::RenderWindow& window) {
     else {
         darkness = 0;
     }
-
-    window.display();
 }
 
 GameOverStage::GameOverStage(unique_ptr<GameState> gs) : gstate(move(gs)), text("Game Over!", gstate->font, 12) {
@@ -175,7 +185,6 @@ GameOverStage::GameOverStage(unique_ptr<GameState> gs) : gstate(move(gs)), text(
 void GameOverStage::render(sf::RenderWindow& window) {
     sf::View view;
     view.reset(sf::FloatRect(0, 0, window.getSize().x / 4, window.getSize().y / 8));
-    window.clear(sf::Color::White);
 
     view.setCenter(sf::Vector2f(gstate->current_positions[0].first, gstate->current_positions[0].second));
     view.setViewport(sf::FloatRect(0, 0, 1.0, 0.5));
@@ -192,8 +201,6 @@ void GameOverStage::render(sf::RenderWindow& window) {
     }
 
     draw_darkbg_text(view, window, gstate, darkness, text);
-
-    window.display();
 }
 
 unique_ptr<Stage> GameOverStage::update(sf::RenderWindow& window) {
@@ -205,7 +212,7 @@ unique_ptr<Stage> GameOverStage::update(sf::RenderWindow& window) {
         if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Enter) {
             for (unsigned int i = 0; i < gstate->players.size(); ++i) {
                 if (!gstate->players[i]->alive()) {
-                    auto obj = gstate->players[i] = gstate->sm.add(Player::type);
+                    auto obj = gstate->players[i] = gstate->sm.add(Player::TYPE);
                     obj->place(gstate->starting_positions[i].first, gstate->starting_positions[i].second);
                     gstate->current_positions.emplace_back(make_pair(obj->x(), obj->y()));
                     dynamic_cast<Player*>(obj.get())->set_num(i);
@@ -221,10 +228,94 @@ unique_ptr<Stage> GameOverStage::update(sf::RenderWindow& window) {
     return {};
 }
 
-StageManager::StageManager() : current_stage(make_unique<LoadStage>()) {
+EditorStage::EditorStage(std::unique_ptr<GameState> gs) : gstate(move(gs)) {
+}
+
+unique_ptr<Stage> EditorStage::update(sf::RenderWindow& window) {
+    sf::Event event;
+    while (window.pollEvent(event)) {
+        if (event.type == sf::Event::Closed) {
+            window.close();
+        }
+        if (event.type == sf::Event::MouseButtonPressed) {
+            int x = event.mouseButton.x / STANDARD_OBJECT_SIZE / 4;
+            int y = event.mouseButton.y / STANDARD_OBJECT_SIZE / 4;
+            if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift)) {
+                int start_x = min(x, last_x), end_x = max(x, last_x);
+                int start_y = min(y, last_y), end_y = max(y, last_y);
+                for (int x_ = start_x; x_ <= end_x; ++x_) {
+                    for (int y_ = start_y; y_ <= end_y; ++y_) {
+                        if (x_ != last_x || y_ != last_y) {
+                            auto obj = gstate->sm.add(placing);
+                            obj->place_on_tile(x_, y_);
+                        }
+                    }
+                }
+            }
+            else {
+                auto obj = gstate->sm.add(placing);
+                obj->place_on_tile(x, y);
+            }
+            last_x = x;
+            last_y = y;
+        }
+        if (event.type == sf::Event::KeyPressed) {
+            if (event.key.control && event.key.code == sf::Keyboard::S) {
+                cout << "Saving" << endl;
+                ofstream f("map_save.btm");
+                gstate->sm.save_objects_to_map(f);
+                f.close();
+            }
+            else if (event.key.code == sf::Keyboard::Delete) {
+                auto pos = sf::Mouse::getPosition(window);
+                int x = pos.x / STANDARD_OBJECT_SIZE / 4;
+                int y = pos.y / STANDARD_OBJECT_SIZE / 4;
+                if (event.key.shift) {
+                    int start_x = min(x, last_dx), end_x = max(x, last_dx);
+                    int start_y = min(y, last_dy), end_y = max(y, last_dy);
+
+                    for (auto& obj : gstate->sm.collides(start_x * STANDARD_OBJECT_SIZE, start_y * STANDARD_OBJECT_SIZE,
+                                                         (end_x - start_x + 1) * STANDARD_OBJECT_SIZE,
+                                                         (end_y - start_y + 1) * STANDARD_OBJECT_SIZE)) {
+                        obj->destroy();
+                    }
+                }
+                else {
+                    for (auto& obj : gstate->sm.collides(x * STANDARD_OBJECT_SIZE, y * STANDARD_OBJECT_SIZE, STANDARD_OBJECT_SIZE, STANDARD_OBJECT_SIZE)) {
+                        obj->destroy();
+                    }
+                }
+                last_dx = x;
+                last_dy = y;
+            }
+        }
+        if (event.type == sf::Event::TextEntered) {
+            if (isdigit(event.text.unicode)) {
+                placing = event.text.unicode - '0';
+                cout << "Placing " << placing << endl;
+            }
+        }
+    }
+    gstate->rm.update();
+    return {};
+}
+
+void EditorStage::render(sf::RenderWindow& window) {
+    sf::View view;
+    view.reset(sf::FloatRect(0, 0, window.getSize().x / 4, window.getSize().y / 4));
+    window.setView(view);
+
+    sf::Texture tex = gstate->rm.load_texture("data/images/blank.png");
+    tex.setRepeated(true);
+    sf::Sprite spr(tex);
+    spr.setTextureRect(sf::IntRect(0, 0, window.getSize().x / 4, window.getSize().y / 4));
+    window.draw(spr);
+
+    gstate->rm.render(window);
 }
 
 void StageManager::update(sf::RenderWindow& window) {
+    if (!current_stage) return;
     auto new_stage = current_stage->update(window);
     if (new_stage) {
         current_stage = move(new_stage);
@@ -233,5 +324,10 @@ void StageManager::update(sf::RenderWindow& window) {
 }
 
 void StageManager::render(sf::RenderWindow& window) {
+    if (!current_stage) return;
     current_stage->render(window);
+}
+
+void StageManager::start_stage(unique_ptr<Stage>&& stage) {
+    current_stage = forward<unique_ptr<Stage>>(stage);
 }
