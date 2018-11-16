@@ -32,16 +32,30 @@ public:
         return id;
     }
     void disconnect(unsigned int id) {
-        funcs.erase(id);
+        if (executing) {
+            funcs[id] = {};
+        }
+        else {
+            funcs.erase(id);
+        }
     }
     void emit(T... args) {
-        for (auto& f : funcs) {
-            f.second(args...);
+        executing = true;
+        for (auto iter = funcs.begin(); iter != funcs.end();) {
+            if (iter->second) {
+                iter->second(args...);
+                ++iter;
+            }
+            else {
+                funcs.erase(iter++);
+            }
         }
+        executing = false;
     }
 private:
     unsigned int next_id = 0;
     std::map<unsigned int, func_type> funcs;
+    bool executing = false;
 };
 
 #endif // SIGNAL_HPP
