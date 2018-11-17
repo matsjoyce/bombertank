@@ -35,6 +35,7 @@ struct GameState {
     thread thr;
     sf::RenderTexture black_tex;
     sf::Font font;
+    int dpi_scaling_factor = 1;
     GameState() : sm(eq1, eq2), rm(eq2, eq1), thr([this]{return sm.run();}) {
         black_tex.create(1, 1);
         black_tex.clear(sf::Color::Black);
@@ -58,16 +59,18 @@ LoadStage::LoadStage(bool is_editor) : load_editor(is_editor) {
 }
 
 
-unique_ptr<Stage> LoadStage::update(sf::RenderWindow& /*window*/) {
+unique_ptr<Stage> LoadStage::update(sf::RenderWindow& window) {
+    auto gs = make_unique<GameState>();
+    if (window.getSize().x > 2000) {
+        gs->dpi_scaling_factor = 2;
+    }
     if (load_editor) {
-        auto gs = make_unique<GameState>();
         auto f = ifstream("map_save.btm");
         load_objects_from_file(f, gs->sm);
         gs->rm.pause();
         return make_unique<EditorStage>(move(gs));
     }
     else {
-        auto gs = make_unique<GameState>();
         auto f = ifstream("map.btm");
         gs->players = load_objects_from_file(f, gs->sm);
         int i = 0;
@@ -133,7 +136,7 @@ unique_ptr<Stage> PlayStage::update(sf::RenderWindow& window) {
 }
 
 void draw_darkbg_text(sf::View& view, sf::RenderTarget& window, unique_ptr<GameState>& gstate, int darkness, sf::Text& text) {
-    constexpr const unsigned int scaleup = 24;
+    const unsigned int scaleup = 12 * gstate->dpi_scaling_factor;
 
     view.reset(sf::FloatRect(sf::Vector2f(0, 0), sf::Vector2f(window.getSize() / scaleup)));
     view.setViewport(sf::FloatRect(0, 0, 1.0, 1.0));
@@ -155,7 +158,7 @@ void draw_darkbg_text(sf::View& view, sf::RenderTarget& window, unique_ptr<GameS
 
 void PlayStage::render(sf::RenderWindow& window) {
     sf::View view;
-    view.reset(sf::FloatRect(0, 0, window.getSize().x / 4, window.getSize().y / 8));
+    view.reset(sf::FloatRect(0, 0, window.getSize().x / 2 / gstate->dpi_scaling_factor, window.getSize().y / 4 / gstate->dpi_scaling_factor));
 
     view.setCenter(sf::Vector2f(gstate->current_positions[0].first, gstate->current_positions[0].second));
     view.setViewport(sf::FloatRect(0, 0, 1.0, 0.5));
@@ -184,7 +187,7 @@ GameOverStage::GameOverStage(unique_ptr<GameState> gs) : gstate(move(gs)), text(
 
 void GameOverStage::render(sf::RenderWindow& window) {
     sf::View view;
-    view.reset(sf::FloatRect(0, 0, window.getSize().x / 4, window.getSize().y / 8));
+    view.reset(sf::FloatRect(0, 0, window.getSize().x / 2 / gstate->dpi_scaling_factor, window.getSize().y / 4 / gstate->dpi_scaling_factor));
 
     view.setCenter(sf::Vector2f(gstate->current_positions[0].first, gstate->current_positions[0].second));
     view.setViewport(sf::FloatRect(0, 0, 1.0, 0.5));
@@ -238,8 +241,8 @@ unique_ptr<Stage> EditorStage::update(sf::RenderWindow& window) {
             window.close();
         }
         if (event.type == sf::Event::MouseButtonPressed) {
-            int x = event.mouseButton.x / STANDARD_OBJECT_SIZE / 4;
-            int y = event.mouseButton.y / STANDARD_OBJECT_SIZE / 4;
+            int x = event.mouseButton.x / STANDARD_OBJECT_SIZE / 2 / gstate->dpi_scaling_factor;
+            int y = event.mouseButton.y / STANDARD_OBJECT_SIZE / 2 / gstate->dpi_scaling_factor;
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift)) {
                 int start_x = min(x, last_x), end_x = max(x, last_x);
                 int start_y = min(y, last_y), end_y = max(y, last_y);
@@ -268,8 +271,8 @@ unique_ptr<Stage> EditorStage::update(sf::RenderWindow& window) {
             }
             else if (event.key.code == sf::Keyboard::Delete) {
                 auto pos = sf::Mouse::getPosition(window);
-                int x = pos.x / STANDARD_OBJECT_SIZE / 4;
-                int y = pos.y / STANDARD_OBJECT_SIZE / 4;
+                int x = pos.x / STANDARD_OBJECT_SIZE / 2 / gstate->dpi_scaling_factor;
+                int y = pos.y / STANDARD_OBJECT_SIZE / 2 / gstate->dpi_scaling_factor;
                 if (event.key.shift) {
                     int start_x = min(x, last_dx), end_x = max(x, last_dx);
                     int start_y = min(y, last_dy), end_y = max(y, last_dy);
@@ -302,13 +305,13 @@ unique_ptr<Stage> EditorStage::update(sf::RenderWindow& window) {
 
 void EditorStage::render(sf::RenderWindow& window) {
     sf::View view;
-    view.reset(sf::FloatRect(0, 0, window.getSize().x / 4, window.getSize().y / 4));
+    view.reset(sf::FloatRect(0, 0, window.getSize().x / 2 / gstate->dpi_scaling_factor, window.getSize().y / 2 / gstate->dpi_scaling_factor));
     window.setView(view);
 
     sf::Texture tex = gstate->rm.load_texture("data/images/blank.png");
     tex.setRepeated(true);
     sf::Sprite spr(tex);
-    spr.setTextureRect(sf::IntRect(0, 0, window.getSize().x / 4, window.getSize().y / 4));
+    spr.setTextureRect(sf::IntRect(0, 0, window.getSize().x / 2 / gstate->dpi_scaling_factor, window.getSize().y / 2 / gstate->dpi_scaling_factor));
     window.draw(spr);
 
     gstate->rm.render(window);
