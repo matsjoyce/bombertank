@@ -26,7 +26,7 @@ int main() {
     window.setFramerateLimit(60);
     window.setKeyRepeatEnabled(false);
     StageManager sm;
-    sm.start_stage(make_unique<LoadStage>(true));
+    sm.start_stage(LoadStage::create(true));
     while (window.isOpen()) {
         sm.update(window);
         window.clear(sf::Color::White);
