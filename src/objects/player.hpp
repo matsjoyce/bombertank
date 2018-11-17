@@ -27,6 +27,8 @@ class Player : public Object {
     int num_bombs = 3;
     int num;
     int num_walls = 5;
+    sf::Clock anim_clock;
+    std::string tex_name = "data/images/tank1.png";
 public:
     constexpr static const int TYPE = 3;
     virtual unsigned int type() override {

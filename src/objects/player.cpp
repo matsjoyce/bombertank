@@ -61,7 +61,11 @@ void Player::set_num(int num) {
 }
 
 void Player::render(sf::RenderTarget& rt) {
-    sf::Sprite sp(render_map()->load_texture("data/images/tank.png"));
+    if (speed()) {
+        auto t = fmod(anim_clock.getElapsedTime().asSeconds() * 24, 4);
+        tex_name = t < 1 ? "data/images/tank4.png" : t < 2 ? "data/images/tank3.png" : t < 3 ? "data/images/tank2.png" : "data/images/tank1.png";
+    }
+    sf::Sprite sp(render_map()->load_texture(tex_name));
     sp.setOrigin(sf::Vector2f(width / 2, height / 2));
     sp.setPosition(sf::Vector2f(x() + width / 2, y() + height / 2));
     sp.setRotation(angle(orientation()));
