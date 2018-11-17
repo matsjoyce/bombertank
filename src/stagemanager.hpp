@@ -26,15 +26,29 @@ class Stage {
 public:
     virtual std::unique_ptr<Stage> update(sf::RenderWindow& window);
     virtual void render(sf::RenderWindow& window);
+    virtual ~Stage() = default;
 };
 
 struct GameState;
 
 class LoadStage : public Stage {
+    std::unique_ptr<GameState> gstate;
     bool load_editor;
 public:
     LoadStage(bool is_editor=false);
     std::unique_ptr<Stage> update(sf::RenderWindow& window) override;
+    static std::unique_ptr<Stage> create(bool is_editor=false);
+};
+
+class SelectPlayMapStage : public Stage {
+    std::unique_ptr<GameState> gstate;
+    std::vector<std::string> maps;
+    int current_index = 0;
+public:
+    SelectPlayMapStage(std::unique_ptr<GameState> gs);
+    void load_maps(std::string dir);
+    std::unique_ptr<Stage> update(sf::RenderWindow& window) override;
+    void render(sf::RenderWindow& window) override;
 };
 
 class PlayStage : public Stage {
