@@ -33,8 +33,8 @@ struct PlayerSettings {
 };
 
 map<int, PlayerSettings> player_settings = {
-    {0, {sf::Keyboard::W, sf::Keyboard::S, sf::Keyboard::A, sf::Keyboard::D, sf::Keyboard::B, sf::Keyboard::G, sf::Color::Red}},
-    {1, {sf::Keyboard::Up, sf::Keyboard::Down, sf::Keyboard::Left, sf::Keyboard::Right, sf::Keyboard::Enter, sf::Keyboard::RBracket, sf::Color::Green}},
+    {0, {sf::Keyboard::W, sf::Keyboard::S, sf::Keyboard::A, sf::Keyboard::D, sf::Keyboard::B, sf::Keyboard::G, sf::Color(128, 0, 0)}},
+    {1, {sf::Keyboard::Up, sf::Keyboard::Down, sf::Keyboard::Left, sf::Keyboard::Right, sf::Keyboard::Enter, sf::Keyboard::RBracket, sf::Color(0, 128, 0)}},
 };
 
 Player::Player(unsigned int id_, Map* map_) : Object(id_, map_) {
@@ -65,8 +65,14 @@ void Player::render(sf::RenderTarget& rt) {
     sp.setOrigin(sf::Vector2f(width / 2, height / 2));
     sp.setPosition(sf::Vector2f(x() + width / 2, y() + height / 2));
     sp.setRotation(angle(orientation()));
-    sp.setColor(player_settings[num].color);
     rt.draw(sp);
+
+    sf::Sprite sp2(render_map()->load_texture("data/images/tank_colored.png"));
+    sp2.setOrigin(sf::Vector2f(width / 2, height / 2));
+    sp2.setPosition(sf::Vector2f(x() + width / 2, y() + height / 2));
+    sp2.setRotation(angle(orientation()));
+    sp2.setColor(player_settings[num].color);
+    rt.draw(sp2);
 }
 
 void Player::handle_keypress(sf::Keyboard::Key key, bool is_down) {
