@@ -24,7 +24,7 @@
 using namespace std;
 
 enum PlayerCommands {
-    SET_NUM, START_MOVE, END_MOVE, DROP_BOMB, DROP_WALL
+    START_MOVE, END_MOVE, DROP_BOMB, DROP_WALL
 };
 
 struct PlayerSettings {
@@ -42,6 +42,8 @@ Player::Player(unsigned int id_, Map* map_) : Object(id_, map_) {
         destroyed.connect([this]{
             render_map()->add_effect<DeadPlayer>(x(), y(), orientation());
         });
+        setup_keys();
+        side_changed.connect([this]{setup_keys();});
     }
     auto fid = map->paused.connect([this]{
         direction_stack.clear();
@@ -49,21 +51,10 @@ Player::Player(unsigned int id_, Map* map_) : Object(id_, map_) {
     destroyed.connect([this, fid]{map->paused.disconnect(fid);});
 }
 
-void Player::set_num(int num) {
-    Message m;
-    m.set_id(id);
-    m.set_type(Message::PLAYER_COMMAND);
-    GenericMessage gm;
-    gm.set_id(SET_NUM);
-    gm.set_n(num);
-    m.mutable_value()->PackFrom(gm);
-    map->event(move(m));
-}
-
 void Player::render(sf::RenderTarget& rt) {
     if (speed()) {
         auto t = fmod(anim_clock.getElapsedTime().asSeconds() * 24, 4);
-        tex_name = t < 1 ? "data/images/tank4.png" : t < 2 ? "data/images/tank3.png" : t < 3 ? "data/images/tank2.png" : "data/images/tank1.png";
+        tex_name = t < 1 ? "data/images/tank1.png" : t < 2 ? "data/images/tank2.png" : t < 3 ? "data/images/tank3.png" : "data/images/tank4.png";
     }
     sf::Sprite sp(render_map()->load_texture(tex_name));
     sp.setOrigin(sf::Vector2f(width / 2, height / 2));
@@ -75,7 +66,7 @@ void Player::render(sf::RenderTarget& rt) {
     sp2.setOrigin(sf::Vector2f(width / 2, height / 2));
     sp2.setPosition(sf::Vector2f(x() + width / 2, y() + height / 2));
     sp2.setRotation(angle(orientation()));
-    sp2.setColor(player_settings[num].color);
+    sp2.setColor(player_settings[side()].color);
     rt.draw(sp2);
 }
 
@@ -84,13 +75,13 @@ void Player::handle_keypress(sf::Keyboard::Key key, bool is_down) {
     m.set_id(id);
     m.set_type(Message::PLAYER_COMMAND);
     GenericMessage gm;
-    if (key == player_settings[num].bomb) {
+    if (key == player_settings[side()].bomb) {
         if (!is_down) {
             return;
         }
         gm.set_id(DROP_BOMB);
     }
-    else if (key == player_settings[num].wall) {
+    else if (key == player_settings[side()].wall) {
         if (!is_down) {
             return;
         }
@@ -99,13 +90,13 @@ void Player::handle_keypress(sf::Keyboard::Key key, bool is_down) {
     else {
         gm.set_id(is_down ? START_MOVE : END_MOVE);
         cout << key << " " << is_down << " " << gm.id() << endl;
-        if (key == player_settings[num].left) gm.set_orientation(Orientation::W);
-        else if (key == player_settings[num].right) gm.set_orientation(Orientation::E);
-        else if (key == player_settings[num].up) gm.set_orientation(Orientation::N);
-        else if (key == player_settings[num].down) gm.set_orientation(Orientation::S);
+        if (key == player_settings[side()].left) gm.set_orientation(Orientation::W);
+        else if (key == player_settings[side()].right) gm.set_orientation(Orientation::E);
+        else if (key == player_settings[side()].up) gm.set_orientation(Orientation::N);
+        else if (key == player_settings[side()].down) gm.set_orientation(Orientation::S);
     }
     m.mutable_value()->PackFrom(gm);
-    map->event(move(m));
+    render_map()->event(move(m));
 }
 
 void Player::handle(Message m) {
@@ -129,6 +120,7 @@ void Player::handle(Message m) {
                     break;
                 }
                 case DROP_BOMB: {
+                    cout << "DROP_BOMB " << num_bombs << endl;
                     if (num_bombs) {
                         --num_bombs;
                         auto obj = server_map()->add(TimedBomb::TYPE);
@@ -156,24 +148,28 @@ void Player::handle(Message m) {
     }
 }
 
+void Player::setup_keys() {
+    if (side() != static_cast<unsigned int>(-1)) {
+        if (auto rmap = render_map()) {
+            if (rmap->side() == side()) {
+                rmap->follow(shared_from_this());
+                rmap->register_keypress(player_settings[side()].left, id);
+                rmap->register_keypress(player_settings[side()].right, id);
+                rmap->register_keypress(player_settings[side()].up, id);
+                rmap->register_keypress(player_settings[side()].down, id);
+                rmap->register_keypress(player_settings[side()].bomb, id);
+                rmap->register_keypress(player_settings[side()].wall, id);
+            }
+        }
+    }
+}
+
 void Player::render_handle(Message m) {
     switch (m.type()) {
         case Message::PLAYER_COMMAND: {
             GenericMessage gm;
             m.value().UnpackTo(&gm);
             switch (gm.id()) {
-                case SET_NUM: {
-                    num = gm.n();
-                    if (auto rmap = render_map()) {
-                        rmap->register_keypress(player_settings[num].left, id);
-                        rmap->register_keypress(player_settings[num].right, id);
-                        rmap->register_keypress(player_settings[num].up, id);
-                        rmap->register_keypress(player_settings[num].down, id);
-                        rmap->register_keypress(player_settings[num].bomb, id);
-                        rmap->register_keypress(player_settings[num].wall, id);
-                    }
-                    break;
-                }
                 default: {
                     cout << "Unhandled PC " << gm.id() << " in Player::render_handle" << endl;
                 }

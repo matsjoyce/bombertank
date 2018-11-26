@@ -17,24 +17,30 @@
  */
 
 #include "rendermap.hpp"
-#include "../build/src/create_msg.pb.h"
+#include "../build/src/generic_msg.pb.h"
 #include <variant>
 
 using namespace std;
 
-RenderMap::RenderMap(EventPipe& sep, EventPipe& rep) : Map(sep, rep) {
+RenderMap::RenderMap(std::unique_ptr<EventServer> evs, unsigned int side) : es(move(evs)), side_(side) {
+}
+
+void RenderMap::event(Message&& msg) {
+    es->send(move(msg));
 }
 
 void RenderMap::update() {
-    for (auto event : es.events()) {
+    for (auto event : es->events()) {
         switch (event.type()) {
             case Message::CREATE: {
-                if (!event.value().Is<CreateMessage>()) {
-                    throw runtime_error("Create message's value is not a CreateMessage");
+                if (!event.value().Is<GenericMessage>()) {
+                    throw runtime_error("Create message's value is not a GenericMessage");
                 }
-                CreateMessage cm;
-                event.value().UnpackTo(&cm);
-                auto obj = add(cm.type(), cm.id());
+                GenericMessage gm;
+                event.value().UnpackTo(&gm);
+                auto obj = add(gm.type(), gm.id());
+                obj->place(gm.x(), gm.y());
+                obj->set_side(gm.side());
                 layers.insert(make_pair(obj->layer(), obj));
                 break;
             }
@@ -72,6 +78,11 @@ void RenderMap::update() {
 }
 
 void RenderMap::render(sf::RenderTarget& rt) {
+    auto view = rt.getView();
+    if (following) {
+        view.setCenter(sf::Vector2f(following->x(), following->y()));
+    }
+    rt.setView(view);
     for (auto& obj : layers) {
         if (obj.second.index() == 0) {
             get<0>(obj.second)->render(rt);
@@ -79,6 +90,25 @@ void RenderMap::render(sf::RenderTarget& rt) {
         else {
             get<1>(obj.second)->render(rt);
         }
+    }
+    if (following) {
+        view.reset(sf::FloatRect({}, view.getSize()));
+        rt.setView(view);
+
+        auto texbg = load_texture("data/images/hp_bar_bg.png");
+        texbg.setRepeated(true);
+        sf::Sprite sp_bg(texbg);
+        sp_bg.setTextureRect(sf::IntRect(0, 0, 200, 6));
+        sp_bg.setPosition(2, 2);
+        rt.draw(sp_bg);
+
+        auto texfg = load_texture("data/images/hp_bar_fg.png");
+        texfg.setRepeated(true);
+        sf::Sprite sp_fg(texfg);
+        cout << following->hp() << " " << following->max_hp() << endl;
+        sp_fg.setTextureRect(sf::IntRect(0, 0, min(200u, 200 * following->hp() / following->max_hp()), 6));
+        sp_fg.setPosition(2, 2);
+        rt.draw(sp_fg);
     }
 }
 
@@ -147,4 +177,8 @@ void RenderMap::resume() {
     Message m;
     m.set_type(Message::RESUME);
     event(move(m));
+}
+
+void RenderMap::follow(objptr obj) {
+    following = obj;
 }

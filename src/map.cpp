@@ -21,12 +21,11 @@
 #include "object.hpp"
 #include "objects/loader.hpp"
 #include "objects/player.hpp"
-#include "../build/src/create_msg.pb.h"
 #include "../build/src/generic_msg.pb.h"
 
 using namespace std;
 
-Map::Map(EventPipe& sep, EventPipe& rep) : es(sep, rep), object_creators(load_objects()) {
+Map::Map() : object_creators(load_objects()) {
 }
 
 objptr Map::add(unsigned int type, unsigned int id) {
@@ -38,18 +37,41 @@ void Map::remove(objptr obj) {
 }
 
 
-ServerMap::ServerMap(EventPipe& sep, EventPipe& rep) : Map(sep, rep) {
+void ServerMap::add_controller(unsigned int side, std::unique_ptr<EventServer> es) {
+    side_controllers.emplace(make_pair(side, move(es)));
+    for (auto& obj : objects) {
+        Message m;
+        m.set_type(Message::CREATE);
+        GenericMessage gm;
+        gm.set_type(obj.second->type());
+        gm.set_id(obj.second->id);
+        gm.set_x(obj.second->x());
+        gm.set_y(obj.second->y());
+        gm.set_side(obj.second->side());
+        m.mutable_value()->PackFrom(gm);
+        side_controllers[side]->send(move(m));
+    }
+}
+
+void ServerMap::event(objptr obj, Message&& msg) {
+    for (auto& sc : side_controllers) {
+        auto m = msg;
+        sc.second->send(move(m));
+    }
 }
 
 objptr ServerMap::add(unsigned int type) {
     auto obj = Map::add(type, next_id++);
     Message m;
     m.set_type(Message::CREATE);
-    CreateMessage cm;
-    cm.set_type(type);
-    cm.set_id(obj->id);
-    m.mutable_value()->PackFrom(cm);
-    event(move(m));
+    GenericMessage gm;
+    gm.set_type(type);
+    gm.set_id(obj->id);
+    gm.set_x(obj->x());
+    gm.set_y(obj->y());
+    gm.set_side(obj->side());
+    m.mutable_value()->PackFrom(gm);
+    event(obj, move(m));
     return obj;
 }
 
@@ -72,38 +94,32 @@ void ServerMap::run() {
     while (is_running) {
         auto start = chrono::high_resolution_clock::now();
 
-        for (auto event : es.events()) {
-            switch (event.type()) {
-                case Message::PAUSE: {
-                    is_paused_ = true;
-                    paused.emit();
-                    Message m;
-                    m.set_type(Message::PAUSED);
-                    Map::event(move(m));
-                    break;
-                }
-                case Message::RESUME: {
-                    is_paused_ = false;
-                    resumed.emit();
-                    Message m;
-                    m.set_type(Message::RESUMED);
-                    Map::event(move(m));
-                    break;
-                }
-                default: {
-                    if (event.id()) {
-                        if (is_paused_) {
-                            cout << "Event " << event.type() << " for obj " << event.id() << " while paused!" << endl;
-                        }
-                        else if (objects.count(event.id())) {
-                            objects[event.id()]->handle(event);
+        for (auto& sc : side_controllers) {
+            for (auto event : sc.second->events()) {
+                switch (event.type()) {
+                    case Message::PAUSE: {
+                        pause();
+                        break;
+                    }
+                    case Message::RESUME: {
+                        resume();
+                        break;
+                    }
+                    default: {
+                        if (event.id()) {
+                            if (is_paused_) {
+                                cout << "Event " << event.type() << " for obj " << event.id() << " while paused!" << endl;
+                            }
+                            else if (objects.count(event.id())) {
+                                objects[event.id()]->handle(event);
+                            }
+                            else {
+                                cout << "Event " << event.type() << " for non-existent object " << event.id() << endl;
+                            }
                         }
                         else {
-                            cout << "Event " << event.type() << " for non-existent object " << event.id() << endl;
+                            cout << "Unhandled event in ServerMap: " << event.type() << endl;
                         }
-                    }
-                    else {
-                        cout << "Unhandled event in ServerMap: " << event.type() << endl;
                     }
                 }
             }
@@ -176,6 +192,24 @@ void ServerMap::save_objects_to_map(std::ostream& f) {
         f << obj.second->type() << " " << obj.second->tx() << " " << obj.second->ty() << endl;
     }
 }
+
+void ServerMap::pause() {
+    is_paused_ = true;
+    paused.emit();
+    Message m;
+    m.set_type(Message::PAUSED);
+    ServerMap::event({}, move(m));
+}
+
+
+void ServerMap::resume() {
+    is_paused_ = false;
+    resumed.emit();
+    Message m;
+    m.set_type(Message::RESUMED);
+    ServerMap::event({}, move(m));
+}
+
 
 
 std::vector<objptr> load_objects_from_file(std::istream& f, ServerMap& map) {

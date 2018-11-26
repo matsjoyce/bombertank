@@ -12,4 +12,7 @@ message GenericMessage {
     sint32 e = 9;
     sint32 s = 10;
     sint32 w = 11;
+    sint32 type = 12;
+    sint32 side = 13;
+    sint32 hp = 14;
 }

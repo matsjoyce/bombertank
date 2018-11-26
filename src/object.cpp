@@ -53,6 +53,9 @@ void Object::handle(Message m) {
 void Object::render_handle(Message m) {
     switch (m.type()) {
         case Message::MOVE: {
+            if (!m.value().Is<GenericMessage>()) {
+                throw runtime_error("Move message's value is not a GenericMessage");
+            }
             GenericMessage gm;
             m.value().UnpackTo(&gm);
             x_ = gm.x();
@@ -64,7 +67,26 @@ void Object::render_handle(Message m) {
             break;
         }
         case Message::DESTROY: {
+            set_hp(0);
             destroy();
+            break;
+        }
+        case Message::CHANGE_SIDE: {
+            if (!m.value().Is<GenericMessage>()) {
+                throw runtime_error("Change side message's value is not a GenericMessage");
+            }
+            GenericMessage gm;
+            m.value().UnpackTo(&gm);
+            set_side(gm.side());
+            break;
+        }
+        case Message::TAKE_DAMAGE: {
+            if (!m.value().Is<GenericMessage>()) {
+                throw runtime_error("Take damage message's value is not a GenericMessage");
+            }
+            GenericMessage gm;
+            m.value().UnpackTo(&gm);
+            set_hp(gm.hp());
             break;
         }
         default: {
@@ -154,18 +176,20 @@ void Object::set_orientation(Orientation::Orientation dir) {
 }
 
 void Object::_generate_move() {
-    Message m;
-    m.set_type(Message::MOVE);
-    m.set_id(id);
-    GenericMessage gm;
-    gm.set_x(x_);
-    gm.set_y(y_);
-//     gm.set_accel(accel_); // TODO Is this required?
-    gm.set_speed(speed_);
-    gm.set_direction(direction_);
-    gm.set_orientation(orientation_);
-    m.mutable_value()->PackFrom(gm);
-    map->event(move(m));
+    if (auto sm = server_map()) {
+        Message m;
+        m.set_type(Message::MOVE);
+        m.set_id(id);
+        GenericMessage gm;
+        gm.set_x(x_);
+        gm.set_y(y_);
+    //     gm.set_accel(accel_); // TODO Is this required?
+        gm.set_speed(speed_);
+        gm.set_direction(direction_);
+        gm.set_orientation(orientation_);
+        m.mutable_value()->PackFrom(gm);
+        sm->event(shared_from_this(), move(m));
+    }
 }
 
 int Object::separation_distance(objptr obj) {
@@ -216,6 +240,15 @@ unsigned int Object::take_damage(unsigned int damage, DamageType /*dt*/) {
     }
     else {
         hp_ -= damage;
+        if (auto sm = server_map()) {
+            Message m;
+            m.set_type(Message::TAKE_DAMAGE);
+            m.set_id(id);
+            GenericMessage gm;
+            gm.set_hp(hp());
+            m.mutable_value()->PackFrom(gm);
+            sm->event(shared_from_this(), move(m));
+        }
         return 0;
     }
 }
@@ -224,11 +257,13 @@ unsigned int Object::take_damage(unsigned int damage, DamageType /*dt*/) {
 void Object::destroy(bool send /*= true*/) {
     if (!map) return; // Already destroyed;
     destroyed.emit();
-    if (send && server_map()) {
-        Message m;
-        m.set_type(Message::DESTROY);
-        m.set_id(id);
-        map->event(move(m));
+    if (send) {
+        if (auto sm = server_map()) {
+            Message m;
+            m.set_type(Message::DESTROY);
+            m.set_id(id);
+            sm->event(shared_from_this(), move(m));
+        }
     }
     map->remove(shared_from_this());
     map = nullptr;
@@ -246,3 +281,20 @@ unsigned int Object::type() {
     return -1;
 }
 
+void Object::set_side(unsigned int side) {
+    side_ = side;
+    side_changed.emit();
+    if (auto sm = server_map()) {
+        Message m;
+        m.set_type(Message::CHANGE_SIDE);
+        m.set_id(id);
+        GenericMessage gm;
+        gm.set_side(side);
+        m.mutable_value()->PackFrom(gm);
+        sm->event(shared_from_this(), move(m));
+    }
+}
+
+void Object::set_hp(unsigned int hp) {
+    hp_ = hp;
+}

@@ -20,27 +20,11 @@
 
 using namespace std;
 
-void EventQueue::push(Message && m) {
-    {
-        lock_guard<mutex> lock(mu);
-        qu.push(m);
-    }
-    cv.notify_one();
-}
-
-Message EventQueue::pop() {
-    unique_lock<mutex> ul(mu);
-    cv.wait(ul, [this]{return !qu.empty();});
-    Message m = move(qu.front());
-    qu.pop();
-    return m;
-}
-
-EventServer::EventServer(EventPipe& seq, EventPipe& req) : send_eq(seq), recv_eq(req), rt(thread{[this]{return run();}}) {
+EventServer::EventServer() : rt(thread{[this]{return run();}}) {
 }
 
 EventServer::~EventServer() {
-    recv_eq.push(Message());
+    push(Message());
     rt.join();
 }
 
@@ -54,8 +38,14 @@ vector<Message> EventServer::events() {
 
 void EventServer::run() {
     cout << "EventServer::run is go!" << endl;
+    Message m;
     while (true) {
-        auto m = recv_eq.pop();
+        {
+            unique_lock<mutex> ul(qmu);
+            cv.wait(ul, [this]{return !qu.empty();});
+            m = move(qu.front());
+            qu.pop();
+        }
         switch (m.type()) {
             case Message::HALT: return;
             default: {

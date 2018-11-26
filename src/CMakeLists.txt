@@ -10,11 +10,11 @@ set(SOURCE
     objects/walls.cpp
     objects/player.cpp
     objects/bomb.cpp
+    objects/chest.cpp
 )
 
 protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS
     message.proto
-    create_msg.proto
     generic_msg.proto
 )
 

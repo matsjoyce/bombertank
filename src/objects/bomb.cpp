@@ -43,7 +43,6 @@ int kill_in_direction(ServerMap* sm, objptr obj, Orientation::Orientation ori, i
     for (; i <= range; ++i) {
         auto [new_dmg, all_dead] = kill_in_tile(sm, obj->x() + i * dx(ori) * STANDARD_OBJECT_SIZE, obj->y() + i * dy(ori) * STANDARD_OBJECT_SIZE, obj, damage);
         damage = new_dmg;
-        cout << i << ": ->" << damage << " " << all_dead << endl;
         if (!damage) {
             if (all_dead) {
                 ++i;
@@ -57,7 +56,6 @@ int kill_in_direction(ServerMap* sm, objptr obj, Orientation::Orientation ori, i
 
 void StaticBomb::destroy(bool send /*= true*/) {
     if (auto sm = server_map()) {
-        auto map_ = map;
         Object::destroy(false);
         Message m;
         m.set_type(Message::DESTROY);
@@ -69,7 +67,7 @@ void StaticBomb::destroy(bool send /*= true*/) {
         gm.set_s(kill_in_direction(sm, shared_from_this(), Orientation::S, power, 100));
         gm.set_w(kill_in_direction(sm, shared_from_this(), Orientation::W, power, 100));
         m.mutable_value()->PackFrom(gm);
-        map_->event(move(m));
+        sm->event(shared_from_this(), move(m));
     }
     else {
         Object::destroy(send);

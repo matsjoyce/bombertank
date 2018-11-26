@@ -28,18 +28,14 @@
 
 class Map {
 protected:
-    Map(EventPipe& sep, EventPipe& rep);
+    Map();
     virtual ~Map() = default;
-    EventServer es;
     std::map<unsigned int, std::function<objptr(unsigned int, Map*)>> object_creators;
     std::map<unsigned int, objptr> objects;
     objptr add(unsigned int type, unsigned int id);
     virtual void remove(objptr obj);
     bool is_paused_ = false;
 public:
-    inline void event(Message&& m) {
-        es.send(std::forward<Message>(m));
-    }
     inline objptr get_object(unsigned int id) {
         return objects[id];
     }
@@ -57,11 +53,15 @@ class ServerMap : public Map {
     std::set<unsigned int> defered_destroy;
     bool in_update = false;
     bool is_running = false;
+    std::map<unsigned int, std::unique_ptr<EventServer>> side_controllers;
 public:
-    ServerMap(EventPipe& sep, EventPipe& rep);
+    void add_controller(unsigned int side, std::unique_ptr<EventServer> es);
     void update();
     void run();
     void halt();
+    void pause();
+    void resume();
+    void event(objptr obj, Message&& msg);
     objptr add(unsigned int type);
     std::vector<objptr> objs_at_dir(objptr obj, Orientation::Orientation dir);
     std::vector<objptr> collides(int ox, int oy, int ow, int oh);

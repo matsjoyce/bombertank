@@ -26,36 +26,35 @@
 #include <thread>
 #include "../build/src/message.pb.h"
 
-class EventPipe {
-public:
-    virtual void push(Message&& m) = 0;
-    virtual Message pop() = 0;
-};
-
-class EventQueue : public EventPipe {
-    std::mutex mu;
-    std::queue<Message> qu;
-    std::condition_variable cv;
-public:
-    void push(Message&& m) override;
-    Message pop() override;
-};
 
 class EventServer {
-    EventPipe& send_eq;
-    EventPipe& recv_eq;
+    std::mutex qmu;
+    std::queue<Message> qu;
+    std::condition_variable cv;
 
     std::mutex mu;
     std::vector<Message> buf;
     std::thread rt;
+
+    EventServer* other;
 public:
-    EventServer(EventPipe& seq, EventPipe& req);
+    EventServer();
     ~EventServer();
     inline void send(Message&& m) {
-        send_eq.push(std::forward<Message>(m));
+        other->push(std::forward<Message>(m));
+    }
+    inline void push(Message&& m) {
+        {
+            std::lock_guard<std::mutex> lock(qmu);
+            qu.push(std::forward<Message>(m));
+        }
+        cv.notify_one();
     }
     std::vector<Message> events();
     void run();
+    inline void connect(EventServer* s) {
+        other = s;
+    }
 };
 
 #endif // EVENTQUEUE_HPP

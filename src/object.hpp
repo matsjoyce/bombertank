@@ -50,12 +50,15 @@ public:
     unsigned int width = STANDARD_OBJECT_SIZE, height = STANDARD_OBJECT_SIZE;
 
     Signal<> destroyed;
+    Signal<> side_changed;
 
     void place(int x, int y);
     void place_on_tile(int tx, int ty);
     void accelerate(int amount);
     void set_direction(Orientation::Orientation dir);
     void set_orientation(Orientation::Orientation dir);
+    void set_side(unsigned int side);
+    void set_hp(unsigned int hp);
 
     void start_update();
     void end_update();
@@ -81,6 +84,9 @@ public:
     }
     inline int y() {
         return y_;
+    }
+    inline unsigned int side() {
+        return side_;
     }
     // Tile x
     inline int tx() {
@@ -127,7 +133,7 @@ private:
     int last_speed = 0;
     Orientation::Orientation last_orientation = Orientation::N;
     int x_ = 0, y_ = 0;
-    unsigned int hp_ = -1;
+    unsigned int hp_ = -1, side_ = -1;
 
     void _generate_move();
 };

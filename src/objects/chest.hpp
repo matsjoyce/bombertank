@@ -16,39 +16,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PLAYER_HPP
-#define PLAYER_HPP
+#ifndef CHEST_HPP
+#define CHEST_HPP
 
 #include "loader.hpp"
 
-class Player : public Object {
-    std::vector<Orientation::Orientation> direction_stack;
-    int max_speed = 4;
-    int num_bombs = 3;
-    int num_walls = 5;
-    sf::Clock anim_clock;
-    std::string tex_name = "data/images/tank1.png";
-    void setup_keys();
+class Chest : public Object {
 public:
-    constexpr static const int TYPE = 3;
+    constexpr static const int TYPE = 8;
     virtual unsigned int type() override {
-        return 3;
+        return 8;
     }
-    unsigned int layer() override;
-    Player(unsigned int id_, Map* map_);
+    using Object::Object;
     void render(sf::RenderTarget& rt) override;
-    void handle_keypress(sf::Keyboard::Key key, bool is_down) override;
-    void handle(Message m) override;
-    void render_handle(Message m) override;
-    void update() override;
-    unsigned int max_hp() override;
-};
-
-class DeadPlayer : public Effect {
-public:
     unsigned int layer() override;
-    using Effect::Effect;
-    void render(sf::RenderTarget & rt) override;
 };
 
-#endif // PLAYER_HPP
+#endif // CHEST_HPP

@@ -35,8 +35,11 @@ class RenderMap : public Map {
     std::multimap<unsigned int, std::variant<objptr, effptr>> layers;
     unsigned int next_effect = 1;
     void remove(objptr obj) override;
+    std::unique_ptr<EventServer> es;
+    unsigned int side_;
+    objptr following;
 public:
-    RenderMap(EventPipe& sep, EventPipe& rep);
+    RenderMap(std::unique_ptr<EventServer> evs, unsigned int side);
     void update();
     void render(sf::RenderTarget& rt);
     void register_keypress(sf::Keyboard::Key key, unsigned int id);
@@ -52,6 +55,11 @@ public:
     void remove_effect(unsigned int id);
     void pause();
     void resume();
+    void event(Message&& msg);
+    unsigned int side() const {
+        return side_;
+    }
+    void follow(objptr obj);
 };
 
 #endif // RENDERMAP_HPP

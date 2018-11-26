@@ -23,22 +23,21 @@
 #include <fstream>
 #include <thread>
 #include <filesystem>
+#include <list>
 
 namespace fs = std::filesystem;
 using namespace std;
 
 struct GameState {
-    EventQueue eq1, eq2;
     ServerMap sm;
-    RenderMap rm;
     vector<pair<int, int>> starting_positions;
-    vector<pair<int, int>> current_positions;
     vector<objptr> players;
+    vector<RenderMap> rms;
     thread thr;
     sf::RenderTexture black_tex;
     sf::Font font;
     int dpi_scaling_factor = 1;
-    GameState() : sm(eq1, eq2), rm(eq2, eq1), thr([this]{return sm.run();}) {
+    GameState() : sm(), thr([this]{return sm.run();}) {
         black_tex.create(1, 1);
         black_tex.clear(sf::Color::Black);
         font.loadFromFile("data/fonts/font.pcf");
@@ -67,7 +66,12 @@ unique_ptr<Stage> LoadStage::update(sf::RenderWindow& window) {
     if (load_editor) {
         auto f = ifstream("map_save.btm");
         load_objects_from_file(f, gstate->sm);
-        gstate->rm.pause();
+        gstate->sm.pause();
+        auto es1 = make_unique<EventServer>(), es2 = make_unique<EventServer>();
+        es1->connect(es2.get());
+        es2->connect(es1.get());
+        gstate->rms.emplace_back(move(es1), 0);
+        gstate->sm.add_controller(0, move(es2));
         return make_unique<EditorStage>(move(gstate));
     }
     return make_unique<SelectPlayMapStage>(move(gstate));
@@ -98,8 +102,14 @@ unique_ptr<Stage> SelectPlayMapStage::update(sf::RenderWindow& window) {
                 int i = 0;
                 for (auto& player : gstate->players) {
                     gstate->starting_positions.emplace_back(make_pair(player->x(), player->y()));
-                    gstate->current_positions.emplace_back(make_pair(player->x(), player->y()));
-                    dynamic_cast<Player*>(player.get())->set_num(i++);
+                    player->set_side(i);
+
+                    auto es1 = make_unique<EventServer>(), es2 = make_unique<EventServer>();
+                    es1->connect(es2.get());
+                    es2->connect(es1.get());
+                    gstate->rms.emplace_back(move(es1), i);
+                    gstate->sm.add_controller(i, move(es2));
+                    ++i;
                 };
                 return make_unique<PlayStage>(move(gstate));
             }
@@ -153,39 +163,34 @@ unique_ptr<Stage> PlayStage::update(sf::RenderWindow& window) {
         if (event.type == sf::Event::KeyPressed) {
             if (event.key.code == sf::Keyboard::P) {
                 cout << "PAUSE/RESUME" << endl;
-                if (!gstate->rm.is_paused()) {
-                    gstate->rm.pause();
+                if (!gstate->sm.is_paused()) {
+                    gstate->sm.pause();
                 }
                 else {
-                    gstate->rm.resume();
+                    gstate->sm.resume();
                 }
             }
             else {
-                gstate->rm.handle_keypress(event.key.code, true);
+                for (auto& rm : gstate->rms) {
+                    rm.handle_keypress(event.key.code, true);
+                }
             }
         }
         if (event.type == sf::Event::KeyReleased) {
-            gstate->rm.handle_keypress(event.key.code, false);
+            for (auto& rm : gstate->rms) {
+                rm.handle_keypress(event.key.code, false);
+            }
         }
     }
-    gstate->rm.update();
-    bool both_alive = true;
-    if (gstate->players[0]->alive()) {
-        auto player = gstate->rm.get_object(gstate->players[0]->id);
-        if (player) {
-            gstate->current_positions[0] = make_pair(player->x(), player->y());
-        }
+    for (auto& rm : gstate->rms) {
+        rm.update();
     }
-    else both_alive = false;
-    if (gstate->players[1]->alive()) {
-        auto player = gstate->rm.get_object(gstate->players[1]->id);
-        if (player) {
-            gstate->current_positions[1] = make_pair(player->x(), player->y());
-        }
+    int num_alive = 0;
+    for (auto& player : gstate->players) {
+        num_alive += player->alive();
     }
-    else both_alive = false;
-    if (!both_alive) {
-        gstate->rm.pause();
+    if (num_alive <= 1) {
+        gstate->sm.pause();
         return make_unique<GameOverStage>(move(gstate));
     }
     return {};
@@ -216,17 +221,15 @@ void PlayStage::render(sf::RenderWindow& window) {
     sf::View view;
     view.reset(sf::FloatRect(0, 0, window.getSize().x / 2 / gstate->dpi_scaling_factor, window.getSize().y / 4 / gstate->dpi_scaling_factor));
 
-    view.setCenter(sf::Vector2f(gstate->current_positions[0].first, gstate->current_positions[0].second));
     view.setViewport(sf::FloatRect(0, 0, 1.0, 0.5));
     window.setView(view);
-    gstate->rm.render(window);
+    gstate->rms[0].render(window);
 
-    view.setCenter(sf::Vector2f(gstate->current_positions[1].first, gstate->current_positions[1].second));
     view.setViewport(sf::FloatRect(0, 0.5, 1.0, 0.5));
     window.setView(view);
-    gstate->rm.render(window);
+    gstate->rms[1].render(window);
 
-    if (gstate->rm.is_paused()) {
+    if (gstate->sm.is_paused()) {
         if (darkness < 255) {
             ++darkness;
         }
@@ -245,15 +248,13 @@ void GameOverStage::render(sf::RenderWindow& window) {
     sf::View view;
     view.reset(sf::FloatRect(0, 0, window.getSize().x / 2 / gstate->dpi_scaling_factor, window.getSize().y / 4 / gstate->dpi_scaling_factor));
 
-    view.setCenter(sf::Vector2f(gstate->current_positions[0].first, gstate->current_positions[0].second));
     view.setViewport(sf::FloatRect(0, 0, 1.0, 0.5));
     window.setView(view);
-    gstate->rm.render(window);
+    gstate->rms[0].render(window);
 
-    view.setCenter(sf::Vector2f(gstate->current_positions[1].first, gstate->current_positions[1].second));
     view.setViewport(sf::FloatRect(0, 0.5, 1.0, 0.5));
     window.setView(view);
-    gstate->rm.render(window);
+    gstate->rms[1].render(window);
 
     if (darkness < 255) {
         ++darkness;
@@ -273,15 +274,16 @@ unique_ptr<Stage> GameOverStage::update(sf::RenderWindow& window) {
                 if (!gstate->players[i]->alive()) {
                     auto obj = gstate->players[i] = gstate->sm.add(Player::TYPE);
                     obj->place(gstate->starting_positions[i].first, gstate->starting_positions[i].second);
-                    gstate->current_positions.emplace_back(make_pair(obj->x(), obj->y()));
-                    dynamic_cast<Player*>(obj.get())->set_num(i);
+                    obj->set_side(i);
                 }
             }
-            gstate->rm.resume();
+            gstate->sm.resume();
             return make_unique<PlayStage>(move(gstate));
         }
     }
-    gstate->rm.update();
+    for (auto& rm : gstate->rms) {
+        rm.update();
+    }
     return {};
 }
 
@@ -353,7 +355,9 @@ unique_ptr<Stage> EditorStage::update(sf::RenderWindow& window) {
             }
         }
     }
-    gstate->rm.update();
+    for (auto& rm : gstate->rms) {
+        rm.update();
+    }
     return {};
 }
 
@@ -362,13 +366,13 @@ void EditorStage::render(sf::RenderWindow& window) {
     view.reset(sf::FloatRect(0, 0, window.getSize().x / 2 / gstate->dpi_scaling_factor, window.getSize().y / 2 / gstate->dpi_scaling_factor));
     window.setView(view);
 
-    sf::Texture tex = gstate->rm.load_texture("data/images/blank.png");
+    sf::Texture tex = gstate->rms[0].load_texture("data/images/blank.png");
     tex.setRepeated(true);
     sf::Sprite spr(tex);
     spr.setTextureRect(sf::IntRect(0, 0, window.getSize().x / 2 / gstate->dpi_scaling_factor, window.getSize().y / 2 / gstate->dpi_scaling_factor));
     window.draw(spr);
 
-    gstate->rm.render(window);
+    gstate->rms[0].render(window);
 }
 
 void StageManager::update(sf::RenderWindow& window) {

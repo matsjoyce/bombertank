@@ -16,41 +16,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "loader.hpp"
-
-#include "walls.hpp"
-#include "player.hpp"
-#include "bomb.hpp"
 #include "chest.hpp"
 
 using namespace std;
 
-
-template<class T> objptr creator(unsigned int id, Map* m) {
-    return make_shared<T>(id, m);
+void Chest::render(sf::RenderTarget& rt) {
+    sf::Sprite sp(render_map()->load_texture("data/images/chest.png"));
+    sp.setPosition(sf::Vector2f(x(), y()));
+    rt.draw(sp);
 }
 
-bool loaded;
-map<unsigned int, function<objptr(unsigned int, Map*)>> object_creators;
+// unsigned int Chest::max_hp() {
+//     return 50;
+// }
 
-template<class T> void load() {
-    if (object_creators.count(T::TYPE)) {
-        throw runtime_error("Duplicate ids");
-    }
-    object_creators[T::TYPE] = &creator<T>;
-}
-
-map<unsigned int, function<objptr(unsigned int, Map*)>> load_objects() {
-    if (!loaded) {
-        load<Wall>();
-        load<IndestructableWall>();
-        load<PlacedWall>();
-        load<Player>();
-        load<StaticBomb>();
-        load<TimedBomb>();
-        load<RoboBomb>();
-        load<Chest>();
-        loaded = true;
-    }
-    return object_creators;
+unsigned int Chest::layer() {
+    return 2;
 }
