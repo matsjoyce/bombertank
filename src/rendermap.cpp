@@ -95,6 +95,11 @@ void RenderMap::render(sf::RenderTarget& rt) {
         view.reset(sf::FloatRect({}, view.getSize()));
         rt.setView(view);
 
+        sf::RectangleShape border(sf::Vector2f(202, 8));
+        border.setPosition(1, 1);
+        border.setFillColor(sf::Color::Black);
+        rt.draw(border);
+
         auto texbg = load_texture("data/images/hp_bar_bg.png");
         texbg.setRepeated(true);
         sf::Sprite sp_bg(texbg);

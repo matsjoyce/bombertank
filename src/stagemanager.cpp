@@ -34,12 +34,9 @@ struct GameState {
     vector<objptr> players;
     vector<RenderMap> rms;
     thread thr;
-    sf::RenderTexture black_tex;
     sf::Font font;
     int dpi_scaling_factor = 1;
     GameState() : sm(), thr([this]{return sm.run();}) {
-        black_tex.create(1, 1);
-        black_tex.clear(sf::Color::Black);
         font.loadFromFile("data/fonts/font.pcf");
         const_cast<sf::Texture&>(font.getTexture(12)).setSmooth(false);
     }
@@ -203,11 +200,9 @@ void draw_darkbg_text(sf::View& view, sf::RenderTarget& window, unique_ptr<GameS
     view.setViewport(sf::FloatRect(0, 0, 1.0, 1.0));
     window.setView(view);
 
-    sf::Sprite spr(gstate->black_tex.getTexture());
-    spr.setColor(sf::Color(255, 255, 255, min(200, darkness)));
-    spr.setPosition(sf::Vector2f(0, 0));
-    spr.setScale(sf::Vector2f(window.getSize() / scaleup));
-    window.draw(spr);
+    sf::RectangleShape drect(sf::Vector2f(window.getSize() / scaleup));
+    drect.setFillColor(sf::Color(0, 0, 0, min(200, darkness)));
+    window.draw(drect);
 
     sf::FloatRect textRect = text.getLocalBounds();
     text.setOrigin(textRect.left + textRect.width/2.0f,

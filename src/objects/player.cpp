@@ -192,7 +192,7 @@ void Player::update() {
 }
 
 unsigned int Player::max_hp() {
-    return 100;
+    return 150;
 }
 
 unsigned int Player::layer() {
