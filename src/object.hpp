@@ -125,6 +125,7 @@ public:
         return map;
     }
     virtual unsigned int max_hp();
+    void position_sprite(sf::Sprite& spr);
 protected:
     Map* map;
 private:

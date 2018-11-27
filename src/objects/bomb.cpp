@@ -25,7 +25,7 @@ using namespace std;
 
 void StaticBomb::render(sf::RenderTarget& rt) {
     sf::Sprite sp(render_map()->load_texture("data/images/bomb.png"));
-    sp.setPosition(sf::Vector2f(x(), y()));
+    position_sprite(sp);
     rt.draw(sp);
 }
 
@@ -155,13 +155,27 @@ void RoboBomb::render(sf::RenderTarget& rt) {
         clock.restart();
     }
     sf::Sprite sp(render_map()->load_texture(t < 0.1 && speed() ? "data/images/robobomb2.png" : "data/images/robobomb.png"));
-    sp.setOrigin(sf::Vector2f(width / 2, height / 2));
-    sp.setPosition(sf::Vector2f(x() + width / 2, y() + height / 2));
-    sp.setRotation(angle(orientation()));
+    position_sprite(sp);
     rt.draw(sp);
 }
 
-Explosion::Explosion(RenderMap* map_, unsigned int id_, int x_, int y_, Orientation::Orientation ori, Position pos/* = CENTER*/) : Effect(map_, id_, x_, y_, ori), position(pos) {
+void Mine::collision(objptr obj, bool caused_by_self) {
+    if (obj->side() != side()) {
+        destroy();
+    }
+}
+
+void Mine::render(sf::RenderTarget& rt) {
+    auto rm = render_map();
+    if (rm->side() == side()) {
+        sf::Sprite sp(render_map()->load_texture("data/images/mine.png"));
+        position_sprite(sp);
+        rt.draw(sp);
+    }
+}
+
+Explosion::Explosion(RenderMap* map_, unsigned int id_, int x_, int y_, Orientation::Orientation ori, Position pos/* = CENTER*/)
+    : Effect(map_, id_, x_, y_, ori), position(pos) {
     if (pos == Position::CENTER) {
         sound.setBuffer(map->load_sound_buf("data/sounds/explosion.ogg"));
         sound.play();

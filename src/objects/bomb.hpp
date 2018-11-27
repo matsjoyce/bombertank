@@ -62,6 +62,17 @@ public:
     void collision(objptr obj, bool caused_by_self) override;
 };
 
+class Mine : public StaticBomb {
+public:
+    using StaticBomb::StaticBomb;
+    constexpr static const int TYPE = 9;
+    virtual unsigned int type() override {
+        return 9;
+    }
+    void render(sf::RenderTarget& rt) override;
+    void collision(objptr obj, bool caused_by_self) override;
+};
+
 class Explosion : public Effect {
 public:
     enum class Position {CENTER, MIDDLE, END};

@@ -49,6 +49,7 @@ map<unsigned int, function<objptr(unsigned int, Map*)>> load_objects() {
         load<StaticBomb>();
         load<TimedBomb>();
         load<RoboBomb>();
+        load<Mine>();
         load<Chest>();
         loaded = true;
     }

@@ -310,3 +310,9 @@ void Object::set_hp(unsigned int hp) {
 
 void Object::collision(objptr /*obj*/, bool /*caused_by_self*/) {
 }
+
+void Object::position_sprite(sf::Sprite& spr) {
+    spr.setOrigin(sf::Vector2f(width / 2, height / 2));
+    spr.setPosition(sf::Vector2f(x_ + width / 2, y_ + height / 2));
+    spr.setRotation(angle(orientation_));
+}

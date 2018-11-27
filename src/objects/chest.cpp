@@ -22,7 +22,7 @@ using namespace std;
 
 void Chest::render(sf::RenderTarget& rt) {
     sf::Sprite sp(render_map()->load_texture("data/images/chest.png"));
-    sp.setPosition(sf::Vector2f(x(), y()));
+    position_sprite(sp);
     rt.draw(sp);
 }
 

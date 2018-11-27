@@ -25,7 +25,7 @@ class Player : public Object {
     std::vector<Orientation::Orientation> direction_stack;
     int max_speed = 4;
     int num_bombs = 3;
-    int num_walls = 5;
+    int num_walls = 8;
     sf::Clock anim_clock;
     std::string tex_name = "data/images/tank1.png";
     void setup_keys();

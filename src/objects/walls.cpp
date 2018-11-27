@@ -22,7 +22,7 @@ using namespace std;
 
 void Wall::render(sf::RenderTarget& rt) {
     sf::Sprite sp(render_map()->load_texture("data/images/wall.png"));
-    sp.setPosition(sf::Vector2f(x(), y()));
+    position_sprite(sp);
     rt.draw(sp);
 }
 
@@ -36,7 +36,7 @@ unsigned int Wall::layer() {
 
 void IndestructableWall::render(sf::RenderTarget& rt) {
     sf::Sprite sp(render_map()->load_texture("data/images/iwall.png"));
-    sp.setPosition(sf::Vector2f(x(), y()));
+    position_sprite(sp);
     rt.draw(sp);
 }
 
@@ -51,7 +51,7 @@ unsigned int IndestructableWall::layer() {
 
 void PlacedWall::render(sf::RenderTarget& rt) {
     sf::Sprite sp(render_map()->load_texture("data/images/pwall.png"));
-    sp.setPosition(sf::Vector2f(x(), y()));
+    position_sprite(sp);
     rt.draw(sp);
 }
 

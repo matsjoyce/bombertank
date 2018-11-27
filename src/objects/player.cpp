@@ -57,15 +57,11 @@ void Player::render(sf::RenderTarget& rt) {
         tex_name = t < 1 ? "data/images/tank1.png" : t < 2 ? "data/images/tank2.png" : t < 3 ? "data/images/tank3.png" : "data/images/tank4.png";
     }
     sf::Sprite sp(render_map()->load_texture(tex_name));
-    sp.setOrigin(sf::Vector2f(width / 2, height / 2));
-    sp.setPosition(sf::Vector2f(x() + width / 2, y() + height / 2));
-    sp.setRotation(angle(orientation()));
+    position_sprite(sp);
     rt.draw(sp);
 
     sf::Sprite sp2(render_map()->load_texture("data/images/tank_colored.png"));
-    sp2.setOrigin(sf::Vector2f(width / 2, height / 2));
-    sp2.setPosition(sf::Vector2f(x() + width / 2, y() + height / 2));
-    sp2.setRotation(angle(orientation()));
+    position_sprite(sp2);
     sp2.setColor(player_settings[side()].color);
     rt.draw(sp2);
 }
