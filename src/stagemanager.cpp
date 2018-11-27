@@ -237,7 +237,14 @@ void PlayStage::render(sf::RenderWindow& window) {
     }
 }
 
-GameOverStage::GameOverStage(unique_ptr<GameState> gs) : gstate(move(gs)), text("Game Over!", gstate->font, 12) {
+bool all_have_lives(unique_ptr<GameState>& gs) {
+    for (auto& player : gs->players) {
+        if (!dynamic_cast<Player*>(player.get())->lives()) return false;
+    }
+    return true;
+}
+
+GameOverStage::GameOverStage(unique_ptr<GameState> gs) : gstate(move(gs)), text(all_have_lives(gstate) ? "You Died!" : "Game Over!", gstate->font, 12) {
 }
 
 void GameOverStage::render(sf::RenderWindow& window) {
