@@ -147,34 +147,60 @@ vector<objptr> ServerMap::objs_at_dir(objptr obj, Orientation::Orientation dir) 
     return ret;
 }
 
-std::vector<objptr> ServerMap::collides(int ox, int oy, int ow, int oh) {
-    vector<objptr> ret;
+vector<pair<int, objptr>> ServerMap::collides(int ox, int oy, int ow, int oh) {
+    vector<pair<int, objptr>> ret;
+    int dist;
     for (auto& obj : objects) {
-        if (!defered_destroy.count(obj.first) && obj.second->separation_distance(ox, oy, ow, oh) < 0) {
-            ret.push_back(obj.second);
+        if (!defered_destroy.count(obj.first) && (dist = obj.second->separation_distance(ox, oy, ow, oh)) < 0) {
+            auto item = make_pair(dist, obj.second);
+            ret.insert(upper_bound(ret.begin(), ret.end(), item), item);
         }
     }
     return ret;
 }
 
-std::vector<objptr> ServerMap::collides(int ox, int oy, int ow, int oh, Orientation::Orientation dir, int movement) {
-    auto dx_ = dx(dir) * movement;
-    if (dx_ > 0) {
-        ow += dx_;
+vector<pair<int, objptr>> ServerMap::collides_by_moving(int ox, int oy, int ow, int oh, Orientation::Orientation dir, int movement) {
+    int nx, ny, nw, nh;
+    switch (dir) {
+        case Orientation::N: {
+            nh = movement;
+            nw = ow;
+            ny = oy - movement;
+            nx = ox;
+            break;
+        }
+        case Orientation::E: {
+            nh = oh;
+            nw = movement;
+            ny = oy;
+            nx = ox + ow;
+            break;
+        }
+        case Orientation::S: {
+            nh = movement;
+            nw = ow;
+            ny = oy + oh;
+            nx = ox;
+            break;
+        }
+        case Orientation::W: {
+            nh = oh;
+            nw = movement;
+            ny = oy;
+            nx = ox - movement;
+            break;
+        }
     }
-    else {
-        ox += dx_;
-        ow -= dx_;
+    vector<pair<int, objptr>> ret;
+    int dist;
+    for (auto& obj : objects) {
+        if (obj.second->alive() && obj.second->separation_distance(nx, ny, nw, nh) < 0
+            && (dist = obj.second->separation_distance(ox, oy, ow, oh)) > -static_cast<int>(obj.second->width) / 2) {
+            auto item = make_pair(dist, obj.second);
+            ret.insert(upper_bound(ret.begin(), ret.end(), item), item);
+        }
     }
-    auto dy_ = dy(dir) * movement;
-    if (dy_ > 0) {
-        oh += dy_;
-    }
-    else {
-        oy += dy_;
-        oh -= dy_;
-    }
-    return collides(ox, oy, ow, oh);
+    return ret;
 }
 
 

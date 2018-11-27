@@ -113,33 +113,42 @@ void Object::end_update() {
     speed_ += accel_;
     bool edge_help = false;
     if (speed_) {
-        int go_left = 0, go_right = 0, go_total = 0;;
-        for (auto& obj : server_map()->objs_at_dir(shared_from_this(), direction_)) {
-            int sd = obj->separation_distance(shared_from_this());
-            if (sd < speed_ && sd > -static_cast<int>(obj->width) / 2) {
-                speed_ = sd;
+        int go_left = 0, go_right = 0, go_total = 0;
+        for (auto& obj : server_map()->collides_by_moving(x(), y(), width, height, direction(), speed())) {
+            if (type() == 3) {
+                cout << obj.first << " " << obj.second << endl;
             }
-            if (sd <= 0 && sd > -static_cast<int>(obj->width) / 2) {
-                go_right += obj->separation_distance(x() + dx(right(direction_)) * GET_ROUND_MARGIN, y() + dy(right(direction_)) * GET_ROUND_MARGIN, width, height, direction_, 1) >= 0;
-                go_left += obj->separation_distance(x() + dx(left(direction_)) * GET_ROUND_MARGIN, y() + dy(left(direction_)) * GET_ROUND_MARGIN, width, height, direction_, 1) >= 0;
+            if (obj.first < speed_) {
+                speed_ = max(0, obj.first);
+            }
+            if (obj.first > speed_) {
+                break;
+            }
+            collision(obj.second, true);
+            obj.second->collision(shared_from_this(), false);
+            if (obj.first == 0) {
+                go_right += obj.second->separation_distance(x() + dx(right(direction_)) * GET_ROUND_MARGIN, y() + dy(right(direction_)) * GET_ROUND_MARGIN, width, height, direction_, 1) >= 0;
+                go_left += obj.second->separation_distance(x() + dx(left(direction_)) * GET_ROUND_MARGIN, y() + dy(left(direction_)) * GET_ROUND_MARGIN, width, height, direction_, 1) >= 0;
                 go_total += 1;
             }
         }
 
-        if (speed_ > 0) {
+        if (speed_) {
             x_ += dx(direction_) * speed_;
             y_ += dy(direction_) * speed_;
         }
-        else {
+        else if (go_total) {
+            auto dir = direction_;
             if (go_left == go_total) {
-                edge_help = true;
-                x_ += dx(left(direction_));
-                y_ += dy(left(direction_));
+                dir = left(direction_);
             }
             else if (go_right == go_total) {
+                dir = right(direction_);
+            }
+            if (dir != direction_ && !server_map()->collides_by_moving(x(), y(), width, height, dir, 1).size()) {
+                x_ += dx(dir);
+                y_ += dy(dir);
                 edge_help = true;
-                x_ += dx(right(direction_));
-                y_ += dy(right(direction_));
             }
         }
     }
@@ -297,4 +306,7 @@ void Object::set_side(unsigned int side) {
 
 void Object::set_hp(unsigned int hp) {
     hp_ = hp;
+}
+
+void Object::collision(objptr /*obj*/, bool /*caused_by_self*/) {
 }

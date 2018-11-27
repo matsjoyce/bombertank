@@ -331,12 +331,12 @@ unique_ptr<Stage> EditorStage::update(sf::RenderWindow& window) {
                     for (auto& obj : gstate->sm.collides(start_x * STANDARD_OBJECT_SIZE, start_y * STANDARD_OBJECT_SIZE,
                                                          (end_x - start_x + 1) * STANDARD_OBJECT_SIZE,
                                                          (end_y - start_y + 1) * STANDARD_OBJECT_SIZE)) {
-                        obj->destroy();
+                        obj.second->destroy();
                     }
                 }
                 else {
                     for (auto& obj : gstate->sm.collides(x * STANDARD_OBJECT_SIZE, y * STANDARD_OBJECT_SIZE, STANDARD_OBJECT_SIZE, STANDARD_OBJECT_SIZE)) {
-                        obj->destroy();
+                        obj.second->destroy();
                     }
                 }
                 last_dx = x;

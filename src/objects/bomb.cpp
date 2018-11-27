@@ -31,9 +31,10 @@ void StaticBomb::render(sf::RenderTarget& rt) {
 
 pair<unsigned int, bool> kill_in_tile(ServerMap* sm, int x, int y, objptr obj, unsigned int damage) {
     bool all_dead = true;
+    // TODO use one collide box and iterate though until no damage left (objs are now sorted by distance)
     for (auto& obj2 : sm->collides(x + 5, y + 5, obj->width - 10, obj->height - 10)) {
-        damage = obj2->take_damage(damage, DamageType::FORCE);
-        all_dead = all_dead && !obj2->alive();
+        damage = obj2.second->take_damage(damage, DamageType::FORCE);
+        all_dead = all_dead && !obj2.second->alive();
     }
     return {damage, all_dead};
 }
@@ -133,22 +134,20 @@ void RoboBomb::update() {
             stuck = false;
         }
 
-        for (auto& obj : sm->collides(x(), y(), width, height, direction(), 1)) {
-            if (obj->id == id) continue;
-            if (dynamic_cast<Player*>(obj.get())) {
-                destroy();
-                return;
-            }
-            else {
-                stuck = true;
-                wait = 20;
-                return;
-            }
-        }
-
         accelerate(2 - speed());
     }
 }
+
+void RoboBomb::collision(objptr obj, bool caused_by_self) {
+    if (obj->type() == Player::TYPE) {
+        destroy();
+    }
+    else if (caused_by_self) {
+        stuck = true;
+        wait = 20;
+    }
+}
+
 
 void RoboBomb::render(sf::RenderTarget& rt) {
     auto t = clock.getElapsedTime().asSeconds();

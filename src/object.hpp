@@ -70,6 +70,7 @@ public:
     virtual void render_handle(Message m);
     virtual void handle_keypress(sf::Keyboard::Key key, bool is_down);
     virtual void destroy(bool send=true);
+    virtual void collision(objptr obj, bool caused_by_self);
 
     RenderMap* render_map();
     ServerMap* server_map();

@@ -110,7 +110,6 @@ void RenderMap::render(sf::RenderTarget& rt) {
         auto texfg = load_texture("data/images/hp_bar_fg.png");
         texfg.setRepeated(true);
         sf::Sprite sp_fg(texfg);
-        cout << following->hp() << " " << following->max_hp() << endl;
         sp_fg.setTextureRect(sf::IntRect(0, 0, min(200u, 200 * following->hp() / following->max_hp()), 6));
         sp_fg.setPosition(2, 2);
         rt.draw(sp_fg);

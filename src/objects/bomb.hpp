@@ -59,6 +59,7 @@ public:
     RoboBomb(unsigned int id_, Map* map_);
     void update() override;
     void render(sf::RenderTarget& rt) override;
+    void collision(objptr obj, bool caused_by_self) override;
 };
 
 class Explosion : public Effect {
