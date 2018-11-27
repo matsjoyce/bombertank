@@ -17,55 +17,51 @@
  */
 
 #include "rendermap.hpp"
-#include "../build/src/generic_msg.pb.h"
 #include <variant>
+#include <iostream>
 
 using namespace std;
 
 RenderMap::RenderMap(std::unique_ptr<EventServer> evs, unsigned int side) : es(move(evs)), side_(side) {
 }
 
-void RenderMap::event(Message&& msg) {
-    es->send(move(msg));
+void RenderMap::event(msgpackvar&& msg) {
+    es->send(std::move(msg));
 }
 
 void RenderMap::update() {
     for (auto event : es->events()) {
-        switch (event.type()) {
-            case Message::CREATE: {
-                if (!event.value().Is<GenericMessage>()) {
-                    throw runtime_error("Create message's value is not a GenericMessage");
-                }
-                GenericMessage gm;
-                event.value().UnpackTo(&gm);
-                auto obj = add(gm.type(), gm.id());
-                obj->place(gm.x(), gm.y());
-                obj->set_side(gm.side());
+        switch (static_cast<ToRenderMessage>(event["mtype"].as_uint64_t())) {
+            case ToRenderMessage::CREATE: {
+                auto obj = add(event["type"].as_uint64_t(), event["id"].as_uint64_t());
+                obj->place(extract_int(event["x"]), extract_int(event["y"]));
+                obj->set_side(event["side"].as_uint64_t());
                 layers.insert(make_pair(obj->layer(), obj));
                 break;
             }
-            case Message::PAUSED: {
+            case ToRenderMessage::PAUSED: {
                 is_paused_ = true;
                 paused.emit();
                 break;
             }
-            case Message::RESUMED: {
+            case ToRenderMessage::RESUMED: {
                 is_paused_ = false;
                 resumed.emit();
                 break;
             }
-            default: {
-                if (event.id()) {
-                    if (objects.count(event.id())) {
-                        objects[event.id()]->render_handle(event);
-                    }
-                    else {
-                        cout << "Event " << event.type() << " for non-existent object " << event.id() << endl;
-                    }
+            case ToRenderMessage::FOROBJ: {
+                auto id = event["id"].as_uint64_t();
+                if (objects.count(id)) {
+                    objects[id]->render_handle(event);
                 }
                 else {
-                    cout << "Unhandled event in RenderMap: " << event.type() << endl;
+                    msgpack::zone z;
+                    cout << "Event for non-existent object " << id << " " << msgpack::object(event, z) << ", have " << objects.size() << " objects" << endl;
                 }
+                break;
+            }
+            default: {
+                cout << "Unhandled event in RenderMap: " << event["type"].as_uint64_t() << endl;
             }
         }
     }
@@ -154,15 +150,15 @@ void RenderMap::remove(objptr obj) {
 }
 
 void RenderMap::pause() {
-    Message m;
-    m.set_type(Message::PAUSE);
-    event(move(m));
+    msgpackvar m;
+    m["mtype"] = as_ui(ToServerMessage::PAUSE);
+    event(std::move(m));
 }
 
 void RenderMap::resume() {
-    Message m;
-    m.set_type(Message::RESUME);
-    event(move(m));
+    msgpackvar m;
+    m["mtype"] = as_ui(ToServerMessage::RESUME);
+    event(std::move(m));
 }
 
 void RenderMap::follow(objptr obj) {

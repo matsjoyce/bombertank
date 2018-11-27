@@ -24,6 +24,7 @@
 #include <thread>
 #include <filesystem>
 #include <list>
+#include <iostream>
 
 namespace fs = std::filesystem;
 using namespace std;
@@ -267,8 +268,12 @@ unique_ptr<Stage> GameOverStage::update(sf::RenderWindow& window) {
         if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space) {
             for (unsigned int i = 0; i < gstate->players.size(); ++i) {
                 if (!gstate->players[i]->alive()) {
+                    auto pl = dynamic_cast<Player*>(gstate->players[i].get());
+                    if (!pl->lives()) {
+                        return make_unique<LoadStage>();
+                    }
                     auto obj = gstate->sm.add(Player::TYPE);
-                    dynamic_cast<Player*>(gstate->players[i].get())->transfer(obj);
+                    pl->transfer(obj);
                     obj->place(gstate->starting_positions[i].first, gstate->starting_positions[i].second);
                     gstate->players[i] = obj;
                 }

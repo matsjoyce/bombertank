@@ -24,33 +24,33 @@
 #include <condition_variable>
 #include <vector>
 #include <thread>
-#include "../build/src/message.pb.h"
+#include "msgpack_utils.hpp"
 
 
 class EventServer {
     std::mutex qmu;
-    std::queue<Message> qu;
+    std::queue<msgpackvar> qu;
     std::condition_variable cv;
 
     std::mutex mu;
-    std::vector<Message> buf;
+    std::vector<msgpackvar> buf;
     std::thread rt;
 
     EventServer* other;
 public:
     EventServer();
     ~EventServer();
-    inline void send(Message&& m) {
-        other->push(std::forward<Message>(m));
+    inline void send(msgpackvar&& m) {
+        other->push(std::forward<msgpackvar>(m));
     }
-    inline void push(Message&& m) {
+    inline void push(msgpackvar&& m) {
         {
             std::lock_guard<std::mutex> lock(qmu);
-            qu.push(std::forward<Message>(m));
+            qu.push(std::forward<msgpackvar>(m));
         }
         cv.notify_one();
     }
-    std::vector<Message> events();
+    std::vector<msgpackvar> events();
     void run();
     inline void connect(EventServer* s) {
         other = s;

@@ -21,7 +21,7 @@
 #include "object.hpp"
 #include "objects/loader.hpp"
 #include "objects/player.hpp"
-#include "../build/src/generic_msg.pb.h"
+#include <iostream>
 
 using namespace std;
 
@@ -40,38 +40,34 @@ void Map::remove(objptr obj) {
 void ServerMap::add_controller(unsigned int side, std::unique_ptr<EventServer> es) {
     side_controllers.emplace(make_pair(side, move(es)));
     for (auto& obj : objects) {
-        Message m;
-        m.set_type(Message::CREATE);
-        GenericMessage gm;
-        gm.set_type(obj.second->type());
-        gm.set_id(obj.second->id);
-        gm.set_x(obj.second->x());
-        gm.set_y(obj.second->y());
-        gm.set_side(obj.second->side());
-        m.mutable_value()->PackFrom(gm);
-        side_controllers[side]->send(move(m));
+        msgpackvar m;
+        m["mtype"] = as_ui(ToRenderMessage::CREATE);
+        m["id"] = obj.first;
+        m["type"] = obj.second->type();
+        m["x"] = obj.second->x();
+        m["y"] = obj.second->y();
+        m["side"] = obj.second->side();
+        side_controllers[side]->send(std::move(m));
     }
 }
 
-void ServerMap::event(objptr obj, Message&& msg) {
+void ServerMap::event(objptr obj, msgpackvar&& msg) {
     for (auto& sc : side_controllers) {
         auto m = msg;
-        sc.second->send(move(m));
+        sc.second->send(std::move(m));
     }
 }
 
 objptr ServerMap::add(unsigned int type) {
     auto obj = Map::add(type, next_id++);
-    Message m;
-    m.set_type(Message::CREATE);
-    GenericMessage gm;
-    gm.set_type(type);
-    gm.set_id(obj->id);
-    gm.set_x(obj->x());
-    gm.set_y(obj->y());
-    gm.set_side(obj->side());
-    m.mutable_value()->PackFrom(gm);
-    event(obj, move(m));
+    msgpackvar m;
+    m["mtype"] = as_ui(ToRenderMessage::CREATE);
+    m["id"] = obj->id;
+    m["type"] = type;
+    m["x"] = obj->x();
+    m["y"] = obj->y();
+    m["side"] = obj->side();
+    event(obj, std::move(m));
     return obj;
 }
 
@@ -96,30 +92,30 @@ void ServerMap::run() {
 
         for (auto& sc : side_controllers) {
             for (auto event : sc.second->events()) {
-                switch (event.type()) {
-                    case Message::PAUSE: {
+                switch (static_cast<ToServerMessage>(event["mtype"].as_uint64_t())) {
+                    case ToServerMessage::PAUSE: {
                         pause();
                         break;
                     }
-                    case Message::RESUME: {
+                    case ToServerMessage::RESUME: {
                         resume();
                         break;
                     }
-                    default: {
-                        if (event.id()) {
-                            if (is_paused_) {
-                                cout << "Event " << event.type() << " for obj " << event.id() << " while paused!" << endl;
-                            }
-                            else if (objects.count(event.id())) {
-                                objects[event.id()]->handle(event);
-                            }
-                            else {
-                                cout << "Event " << event.type() << " for non-existent object " << event.id() << endl;
-                            }
+                    case ToServerMessage::FOROBJ: {
+                        auto id = event["id"].as_uint64_t();
+                        if (is_paused_) {
+                            cout << "Event for obj " << id << " while paused!" << endl;
+                        }
+                        else if (objects.count(id)) {
+                            objects[id]->handle(event);
                         }
                         else {
-                            cout << "Unhandled event in ServerMap: " << event.type() << endl;
+                            cout << "Event for non-existent object " << id << endl;
                         }
+                        break;
+                    }
+                    default: {
+                        cout << "Unhandled event in ServerMap: " << event["type"].as_uint64_t() << endl;
                     }
                 }
             }
@@ -222,20 +218,19 @@ void ServerMap::save_objects_to_map(std::ostream& f) {
 void ServerMap::pause() {
     is_paused_ = true;
     paused.emit();
-    Message m;
-    m.set_type(Message::PAUSED);
-    ServerMap::event({}, move(m));
+    msgpackvar m;
+    m["mtype"] = as_ui(ToRenderMessage::PAUSED);
+    ServerMap::event({}, std::move(m));
 }
 
 
 void ServerMap::resume() {
     is_paused_ = false;
     resumed.emit();
-    Message m;
-    m.set_type(Message::RESUMED);
-    ServerMap::event({}, move(m));
+    msgpackvar m;
+    m["mtype"] = as_ui(ToRenderMessage::RESUMED);
+    ServerMap::event({}, std::move(m));
 }
-
 
 
 std::vector<objptr> load_objects_from_file(std::istream& f, ServerMap& map) {

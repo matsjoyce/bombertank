@@ -21,10 +21,10 @@
 
 #include <map>
 #include <functional>
-#include "../build/src/message.pb.h"
 #include "orientation.hpp"
 #include "signal.hpp"
 #include <SFML/Graphics.hpp>
+#include "msgpack_utils.hpp"
 
 constexpr const int STANDARD_OBJECT_SIZE = 24;
 
@@ -35,10 +35,22 @@ class Object;
 
 using objptr =  std::shared_ptr<Object>;
 
-enum class DamageType {
+enum class DamageType : unsigned int {
     FORCE,
     HEAT,
     ELECTRIC
+};
+
+enum class RenderObjectMessage : unsigned int {
+    MOVE,
+    DESTROY,
+    CHANGE_SIDE,
+    TAKE_DAMAGE,
+    END
+};
+
+enum class ServerObjectMessage : unsigned int {
+    END
 };
 
 class Object : public std::enable_shared_from_this<Object> {
@@ -67,8 +79,8 @@ public:
     virtual void render_update();
     virtual void render(sf::RenderTarget& rt);
     virtual void render_hud(sf::RenderTarget& rt);
-    virtual void handle(Message m);
-    virtual void render_handle(Message m);
+    virtual void handle(msgpackvar m);
+    virtual void render_handle(msgpackvar m);
     virtual void handle_keypress(sf::Keyboard::Key key, bool is_down);
     virtual void destroy(bool send=true);
     virtual void collision(objptr obj, bool caused_by_self);

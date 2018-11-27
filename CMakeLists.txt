@@ -9,10 +9,7 @@ if(SFML_FOUND)
     include_directories(${SFML_INCLUDE_DIR})
 endif()
 
-find_package(Protobuf REQUIRED)
-if(PROTOBUF_FOUND)
-    include_directories(${Protobuf_INCLUDE_DIRS})
-    include_directories(${CMAKE_CURRENT_BINARY_DIR})
-endif()
+add_compile_definitions(MSGPACK_USE_BOOST)
+include_directories("${PROJECT_SOURCE_DIR}/deps/msgpack-c/include/")
 
 add_subdirectory(src)

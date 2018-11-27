@@ -17,6 +17,7 @@
  */
 
 #include "eventqueue.hpp"
+#include <iostream>
 
 using namespace std;
 
@@ -24,34 +25,34 @@ EventServer::EventServer() : rt(thread{[this]{return run();}}) {
 }
 
 EventServer::~EventServer() {
-    push(Message());
+    push(msgpackvar{{"halt_now", true}});
     rt.join();
 }
 
 
-vector<Message> EventServer::events() {
+vector<msgpackvar> EventServer::events() {
     lock_guard<mutex> lg(mu);
-    auto ret = move(buf);
-    buf = {};
+    vector<msgpackvar> ret;
+    buf.swap(ret);
     return ret;
 }
 
 void EventServer::run() {
     cout << "EventServer::run is go!" << endl;
-    Message m;
+    msgpackvar m;
     while (true) {
         {
             unique_lock<mutex> ul(qmu);
             cv.wait(ul, [this]{return !qu.empty();});
-            m = move(qu.front());
+            m = std::move(qu.front());
             qu.pop();
         }
-        switch (m.type()) {
-            case Message::HALT: return;
-            default: {
-                lock_guard<mutex> lg(mu);
-                buf.emplace_back(move(m));
-            }
+        if (m.count("halt_now")) {
+            return;
+        }
+        {
+            lock_guard<mutex> lg(mu);
+            buf.emplace_back(std::move(m));
         }
     }
 }

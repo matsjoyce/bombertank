@@ -17,14 +17,19 @@
  */
 
 #include "player.hpp"
-#include "../../build/src/generic_msg.pb.h"
 #include "bomb.hpp"
 #include "walls.hpp"
+#include <iostream>
 
 using namespace std;
 
-enum PlayerCommands {
-    START_MOVE, END_MOVE, DROP_BOMB, DROP_WALL
+enum class PlayerServerMessage : unsigned int {
+    START_MOVE = static_cast<unsigned int>(RenderObjectMessage::END),
+    END_MOVE, DROP_BOMB, DROP_WALL, TRANSFER
+};
+
+enum class PlayerRenderMessage : unsigned int {
+    TRANSFER = static_cast<unsigned int>(RenderObjectMessage::END)
 };
 
 struct PlayerSettings {
@@ -67,82 +72,80 @@ void Player::render(sf::RenderTarget& rt) {
 }
 
 void Player::handle_keypress(sf::Keyboard::Key key, bool is_down) {
-    Message m;
-    m.set_id(id);
-    m.set_type(Message::PLAYER_COMMAND);
-    GenericMessage gm;
+    msgpackvar m;
+    m["mtype"] = as_ui(ToServerMessage::FOROBJ);
+    m["id"] = id;
     if (key == player_settings[side()].bomb) {
         if (!is_down) {
             return;
         }
-        gm.set_id(DROP_BOMB);
+        m["type"] = as_ui(PlayerServerMessage::DROP_BOMB);
     }
     else if (key == player_settings[side()].wall) {
         if (!is_down) {
             return;
         }
-        gm.set_id(DROP_WALL);
+        m["type"] = as_ui(PlayerServerMessage::DROP_WALL);
     }
     else {
-        gm.set_id(is_down ? START_MOVE : END_MOVE);
-        cout << key << " " << is_down << " " << gm.id() << endl;
-        if (key == player_settings[side()].left) gm.set_orientation(Orientation::W);
-        else if (key == player_settings[side()].right) gm.set_orientation(Orientation::E);
-        else if (key == player_settings[side()].up) gm.set_orientation(Orientation::N);
-        else if (key == player_settings[side()].down) gm.set_orientation(Orientation::S);
+        m["type"] = is_down ? as_ui(PlayerServerMessage::START_MOVE) : as_ui(PlayerServerMessage::END_MOVE);
+        m["ori"] = key == player_settings[side()].left ? as_ui(Orientation::W) :
+                   key == player_settings[side()].right ? as_ui(Orientation::E) :
+                   key == player_settings[side()].up ? as_ui(Orientation::N) :
+                   key == player_settings[side()].down ? as_ui(Orientation::S) : as_ui(-1);
     }
-    m.mutable_value()->PackFrom(gm);
-    render_map()->event(move(m));
+    render_map()->event(std::move(m));
 }
 
-void Player::handle(Message m) {
-    switch (m.type()) {
-        case Message::PLAYER_COMMAND: {
-            GenericMessage gm;
-            m.value().UnpackTo(&gm);
-            switch (gm.id()) {
-                case START_MOVE: {
-                    direction_stack.push_back(static_cast<Orientation::Orientation>(gm.orientation()));
-                    break;
-                }
-                case END_MOVE: {
-                    auto pos = find(direction_stack.begin(), direction_stack.end(), static_cast<Orientation::Orientation>(gm.orientation()));
-                    if (pos == direction_stack.end()) {
-                        cout << "No move to end " << gm.orientation() << endl;
-                    }
-                    else {
-                        direction_stack.erase(pos);
-                    }
-                    break;
-                }
-                case DROP_BOMB: {
-                    cout << "DROP_BOMB " << num_bombs << endl;
-                    if (num_bombs) {
-                        --num_bombs;
-                        auto obj = server_map()->add(TimedBomb::TYPE);
-                        obj->place(tcx(), tcy());
-                        obj->destroyed.connect([this]{++num_bombs;});
-                    }
-                    break;
-                }
-                case DROP_WALL: {
-                    if (num_walls) {
-                        --num_walls;
-                        auto obj = server_map()->add(PlacedWall::TYPE);
-                        obj->place(tcx(), tcy());
-                        obj->destroyed.connect([this]{++num_walls;});
-                    }
-                    break;
-                }
-                default: {
-                    cout << "Unhandled PC " << gm.id() << " in Player::handle" << endl;
-                }
+void Player::handle(msgpackvar m) {
+    switch (static_cast<PlayerServerMessage>(m["type"].as_uint64_t())) {
+        case PlayerServerMessage::START_MOVE: {
+            direction_stack.push_back(static_cast<Orientation::Orientation>(m["ori"].as_uint64_t()));
+            break;
+        }
+        case PlayerServerMessage::END_MOVE: {
+            auto pos = find(direction_stack.begin(), direction_stack.end(), static_cast<Orientation::Orientation>(m["ori"].as_uint64_t()));
+            if (pos == direction_stack.end()) {
+                cout << "No move to end " << m["ori"].as_uint64_t() << endl;
+            }
+            else {
+                direction_stack.erase(pos);
+            }
+            break;
+        }
+        case PlayerServerMessage::DROP_BOMB: {
+            cout << "DROP_BOMB " << num_bombs << endl;
+            if (num_bombs) {
+                --num_bombs;
+                auto obj = server_map()->add(TimedBomb::TYPE);
+                obj->place(tcx(), tcy());
+                obj->destroyed.connect([this]{++num_bombs;});
+            }
+            break;
+        }
+        case PlayerServerMessage::DROP_WALL: {
+            if (num_walls) {
+                --num_walls;
+                auto obj = server_map()->add(PlacedWall::TYPE);
+                obj->place(tcx(), tcy());
+                obj->destroyed.connect([this]{++num_walls;});
             }
             break;
         }
         default: Object::handle(m);
     }
 }
+
+void Player::render_handle(msgpackvar m) {
+    switch (static_cast<PlayerRenderMessage>(m["type"].as_uint64_t())) {
+        case PlayerRenderMessage::TRANSFER: {
+            lives_ = m["lives"].as_uint64_t();
+            break;
+        }
+        default: Object::render_handle(m);
+    }
+}
+
 
 void Player::setup_keys() {
     if (side() != static_cast<unsigned int>(-1)) {
@@ -159,23 +162,6 @@ void Player::setup_keys() {
         }
     }
 }
-
-void Player::render_handle(Message m) {
-    switch (m.type()) {
-        case Message::PLAYER_COMMAND: {
-            GenericMessage gm;
-            m.value().UnpackTo(&gm);
-            switch (gm.id()) {
-                default: {
-                    cout << "Unhandled PC " << gm.id() << " in Player::render_handle" << endl;
-                }
-            }
-            break;
-        }
-        default: Object::render_handle(m);
-    }
-}
-
 
 void Player::update() {
     if (direction_stack.size()) {
@@ -197,8 +183,14 @@ unsigned int Player::layer() {
 
 void Player::transfer(objptr obj) {
     auto pl = dynamic_cast<Player*>(obj.get());
-    pl->lives = lives - 1;
+    pl->lives_ = lives_ - 1;
     pl->set_side(side());
+    msgpackvar m;
+    m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
+    m["type"] = as_ui(PlayerRenderMessage::TRANSFER);
+    m["id"] = pl->id;
+    m["lives"] = pl->lives_;
+    server_map()->event(obj, std::move(m));
 }
 
 void Player::render_hud(sf::RenderTarget& rt) {
@@ -215,7 +207,7 @@ void Player::render_hud(sf::RenderTarget& rt) {
     auto texfg = rm->load_texture("data/images/life.png");
     texfg.setRepeated(true);
     sf::Sprite sp_fg(texfg);
-    sp_fg.setTextureRect(sf::IntRect(0, 0, 10 * lives, 10));
+    sp_fg.setTextureRect(sf::IntRect(0, 0, 10 * lives_, 10));
     sp_fg.setPosition(204, 0);
     rt.draw(sp_fg);
 }

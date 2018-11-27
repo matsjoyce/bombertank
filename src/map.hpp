@@ -26,6 +26,19 @@
 #include "object.hpp"
 #include "signal.hpp"
 
+enum class ToRenderMessage : unsigned int {
+    CREATE,
+    FOROBJ,
+    PAUSED,
+    RESUMED
+};
+
+enum class ToServerMessage : unsigned int {
+    PAUSE,
+    RESUME,
+    FOROBJ
+};
+
 class Map {
 protected:
     Map();
@@ -61,7 +74,7 @@ public:
     void halt();
     void pause();
     void resume();
-    void event(objptr obj, Message&& msg);
+    void event(objptr obj, msgpackvar&& msg);
     objptr add(unsigned int type);
     std::vector<objptr> objs_at_dir(objptr obj, Orientation::Orientation dir);
     std::vector<std::pair<int, objptr>> collides(int ox, int oy, int ow, int oh);

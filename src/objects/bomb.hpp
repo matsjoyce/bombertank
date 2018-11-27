@@ -33,7 +33,7 @@ public:
     unsigned int layer() override;
     void render(sf::RenderTarget& rt) override;
     void destroy(bool send=true) override;
-    void render_handle(Message m) override;
+    void render_handle(msgpackvar m) override;
 };
 
 class TimedBomb : public StaticBomb {

@@ -19,8 +19,8 @@
 #include "object.hpp"
 #include "map.hpp"
 #include "rendermap.hpp"
-#include "../build/src/generic_msg.pb.h"
 #include <cmath>
+#include <iostream>
 
 using namespace std;
 
@@ -46,51 +46,36 @@ void Object::update() {
 void Object::render(sf::RenderTarget& /*rt*/) {
 }
 
-void Object::handle(Message m) {
-    cout << "Unhandled event in Object::handle " << m.type() << endl;
+void Object::handle(msgpackvar m) {
+    cout << "Unhandled event in Object::handle " << m["type"].as_uint64_t() << endl;
 }
 
-void Object::render_handle(Message m) {
-    switch (m.type()) {
-        case Message::MOVE: {
-            if (!m.value().Is<GenericMessage>()) {
-                throw runtime_error("Move message's value is not a GenericMessage");
-            }
-            GenericMessage gm;
-            m.value().UnpackTo(&gm);
-            x_ = gm.x();
-            y_ = gm.y();
+void Object::render_handle(msgpackvar m) {
+    switch (static_cast<RenderObjectMessage>(m["type"].as_uint64_t())) {
+        case RenderObjectMessage::MOVE: {
+            x_ = extract_int(m["x"]);
+            y_ = extract_int(m["y"]);
 //             accel_ = gm.accel(); // TODO Is this required?
-            speed_ = gm.speed();
-            direction_ = Orientation::Orientation(gm.direction());
-            orientation_ = Orientation::Orientation(gm.orientation());
+            speed_ = extract_int(m["speed"]);
+            direction_ = Orientation::Orientation(m["dir"].as_uint64_t());
+            orientation_ = Orientation::Orientation(m["ori"].as_uint64_t());
             break;
         }
-        case Message::DESTROY: {
+        case RenderObjectMessage::DESTROY: {
             set_hp(0);
             destroy();
             break;
         }
-        case Message::CHANGE_SIDE: {
-            if (!m.value().Is<GenericMessage>()) {
-                throw runtime_error("Change side message's value is not a GenericMessage");
-            }
-            GenericMessage gm;
-            m.value().UnpackTo(&gm);
-            set_side(gm.side());
+        case RenderObjectMessage::CHANGE_SIDE: {
+            set_side(m["side"].as_uint64_t());
             break;
         }
-        case Message::TAKE_DAMAGE: {
-            if (!m.value().Is<GenericMessage>()) {
-                throw runtime_error("Take damage message's value is not a GenericMessage");
-            }
-            GenericMessage gm;
-            m.value().UnpackTo(&gm);
-            set_hp(gm.hp());
+        case RenderObjectMessage::TAKE_DAMAGE: {
+            set_hp(m["hp"].as_uint64_t());
             break;
         }
         default: {
-            cout << "Unhandled event in Object::render_handle " << m.type() << endl;
+            cout << "Unhandled event in Object::render_handle " << m["type"].as_uint64_t() << endl;
         }
     }
 }
@@ -183,18 +168,16 @@ void Object::set_orientation(Orientation::Orientation dir) {
 
 void Object::_generate_move() {
     if (auto sm = server_map()) {
-        Message m;
-        m.set_type(Message::MOVE);
-        m.set_id(id);
-        GenericMessage gm;
-        gm.set_x(x_);
-        gm.set_y(y_);
-    //     gm.set_accel(accel_); // TODO Is this required?
-        gm.set_speed(speed_);
-        gm.set_direction(direction_);
-        gm.set_orientation(orientation_);
-        m.mutable_value()->PackFrom(gm);
-        sm->event(shared_from_this(), move(m));
+        msgpackvar m;
+        m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
+        m["type"] = as_ui(RenderObjectMessage::MOVE);
+        m["id"] = id;
+        m["x"] = x_;
+        m["y"] = y_;
+        m["speed"] = speed_;
+        m["dir"] = as_ui(direction_);
+        m["ori"] = as_ui(orientation_);
+        sm->event(shared_from_this(), std::move(m));
     }
 }
 
@@ -247,27 +230,28 @@ unsigned int Object::take_damage(unsigned int damage, DamageType /*dt*/) {
     else {
         hp_ -= damage;
         if (auto sm = server_map()) {
-            Message m;
-            m.set_type(Message::TAKE_DAMAGE);
-            m.set_id(id);
-            GenericMessage gm;
-            gm.set_hp(hp());
-            m.mutable_value()->PackFrom(gm);
-            sm->event(shared_from_this(), move(m));
+
+            msgpackvar m;
+            m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
+            m["type"] = as_ui(RenderObjectMessage::TAKE_DAMAGE);
+            m["id"] = id;
+            m["hp"] = hp_;
+            sm->event(shared_from_this(), std::move(m));
         }
         return 0;
     }
 }
 
 void Object::destroy(bool send /*= true*/) {
-    if (!map) return; // Already destroyed;
+    if (!is_alive) return; // Already destroyed;
     destroyed.emit();
     if (send) {
         if (auto sm = server_map()) {
-            Message m;
-            m.set_type(Message::DESTROY);
-            m.set_id(id);
-            sm->event(shared_from_this(), move(m));
+            msgpackvar m;
+            m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
+            m["type"] = as_ui(RenderObjectMessage::DESTROY);
+            m["id"] = id;
+            sm->event(shared_from_this(), std::move(m));
         }
     }
     map->remove(shared_from_this());
@@ -290,13 +274,12 @@ void Object::set_side(unsigned int side) {
     side_ = side;
     side_changed.emit();
     if (auto sm = server_map()) {
-        Message m;
-        m.set_type(Message::CHANGE_SIDE);
-        m.set_id(id);
-        GenericMessage gm;
-        gm.set_side(side);
-        m.mutable_value()->PackFrom(gm);
-        sm->event(shared_from_this(), move(m));
+        msgpackvar m;
+        m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
+        m["type"] = as_ui(RenderObjectMessage::CHANGE_SIDE);
+        m["id"] = id;
+        m["side"] = side;
+        sm->event(shared_from_this(), std::move(m));
     }
 }
 
@@ -315,6 +298,12 @@ void Object::position_sprite(sf::Sprite& spr) {
 
 void Object::render_hud(sf::RenderTarget& rt) {
     auto rm = render_map();
+
+    sf::RectangleShape darkbg(sf::Vector2f(rt.getSize().x, 10));
+    darkbg.setPosition(0, 0);
+    darkbg.setFillColor(sf::Color(0, 0, 0, 125));
+    rt.draw(darkbg);
+
     sf::RectangleShape border(sf::Vector2f(202, 8));
     border.setPosition(1, 1);
     border.setFillColor(sf::Color::Black);

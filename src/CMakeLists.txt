@@ -13,15 +13,10 @@ set(SOURCE
     objects/chest.cpp
 )
 
-protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS
-    message.proto
-    generic_msg.proto
-)
-
-add_library(bombertank STATIC ${SOURCE} ${PROTO_SRCS})
+add_library(bombertank STATIC ${SOURCE})
 
 add_executable(main main.cpp)
-target_link_libraries(main bombertank sfml-graphics sfml-audio stdc++fs ${Protobuf_LIBRARIES})
+target_link_libraries(main bombertank sfml-graphics sfml-audio stdc++fs pthread)
 
 add_executable(maped maped.cpp)
-target_link_libraries(maped bombertank sfml-graphics sfml-audio stdc++fs ${Protobuf_LIBRARIES})
+target_link_libraries(maped bombertank sfml-graphics sfml-audio stdc++fs pthread)

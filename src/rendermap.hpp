@@ -55,7 +55,7 @@ public:
     void remove_effect(unsigned int id);
     void pause();
     void resume();
-    void event(Message&& msg);
+    void event(msgpackvar&& msg);
     unsigned int side() const {
         return side_;
     }

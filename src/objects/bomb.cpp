@@ -17,9 +17,9 @@
  */
 
 #include "bomb.hpp"
-#include "../../build/src/generic_msg.pb.h"
 #include "player.hpp"
 #include <random>
+#include <iostream>
 
 using namespace std;
 
@@ -56,19 +56,19 @@ int kill_in_direction(ServerMap* sm, objptr obj, Orientation::Orientation ori, i
 }
 
 void StaticBomb::destroy(bool send /*= true*/) {
+    if (!alive()) return;
     if (auto sm = server_map()) {
         Object::destroy(false);
-        Message m;
-        m.set_type(Message::DESTROY);
-        m.set_id(id);
-        GenericMessage gm;
+        msgpackvar m;
+        m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
+        m["type"] = as_ui(RenderObjectMessage::DESTROY);
+        m["id"] = id;
         kill_in_tile(sm, x(), y(), shared_from_this(), 100);
-        gm.set_n(kill_in_direction(sm, shared_from_this(), Orientation::N, power, 100));
-        gm.set_e(kill_in_direction(sm, shared_from_this(), Orientation::E, power, 100));
-        gm.set_s(kill_in_direction(sm, shared_from_this(), Orientation::S, power, 100));
-        gm.set_w(kill_in_direction(sm, shared_from_this(), Orientation::W, power, 100));
-        m.mutable_value()->PackFrom(gm);
-        sm->event(shared_from_this(), move(m));
+        m["n"] = kill_in_direction(sm, shared_from_this(), Orientation::N, power, 100);
+        m["e"] = kill_in_direction(sm, shared_from_this(), Orientation::E, power, 100);
+        m["s"] = kill_in_direction(sm, shared_from_this(), Orientation::S, power, 100);
+        m["w"] = kill_in_direction(sm, shared_from_this(), Orientation::W, power, 100);
+        sm->event(shared_from_this(), std::move(m));
     }
     else {
         Object::destroy(send);
@@ -81,22 +81,19 @@ void add_sides(RenderMap* rm, Orientation::Orientation ori, int num, int x, int 
     }
 }
 
-void StaticBomb::render_handle(Message m) {
-    switch (m.type()) {
-        case Message::DESTROY: {
-            if (auto rm = render_map()) {
-                GenericMessage gm;
-                m.value().UnpackTo(&gm);
-                rm->add_effect<Explosion>(x(), y());
-                add_sides(rm, Orientation::N, gm.n(), x(), y());
-                add_sides(rm, Orientation::E, gm.e(), x(), y());
-                add_sides(rm, Orientation::S, gm.s(), x(), y());
-                add_sides(rm, Orientation::W, gm.w(), x(), y());
-            }
-            destroy();
-            break;
+void StaticBomb::render_handle(msgpackvar m) {
+    if (m["type"].as_uint64_t() == as_ui(RenderObjectMessage::DESTROY)) {
+        if (auto rm = render_map()) {
+            rm->add_effect<Explosion>(x(), y());
+            add_sides(rm, Orientation::N, m["n"].as_uint64_t(), x(), y());
+            add_sides(rm, Orientation::E, m["e"].as_uint64_t(), x(), y());
+            add_sides(rm, Orientation::S, m["s"].as_uint64_t(), x(), y());
+            add_sides(rm, Orientation::W, m["w"].as_uint64_t(), x(), y());
         }
-        default: Object::render_handle(m);
+        destroy();
+    }
+    else {
+        Object::render_handle(m);
     }
 }
 

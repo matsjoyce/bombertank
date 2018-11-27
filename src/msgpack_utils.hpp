@@ -16,27 +16,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <SFML/Graphics.hpp>
-#include "stagemanager.hpp"
+#ifndef MSGPACK_UTILS_HPP
+#define MSGPACK_UTILS_HPP
+
 #include <msgpack.hpp>
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <map>
 
-using namespace std;
+using msgpackvar = std::map<std::string, msgpack::type::variant>;
 
-
-int main() {
-    sf::RenderWindow window(sf::VideoMode::getDesktopMode(), "BomberTank");
-    window.setFramerateLimit(60);
-    window.setKeyRepeatEnabled(false);
-    StageManager sm;
-    sm.start_stage(LoadStage::create());
-    while (window.isOpen()) {
-        sm.update(window);
-        window.clear(sf::Color::White);
-        sm.render(window);
-        window.display();
-    }
+inline int64_t extract_int(msgpack::type::variant var) {
+    return var.is_uint64_t() ? var.as_uint64_t() : var.as_int64_t();
 }
+
+template<class T> unsigned int as_ui(T x) {
+    return static_cast<unsigned int>(x);
+}
+
+std::ostream& operator<<(std::ostream& stream, msgpack::type::variant var);
+
+#endif // MSGPACK_UTILS_HPP
