@@ -115,9 +115,6 @@ void Object::end_update() {
     if (speed_) {
         int go_left = 0, go_right = 0, go_total = 0;
         for (auto& obj : server_map()->collides_by_moving(x(), y(), width, height, direction(), speed())) {
-            if (type() == 3) {
-                cout << obj.first << " " << obj.second << endl;
-            }
             if (obj.first < speed_) {
                 speed_ = max(0, obj.first);
             }
@@ -262,7 +259,6 @@ unsigned int Object::take_damage(unsigned int damage, DamageType /*dt*/) {
     }
 }
 
-
 void Object::destroy(bool send /*= true*/) {
     if (!map) return; // Already destroyed;
     destroyed.emit();
@@ -275,7 +271,7 @@ void Object::destroy(bool send /*= true*/) {
         }
     }
     map->remove(shared_from_this());
-    map = nullptr;
+    is_alive = false;
 }
 
 unsigned int Object::max_hp() {
@@ -315,4 +311,26 @@ void Object::position_sprite(sf::Sprite& spr) {
     spr.setOrigin(sf::Vector2f(width / 2, height / 2));
     spr.setPosition(sf::Vector2f(x_ + width / 2, y_ + height / 2));
     spr.setRotation(angle(orientation_));
+}
+
+void Object::render_hud(sf::RenderTarget& rt) {
+    auto rm = render_map();
+    sf::RectangleShape border(sf::Vector2f(202, 8));
+    border.setPosition(1, 1);
+    border.setFillColor(sf::Color::Black);
+    rt.draw(border);
+
+    auto texbg = rm->load_texture("data/images/hp_bar_bg.png");
+    texbg.setRepeated(true);
+    sf::Sprite sp_bg(texbg);
+    sp_bg.setTextureRect(sf::IntRect(0, 0, 200, 6));
+    sp_bg.setPosition(2, 2);
+    rt.draw(sp_bg);
+
+    auto texfg = rm->load_texture("data/images/hp_bar_fg.png");
+    texfg.setRepeated(true);
+    sf::Sprite sp_fg(texfg);
+    sp_fg.setTextureRect(sf::IntRect(0, 0, min(200u, 200 * hp() / max_hp()), 6));
+    sp_fg.setPosition(2, 2);
+    rt.draw(sp_fg);
 }

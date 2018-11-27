@@ -94,25 +94,7 @@ void RenderMap::render(sf::RenderTarget& rt) {
     if (following) {
         view.reset(sf::FloatRect({}, view.getSize()));
         rt.setView(view);
-
-        sf::RectangleShape border(sf::Vector2f(202, 8));
-        border.setPosition(1, 1);
-        border.setFillColor(sf::Color::Black);
-        rt.draw(border);
-
-        auto texbg = load_texture("data/images/hp_bar_bg.png");
-        texbg.setRepeated(true);
-        sf::Sprite sp_bg(texbg);
-        sp_bg.setTextureRect(sf::IntRect(0, 0, 200, 6));
-        sp_bg.setPosition(2, 2);
-        rt.draw(sp_bg);
-
-        auto texfg = load_texture("data/images/hp_bar_fg.png");
-        texfg.setRepeated(true);
-        sf::Sprite sp_fg(texfg);
-        sp_fg.setTextureRect(sf::IntRect(0, 0, min(200u, 200 * following->hp() / following->max_hp()), 6));
-        sp_fg.setPosition(2, 2);
-        rt.draw(sp_fg);
+        following->render_hud(rt);
     }
 }
 
@@ -132,7 +114,7 @@ void RenderMap::handle_keypress(sf::Keyboard::Key key, bool is_down) {
 const sf::Texture& RenderMap::load_texture(std::string path) {
     auto& tex = textures[path];
     if (!tex.getNativeHandle()) {
-        cout << "Making" << endl;
+        cout << "Loading " << path << " as texture" << endl;
         if (!tex.loadFromFile(path)) {
             cout << "Could not load " << path << endl;
         }
@@ -143,7 +125,7 @@ const sf::Texture& RenderMap::load_texture(std::string path) {
 const sf::SoundBuffer& RenderMap::load_sound_buf(std::string path) {
     auto& sndbuf = sound_bufs[path];
     if (!sndbuf.getSampleCount()) {
-        cout << "Making" << endl;
+        cout << "Loading " << path << " as soundbuf" << endl;
         if (!sndbuf.loadFromFile(path)) {
             cout << "Could not load " << path << endl;
         }

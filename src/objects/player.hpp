@@ -26,6 +26,7 @@ class Player : public Object {
     int max_speed = 4;
     int num_bombs = 3;
     int num_walls = 8;
+    unsigned int lives = 3;
     sf::Clock anim_clock;
     std::string tex_name = "data/images/tank1.png";
     void setup_keys();
@@ -42,6 +43,8 @@ public:
     void render_handle(Message m) override;
     void update() override;
     unsigned int max_hp() override;
+    void transfer(objptr obj);
+    void render_hud(sf::RenderTarget & rt) override;
 };
 
 class DeadPlayer : public Effect {

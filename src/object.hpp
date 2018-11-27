@@ -66,6 +66,7 @@ public:
     virtual void update();
     virtual void render_update();
     virtual void render(sf::RenderTarget& rt);
+    virtual void render_hud(sf::RenderTarget& rt);
     virtual void handle(Message m);
     virtual void render_handle(Message m);
     virtual void handle_keypress(sf::Keyboard::Key key, bool is_down);
@@ -122,7 +123,7 @@ public:
     }
     virtual unsigned int take_damage(unsigned int damage, DamageType dt);
     inline bool alive() {
-        return map;
+        return is_alive;
     }
     virtual unsigned int max_hp();
     void position_sprite(sf::Sprite& spr);
@@ -136,6 +137,7 @@ private:
     Orientation::Orientation last_orientation = Orientation::N;
     int x_ = 0, y_ = 0;
     unsigned int hp_ = -1, side_ = -1;
+    bool is_alive = true;
 
     void _generate_move();
 };

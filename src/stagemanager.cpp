@@ -67,7 +67,7 @@ unique_ptr<Stage> LoadStage::update(sf::RenderWindow& window) {
         auto es1 = make_unique<EventServer>(), es2 = make_unique<EventServer>();
         es1->connect(es2.get());
         es2->connect(es1.get());
-        gstate->rms.emplace_back(move(es1), 0);
+        gstate->rms.emplace_back(move(es1), -1);
         gstate->sm.add_controller(0, move(es2));
         return make_unique<EditorStage>(move(gstate));
     }
@@ -267,9 +267,10 @@ unique_ptr<Stage> GameOverStage::update(sf::RenderWindow& window) {
         if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space) {
             for (unsigned int i = 0; i < gstate->players.size(); ++i) {
                 if (!gstate->players[i]->alive()) {
-                    auto obj = gstate->players[i] = gstate->sm.add(Player::TYPE);
+                    auto obj = gstate->sm.add(Player::TYPE);
+                    dynamic_cast<Player*>(gstate->players[i].get())->transfer(obj);
                     obj->place(gstate->starting_positions[i].first, gstate->starting_positions[i].second);
-                    obj->set_side(i);
+                    gstate->players[i] = obj;
                 }
             }
             gstate->sm.resume();

@@ -195,6 +195,32 @@ unsigned int Player::layer() {
     return 6;
 }
 
+void Player::transfer(objptr obj) {
+    auto pl = dynamic_cast<Player*>(obj.get());
+    pl->lives = lives - 1;
+    pl->set_side(side());
+}
+
+void Player::render_hud(sf::RenderTarget& rt) {
+    Object::render_hud(rt);
+    auto rm = render_map();
+
+    auto texbg = rm->load_texture("data/images/life_used.png");
+    texbg.setRepeated(true);
+    sf::Sprite sp_bg(texbg);
+    sp_bg.setTextureRect(sf::IntRect(0, 0, 30, 10));
+    sp_bg.setPosition(204, 0);
+    rt.draw(sp_bg);
+
+    auto texfg = rm->load_texture("data/images/life.png");
+    texfg.setRepeated(true);
+    sf::Sprite sp_fg(texfg);
+    sp_fg.setTextureRect(sf::IntRect(0, 0, 10 * lives, 10));
+    sp_fg.setPosition(204, 0);
+    rt.draw(sp_fg);
+}
+
+
 void DeadPlayer::render(sf::RenderTarget& rt) {
     sf::Sprite sp(map->load_texture("data/images/tank_dead.png"));
     sp.setOrigin(sf::Vector2f(STANDARD_OBJECT_SIZE / 2, STANDARD_OBJECT_SIZE / 2));
