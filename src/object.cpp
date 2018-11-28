@@ -114,7 +114,7 @@ constexpr const int GET_ROUND_MARGIN = STANDARD_OBJECT_SIZE / 3;
 
 
 void Object::end_update() {
-    if (!map) return; // May have been destroyed in update
+    if (!is_alive) return; // May have been destroyed in update
 
     speed_ += accel_;
     bool edge_help = false;

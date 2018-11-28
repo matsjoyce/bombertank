@@ -138,7 +138,7 @@ vector<pair<int, objptr>> ServerMap::collides_by_moving(int ox, int oy, unsigned
         case Orientation::S: {
             nh = movement;
             nw = ow;
-            ny = oy + dy(dir) * ((skip_start ? static_cast<int>(oh) : 0) + movement / 2);
+            ny = oy + dy(dir) * ((skip_start ? static_cast<int>(oh) : 0) + movement) / 2;
             nx = ox;
             if (skip_start) {
                 margin = -static_cast<int>(oh) / 2;
@@ -150,7 +150,7 @@ vector<pair<int, objptr>> ServerMap::collides_by_moving(int ox, int oy, unsigned
             nh = oh;
             nw = movement;
             ny = oy;
-            nx = ox + dx(dir) * ((skip_start ? static_cast<int>(ow) : 0) + movement / 2);
+            nx = ox + dx(dir) * ((skip_start ? static_cast<int>(ow) : 0) + movement) / 2;
             if (skip_start) {
                 margin = -static_cast<int>(ow) / 2;
             }
