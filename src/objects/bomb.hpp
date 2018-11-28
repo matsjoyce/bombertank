@@ -45,6 +45,7 @@ public:
     }
     using StaticBomb::StaticBomb;
     void update() override;
+    void render(sf::RenderTarget& rt) override;
 };
 
 class RoboBomb : public StaticBomb {

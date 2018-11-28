@@ -87,12 +87,23 @@ public:
     void start() override;
 };
 
-class LaserItem : public UsesPlayerItem {
+class ChargeItem : public UsesPlayerItem {
 public:
-    LaserItem();
+    ChargeItem();
     constexpr static const int TYPE = 3;
     virtual unsigned int type() override {
         return 3;
+    }
+    void render(sf::RenderTarget& rt, sf::Vector2f position) override;
+    void start() override;
+};
+
+class LaserItem : public UsesPlayerItem {
+public:
+    LaserItem();
+    constexpr static const int TYPE = 4;
+    virtual unsigned int type() override {
+        return 4;
     }
     void render(sf::RenderTarget& rt, sf::Vector2f position) override;
     void start() override;

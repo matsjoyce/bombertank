@@ -279,6 +279,7 @@ void Player::post_constructor() {
         add_item(make_shared<CrateItem>());
         add_item(make_shared<MineItem>());
         add_item(make_shared<LaserItem>());
+        add_item(make_shared<ChargeItem>());
         set_primary(BombItem::TYPE);
         set_secondary(CrateItem::TYPE);
     }

@@ -22,7 +22,7 @@
 #include <cmath>
 
 namespace Orientation {
-    enum Orientation {N, E, S, W};
+    enum Orientation : unsigned int {N, E, S, W};
 
     constexpr Orientation opposite(Orientation ori) {
         switch (ori) {

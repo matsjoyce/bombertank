@@ -165,6 +165,30 @@ void MineItem::start() {
     }
 }
 
+ChargeItem::ChargeItem() : UsesPlayerItem(5) {
+}
+
+void ChargeItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
+    sf::Sprite spr(player()->render_map()->load_texture("data/images/charge.png"));
+    spr.setPosition(position);
+    rt.draw(spr);
+    sf::Text txt(to_string(uses), player()->render_map()->load_font("data/fonts/font.pcf"), 12);
+    txt.setPosition(position);
+    rt.draw(txt);
+}
+
+void ChargeItem::start() {
+    PlayerItem::start();
+    cout << "DROP_CHARGE " << uses << endl;
+    if (uses) {
+        --uses;
+        send_update();
+        auto obj = player()->server_map()->add(StaticBomb::TYPE);
+        obj->place(player()->tcx(), player()->tcy());
+        obj->set_side(player()->side());
+    }
+}
+
 LaserItem::LaserItem() : UsesPlayerItem(50) {
 }
 
@@ -202,7 +226,7 @@ class LaserEffect : public Effect {
     unsigned int dist;
 public:
     unsigned int layer() override {
-        return 10;
+        return 5;
     }
     LaserEffect(RenderMap* map_, unsigned int id_, int x_, int y_, Orientation::Orientation ori, unsigned int dist_)
         : Effect(map_, id_, x_, y_, ori), dist(dist_) {
@@ -251,6 +275,7 @@ map<unsigned int, function<shared_ptr<PlayerItem>()>> load_player_items() {
     ret[BombItem::TYPE] = make_shared<BombItem>;
     ret[CrateItem::TYPE] = make_shared<CrateItem>;
     ret[MineItem::TYPE] = make_shared<MineItem>;
+    ret[ChargeItem::TYPE] = make_shared<ChargeItem>;
     ret[LaserItem::TYPE] = make_shared<LaserItem>;
     return ret;
 }

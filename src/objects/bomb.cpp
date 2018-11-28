@@ -25,7 +25,7 @@
 using namespace std;
 
 void StaticBomb::render(sf::RenderTarget& rt) {
-    sf::Sprite sp(render_map()->load_texture("data/images/bomb.png"));
+    sf::Sprite sp(render_map()->load_texture("data/images/charge.png"));
     position_sprite(sp);
     rt.draw(sp);
 }
@@ -80,6 +80,12 @@ void TimedBomb::update() {
     if (!time_left) {
         destroy();
     }
+}
+
+void TimedBomb::render(sf::RenderTarget& rt) {
+    sf::Sprite sp(render_map()->load_texture("data/images/bomb.png"));
+    position_sprite(sp);
+    rt.draw(sp);
 }
 
 random_device rd;
