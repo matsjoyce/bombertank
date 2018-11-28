@@ -25,42 +25,64 @@
 #include "player.hpp"
 
 class PlayerItem {
+    bool active_ = false;
 protected:
     std::shared_ptr<Player> player;
 public:
     void attach(std::shared_ptr<Player> pl);
     void drop();
+    inline bool active() {
+        return active_;
+    }
     virtual void render(sf::RenderTarget& rt, sf::Vector2f position) = 0;
     virtual unsigned int type() = 0;
-    virtual void use() = 0;
-    virtual void merge_with(std::shared_ptr<PlayerItem> item) = 0;
-    virtual void render_handle(msgpackvar&& m) = 0;
+    virtual void start();
+    virtual void end();
+    virtual void merge_with(std::shared_ptr<PlayerItem> item);
+    virtual void render_handle(msgpackvar&& m);
 };
 
-class BombItem : public PlayerItem {
-    int uses = 3;
+class UsesPlayerItem : public PlayerItem {
+protected:
+    unsigned int uses;
+    void send_update();
 public:
+    UsesPlayerItem(unsigned int uses_);
+    void merge_with(std::shared_ptr<PlayerItem> item) override;
+    void render_handle(msgpackvar && m) override;
+};
+
+class BombItem : public UsesPlayerItem {
+public:
+    BombItem();
     constexpr static const int TYPE = 0;
     virtual unsigned int type() override {
         return 0;
     }
     void render(sf::RenderTarget& rt, sf::Vector2f position) override;
-    void use() override;
-    void merge_with(std::shared_ptr<PlayerItem> item) override;
-    void render_handle(msgpackvar && m) override;
+    void start() override;
 };
 
-class CrateItem : public PlayerItem {
-    int uses = 8;
+class CrateItem : public UsesPlayerItem {
 public:
+    CrateItem();
     constexpr static const int TYPE = 1;
     virtual unsigned int type() override {
         return 1;
     }
     void render(sf::RenderTarget& rt, sf::Vector2f position) override;
-    void use() override;
-    void merge_with(std::shared_ptr<PlayerItem> item) override;
-    void render_handle(msgpackvar && m) override;
+    void start() override;
+};
+
+class MineItem : public UsesPlayerItem {
+public:
+    MineItem();
+    constexpr static const int TYPE = 2;
+    virtual unsigned int type() override {
+        return 2;
+    }
+    void render(sf::RenderTarget& rt, sf::Vector2f position) override;
+    void start() override;
 };
 
 std::map<unsigned int, std::function<std::shared_ptr<PlayerItem>()>> load_player_items();

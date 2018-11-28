@@ -26,22 +26,34 @@ using namespace std;
 
 enum class PlayerServerMessage : unsigned int {
     START_MOVE = static_cast<unsigned int>(RenderObjectMessage::END),
-    END_MOVE, DROP_BOMB, DROP_WALL, TRANSFER, USE_ITEM
+    END_MOVE, START_PRIMARY, START_SECONDARY, END_PRIMARY, END_SECONDARY, SECONDARY_L, SECONDARY_R, PRIMARY_SET, TRANSFER, USE_ITEM
 };
 
 enum class PlayerRenderMessage : unsigned int {
     TRANSFER = static_cast<unsigned int>(RenderObjectMessage::END),
-    ADD_ITEM, FOR_ITEM
+    ADD_ITEM, FOR_ITEM, SET_PRIMARY, SET_SECONDARY
 };
 
 struct PlayerSettings {
-    sf::Keyboard::Key up, down, left, right, bomb, wall;
+    sf::Keyboard::Key up, down, left, right;
+    sf::Keyboard::Key primary, secondary;
+    sf::Keyboard::Key sec_l, sec_r, pri_set;
     sf::Color color;
 };
 
 map<int, PlayerSettings> player_settings = {
-    {0, {sf::Keyboard::W, sf::Keyboard::S, sf::Keyboard::A, sf::Keyboard::D, sf::Keyboard::B, sf::Keyboard::G, sf::Color(128, 0, 0)}},
-    {1, {sf::Keyboard::Up, sf::Keyboard::Down, sf::Keyboard::Left, sf::Keyboard::Right, sf::Keyboard::Enter, sf::Keyboard::RBracket, sf::Color(0, 128, 0)}},
+    {0, {
+            sf::Keyboard::W, sf::Keyboard::S, sf::Keyboard::A, sf::Keyboard::D,
+            sf::Keyboard::B, sf::Keyboard::G,
+            sf::Keyboard::Z, sf::Keyboard::C, sf::Keyboard::X,
+            sf::Color(128, 0, 0)
+    }},
+    {1, {
+            sf::Keyboard::Up, sf::Keyboard::Down, sf::Keyboard::Left, sf::Keyboard::Right,
+            sf::Keyboard::Enter, sf::Keyboard::RBracket,
+            sf::Keyboard::Comma, sf::Keyboard::Period, sf::Keyboard::Backslash,
+            sf::Color(0, 128, 0)
+    }},
 };
 
 Player::Player(unsigned int id_, Map* map_) : Object(id_, map_) {
@@ -77,24 +89,31 @@ void Player::handle_keypress(sf::Keyboard::Key key, bool is_down) {
     msgpackvar m;
     m["mtype"] = as_ui(ToServerMessage::FOROBJ);
     m["id"] = id;
-    if (key == player_settings[side()].bomb) {
-        if (!is_down) {
-            return;
-        }
-        m["type"] = as_ui(PlayerServerMessage::DROP_BOMB);
+    auto& settings = player_settings[side()];
+    if (key == settings.primary) {
+        m["type"] = as_ui(is_down ? PlayerServerMessage::START_PRIMARY : PlayerServerMessage::END_PRIMARY);
     }
-    else if (key == player_settings[side()].wall) {
-        if (!is_down) {
-            return;
-        }
-        m["type"] = as_ui(PlayerServerMessage::DROP_WALL);
+    else if (key == settings.secondary) {
+        m["type"] = as_ui(is_down ? PlayerServerMessage::START_SECONDARY : PlayerServerMessage::END_SECONDARY);
+    }
+    else if (key == settings.sec_l) {
+        if (!is_down) return;
+        m["type"] = as_ui(PlayerServerMessage::SECONDARY_L);
+    }
+    else if (key == settings.sec_r) {
+        if (!is_down) return;
+        m["type"] = as_ui(PlayerServerMessage::SECONDARY_R);
+    }
+    else if (key == settings.pri_set) {
+        if (!is_down) return;
+        m["type"] = as_ui(PlayerServerMessage::PRIMARY_SET);
     }
     else {
         m["type"] = is_down ? as_ui(PlayerServerMessage::START_MOVE) : as_ui(PlayerServerMessage::END_MOVE);
-        m["ori"] = key == player_settings[side()].left ? as_ui(Orientation::W) :
-                   key == player_settings[side()].right ? as_ui(Orientation::E) :
-                   key == player_settings[side()].up ? as_ui(Orientation::N) :
-                   key == player_settings[side()].down ? as_ui(Orientation::S) : as_ui(-1);
+        m["ori"] = key == settings.left ? as_ui(Orientation::W) :
+                   key == settings.right ? as_ui(Orientation::E) :
+                   key == settings.up ? as_ui(Orientation::N) :
+                   key == settings.down ? as_ui(Orientation::S) : as_ui(-1);
     }
     render_map()->event(std::move(m));
 }
@@ -115,25 +134,80 @@ void Player::handle(msgpackvar m) {
             }
             break;
         }
-        case PlayerServerMessage::DROP_BOMB: {
-            items[0]->use();
-//             cout << "DROP_BOMB " << num_bombs << endl;
-//             if (num_bombs) {
-//                 --num_bombs;
-//                 auto obj = server_map()->add(TimedBomb::TYPE);
-//                 obj->place(tcx(), tcy());
-//                 obj->destroyed.connect([this]{++num_bombs;});
-//             }
+        case PlayerServerMessage::START_PRIMARY: {
+            if (items.count(primary_item) && !items[primary_item]->active()) {
+                items[primary_item]->start();
+                if (!items[primary_item]->active()) {
+                    cout << "Item " << primary_item << " was not active after start!" << endl;
+                }
+            }
             break;
         }
-        case PlayerServerMessage::DROP_WALL: {
-            items[1]->use();
-//             if (num_walls) {
-//                 --num_walls;
-//                 auto obj = server_map()->add(PlacedWall::TYPE);
-//                 obj->place(tcx(), tcy());
-//                 obj->destroyed.connect([this]{++num_walls;});
-//             }
+        case PlayerServerMessage::END_PRIMARY: {
+            if (items.count(primary_item) && items[primary_item]->active()) {
+                items[primary_item]->end();
+                if (items[primary_item]->active()) {
+                    cout << "Item " << primary_item << " was active after end!" << endl;
+                }
+            }
+            break;
+        }
+        case PlayerServerMessage::START_SECONDARY: {
+            if (primary_item != secondary_item && items.count(secondary_item) && !items[secondary_item]->active()) {
+                items[secondary_item]->start();
+                if (!items[secondary_item]->active()) {
+                    cout << "Item " << secondary_item << " was not active after start!" << endl;
+                }
+            }
+            break;
+        }
+        case PlayerServerMessage::END_SECONDARY: {
+            if (primary_item != secondary_item && items.count(secondary_item) && items[secondary_item]->active()) {
+                items[secondary_item]->end();
+                if (items[secondary_item]->active()) {
+                    cout << "Item " << secondary_item << " was active after end!" << endl;
+                }
+            }
+            break;
+        }
+        case PlayerServerMessage::SECONDARY_L: {
+            auto prev = lower_bound(items.begin(), items.end(), secondary_item, [](auto& a, auto& b){return a.first < b;});
+            unsigned int val = -1;
+            if (prev == items.end()) {
+                if (items.size()) {
+                    val = (--items.end())->first;
+                }
+            }
+            else if (prev->first == secondary_item) {
+                if (prev == items.begin()) {
+                    val = (--items.end())->first;
+                }
+                else {
+                    val = (--prev)->first;
+                }
+            }
+            else {
+                val = prev->first;
+            }
+            set_secondary(val);
+            break;
+        }
+        case PlayerServerMessage::SECONDARY_R: {
+            auto next = upper_bound(items.begin(), items.end(), secondary_item, [](auto& a, auto& b){return a < b.first;});
+            unsigned int val = -1;
+            if (next == items.end()) {
+                if (items.size()) {
+                    val = items.begin()->first;
+                }
+            }
+            else {
+                val = next->first;
+            }
+            set_secondary(val);
+            break;
+        }
+        case PlayerServerMessage::PRIMARY_SET: {
+            set_primary(secondary_item);
             break;
         }
         default: Object::handle(m);
@@ -162,6 +236,14 @@ void Player::render_handle(msgpackvar m) {
             }
             break;
         }
+        case PlayerRenderMessage::SET_PRIMARY: {
+            primary_item = m["primary"].as_uint64_t();
+            break;
+        }
+        case PlayerRenderMessage::SET_SECONDARY: {
+            secondary_item = m["secondary"].as_uint64_t();
+            break;
+        }
         default: Object::render_handle(m);
     }
 }
@@ -176,8 +258,11 @@ void Player::setup_keys() {
                 rmap->register_keypress(player_settings[side()].right, id);
                 rmap->register_keypress(player_settings[side()].up, id);
                 rmap->register_keypress(player_settings[side()].down, id);
-                rmap->register_keypress(player_settings[side()].bomb, id);
-                rmap->register_keypress(player_settings[side()].wall, id);
+                rmap->register_keypress(player_settings[side()].primary, id);
+                rmap->register_keypress(player_settings[side()].secondary, id);
+                rmap->register_keypress(player_settings[side()].sec_l, id);
+                rmap->register_keypress(player_settings[side()].sec_r, id);
+                rmap->register_keypress(player_settings[side()].pri_set, id);
             }
         }
     }
@@ -188,6 +273,9 @@ void Player::update() {
         if (auto sm = server_map()) {
             add_item(make_shared<BombItem>());
             add_item(make_shared<CrateItem>());
+            add_item(make_shared<MineItem>());
+            set_primary(BombItem::TYPE);
+            set_secondary(CrateItem::TYPE);
         }
     }
     if (direction_stack.size()) {
@@ -237,16 +325,33 @@ void Player::render_hud(sf::RenderTarget& rt) {
     sp_fg.setPosition(204, 0);
     rt.draw(sp_fg);
 
-    sf::RectangleShape lowerbg(sf::Vector2f(rt.getView().getSize().x, STANDARD_OBJECT_SIZE + 2));
+    sf::RectangleShape lowerbg(sf::Vector2f(rt.getView().getSize().x, STANDARD_OBJECT_SIZE + 6));
     lowerbg.setFillColor(sf::Color(0, 0, 0, 128));
     lowerbg.setPosition(0, rt.getView().getSize().y - lowerbg.getSize().y);
     rt.draw(lowerbg);
 
-    int x = 1;
+    int x = 3;
 
     for (auto& item : items) {
-        item.second->render(rt, sf::Vector2f(x, lowerbg.getPosition().y + 1));
-        x += STANDARD_OBJECT_SIZE + 2;
+        auto pos = sf::Vector2f(x, lowerbg.getPosition().y + 3);
+        if (item.first == primary_item) {
+            sf::RectangleShape bg(sf::Vector2f(STANDARD_OBJECT_SIZE + 2, STANDARD_OBJECT_SIZE + 2));
+            bg.setPosition(pos - sf::Vector2f(1, 1));
+            bg.setOutlineThickness(1);
+            bg.setOutlineColor(sf::Color::Red);
+            bg.setFillColor(sf::Color::Transparent);
+            rt.draw(bg);
+        }
+        else if (item.first == secondary_item) {
+            sf::RectangleShape bg(sf::Vector2f(STANDARD_OBJECT_SIZE + 2, STANDARD_OBJECT_SIZE + 2));
+            bg.setPosition(pos - sf::Vector2f(1, 1));
+            bg.setOutlineThickness(1);
+            bg.setOutlineColor(sf::Color::Green);
+            bg.setFillColor(sf::Color::Transparent);
+            rt.draw(bg);
+        }
+        item.second->render(rt, pos);
+        x += STANDARD_OBJECT_SIZE + 6;
     }
 }
 
@@ -273,6 +378,26 @@ void Player::item_msg(msgpackvar&& m, unsigned int type) {
     m["id"] = id;
     m["type"] = as_ui(PlayerRenderMessage::FOR_ITEM);
     m["item"] = type;
+    server_map()->event(shared_from_this(), std::move(m));
+}
+
+void Player::set_primary(unsigned int pri) {
+    primary_item = pri;
+    msgpackvar m;
+    m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
+    m["id"] = id;
+    m["type"] = as_ui(PlayerRenderMessage::SET_PRIMARY);
+    m["primary"] = pri;
+    server_map()->event(shared_from_this(), std::move(m));
+}
+
+void Player::set_secondary(unsigned int sec) {
+    secondary_item = sec;
+    msgpackvar m;
+    m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
+    m["id"] = id;
+    m["type"] = as_ui(PlayerRenderMessage::SET_SECONDARY);
+    m["secondary"] = sec;
     server_map()->event(shared_from_this(), std::move(m));
 }
 
