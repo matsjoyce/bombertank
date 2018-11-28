@@ -29,6 +29,10 @@ const double PI = 3.14159265358979323846;
 Object::Object(unsigned int id_, Map* map_) : id(id_), map(map_) {
 }
 
+void Object::post_constructor() {
+    hp_ = max_hp();
+}
+
 void Object::place(int x, int y) {
     x_ = x;
     y_ = y;
@@ -85,7 +89,14 @@ void Object::handle_keypress(sf::Keyboard::Key /*key*/, bool /*is_down*/) {
 
 void Object::start_update() {
     accel_ = -speed_;
-    hp_ = min(hp_, max_hp());
+}
+
+unsigned int Object::width() {
+    return STANDARD_OBJECT_SIZE;
+}
+
+unsigned int Object::height() {
+    return STANDARD_OBJECT_SIZE;
 }
 
 
@@ -99,7 +110,10 @@ void Object::end_update() {
     bool edge_help = false;
     if (speed_) {
         int go_left = 0, go_right = 0, go_total = 0;
-        for (auto& obj : server_map()->collides_by_moving(x(), y(), width, height, direction(), speed())) {
+        for (auto& obj : server_map()->collides_by_moving(x(), y(), width(), height(), direction(), speed())) {
+            if (obj.second->layer() != layer()) {
+                continue;
+            }
             if (obj.first < speed_) {
                 speed_ = max(0, obj.first);
             }
@@ -109,8 +123,8 @@ void Object::end_update() {
             collision(obj.second, true);
             obj.second->collision(shared_from_this(), false);
             if (obj.first == 0) {
-                go_right += obj.second->separation_distance(x() + dx(right(direction_)) * GET_ROUND_MARGIN, y() + dy(right(direction_)) * GET_ROUND_MARGIN, width, height, direction_, 1) >= 0;
-                go_left += obj.second->separation_distance(x() + dx(left(direction_)) * GET_ROUND_MARGIN, y() + dy(left(direction_)) * GET_ROUND_MARGIN, width, height, direction_, 1) >= 0;
+                go_right += obj.second->separation_distance(x() + dx(right(direction_)) * GET_ROUND_MARGIN, y() + dy(right(direction_)) * GET_ROUND_MARGIN, width(), height(), direction_, 1) >= 0;
+                go_left += obj.second->separation_distance(x() + dx(left(direction_)) * GET_ROUND_MARGIN, y() + dy(left(direction_)) * GET_ROUND_MARGIN, width(), height(), direction_, 1) >= 0;
                 go_total += 1;
             }
         }
@@ -127,7 +141,7 @@ void Object::end_update() {
             else if (go_right == go_total) {
                 dir = right(direction_);
             }
-            if (dir != direction_ && !server_map()->collides_by_moving(x(), y(), width, height, dir, 1).size()) {
+            if (dir != direction_ && !server_map()->collides_by_moving(x(), y(), width(), height(), dir, 1).size()) {
                 x_ += dx(dir);
                 y_ += dy(dir);
                 edge_help = true;
@@ -182,16 +196,16 @@ void Object::_generate_move() {
 }
 
 int Object::separation_distance(objptr obj) {
-    return max(max(obj->x_ - x_ - static_cast<int>(width),
-                   x_ - obj->x_ - static_cast<int>(obj->width)),
-               max(obj->y_ - y_ - static_cast<int>(height),
-                   y_ - obj->y_ - static_cast<int>(obj->height)));
+    return max(max(obj->x_ - x_ - static_cast<int>(width()),
+                   x_ - obj->x_ - static_cast<int>(obj->width())),
+               max(obj->y_ - y_ - static_cast<int>(height()),
+                   y_ - obj->y_ - static_cast<int>(obj->height())));
 }
 
 int Object::separation_distance(int ox, int oy, int ow, int oh) {
-    return max(max(ox - x_ - static_cast<int>(width),
+    return max(max(ox - x_ - static_cast<int>(width()),
                    x_ - ox - static_cast<int>(ow)),
-               max(oy - y_ - static_cast<int>(height),
+               max(oy - y_ - static_cast<int>(height()),
                    y_ - oy - static_cast<int>(oh)));
 }
 
@@ -244,6 +258,7 @@ unsigned int Object::take_damage(unsigned int damage, DamageType /*dt*/) {
 
 void Object::destroy(bool send /*= true*/) {
     if (!is_alive) return; // Already destroyed;
+    is_alive = false;
     destroyed.emit();
     if (send) {
         if (auto sm = server_map()) {
@@ -254,8 +269,7 @@ void Object::destroy(bool send /*= true*/) {
             sm->event(shared_from_this(), std::move(m));
         }
     }
-    map->remove(shared_from_this());
-    is_alive = false;
+    map->remove(shared_from_this()); // WARNING: DO NOT PUT ANYTHING BELOW THIS LINE! WE MIGHT NOT EXIST ANY MORE.
 }
 
 unsigned int Object::max_hp() {
@@ -263,6 +277,10 @@ unsigned int Object::max_hp() {
 }
 
 unsigned int Object::layer() {
+    return 10;
+}
+
+unsigned int Object::render_layer() {
     return 0;
 }
 
@@ -291,8 +309,8 @@ void Object::collision(objptr /*obj*/, bool /*caused_by_self*/) {
 }
 
 void Object::position_sprite(sf::Sprite& spr) {
-    spr.setOrigin(sf::Vector2f(width / 2, height / 2));
-    spr.setPosition(sf::Vector2f(x_ + width / 2, y_ + height / 2));
+    spr.setOrigin(sf::Vector2f(width() / 2, height() / 2));
+    spr.setPosition(sf::Vector2f(x_ + width() / 2, y_ + height() / 2));
     spr.setRotation(angle(orientation_));
 }
 

@@ -29,7 +29,7 @@ public:
     }
     using Object::Object;
     void render(sf::RenderTarget& rt) override;
-    unsigned int layer() override;
+    unsigned int render_layer() override;
 };
 
 #endif // CHEST_HPP

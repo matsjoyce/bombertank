@@ -42,7 +42,7 @@ public:
     inline unsigned int lives() {
         return lives_;
     }
-    unsigned int layer() override;
+    unsigned int render_layer() override;
     Player(unsigned int id_, Map* map_);
     void render(sf::RenderTarget& rt) override;
     void handle_keypress(sf::Keyboard::Key key, bool is_down) override;

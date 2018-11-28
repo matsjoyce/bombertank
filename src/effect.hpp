@@ -37,6 +37,7 @@ public:
     RenderMap* map;
 
     Effect(RenderMap* map_, unsigned int id_, int x_, int y_, Orientation::Orientation ori=Orientation::N);
+    virtual ~Effect() = default;
 
     virtual void update();
     virtual void render(sf::RenderTarget& rt);

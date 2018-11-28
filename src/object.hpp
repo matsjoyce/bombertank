@@ -56,10 +56,13 @@ enum class ServerObjectMessage : unsigned int {
 class Object : public std::enable_shared_from_this<Object> {
 public:
     Object(unsigned int id_, Map* map_);
+    virtual ~Object() = default;
+    virtual void post_constructor();
     const unsigned int id;
     virtual unsigned int layer();
     virtual unsigned int type();
-    unsigned int width = STANDARD_OBJECT_SIZE, height = STANDARD_OBJECT_SIZE;
+    virtual unsigned int width();
+    virtual unsigned int height();
 
     Signal<> destroyed;
     Signal<> side_changed;
@@ -73,20 +76,20 @@ public:
     void set_hp(unsigned int hp);
 
     void start_update();
-    void end_update();
-
     virtual void update();
+    void end_update();
+    virtual void handle(msgpackvar m);
+    virtual void destroy(bool send=true);
+    virtual void collision(objptr obj, bool caused_by_self);
+    ServerMap* server_map();
+
+    virtual unsigned int render_layer();
     virtual void render_update();
     virtual void render(sf::RenderTarget& rt);
     virtual void render_hud(sf::RenderTarget& rt);
-    virtual void handle(msgpackvar m);
     virtual void render_handle(msgpackvar m);
     virtual void handle_keypress(sf::Keyboard::Key key, bool is_down);
-    virtual void destroy(bool send=true);
-    virtual void collision(objptr obj, bool caused_by_self);
-
     RenderMap* render_map();
-    ServerMap* server_map();
 
     double angle_to(objptr obj);
     int separation_distance(objptr obj);

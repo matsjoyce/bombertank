@@ -27,7 +27,9 @@ using namespace std;
 
 
 template<class T> objptr creator(unsigned int id, Map* m) {
-    return make_shared<T>(id, m);
+    auto obj = make_shared<T>(id, m);
+    obj->post_constructor();
+    return obj;
 }
 
 bool loaded;

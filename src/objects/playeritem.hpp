@@ -24,11 +24,13 @@
 #include <functional>
 #include "player.hpp"
 
-class PlayerItem {
+class PlayerItem : public std::enable_shared_from_this<PlayerItem> {
     bool active_ = false;
+    std::weak_ptr<Player> player_;
 protected:
-    std::shared_ptr<Player> player;
+    std::shared_ptr<Player> player();
 public:
+    virtual ~PlayerItem() = default;
     void attach(std::shared_ptr<Player> pl);
     void drop();
     inline bool active() {

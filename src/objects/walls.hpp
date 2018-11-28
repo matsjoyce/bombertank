@@ -28,7 +28,7 @@ public:
         return 0;
     }
     using Object::Object;
-    unsigned int layer() override;
+    unsigned int render_layer() override;
     void render(sf::RenderTarget& rt) override;
     unsigned int max_hp() override;
 };
@@ -40,7 +40,7 @@ public:
         return 1;
     }
     using Object::Object;
-    unsigned int layer() override;
+    unsigned int render_layer() override;
     void render(sf::RenderTarget& rt) override;
     unsigned int take_damage(unsigned int damage, DamageType dt) override;
 };
@@ -54,7 +54,7 @@ public:
     using Object::Object;
     void render(sf::RenderTarget& rt) override;
     unsigned int max_hp() override;
-    unsigned int layer() override;
+    unsigned int render_layer() override;
 };
 
 #endif // WALLS_HPP

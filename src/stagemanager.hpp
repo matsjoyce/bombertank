@@ -85,6 +85,7 @@ public:
 class StageManager {
     std::unique_ptr<Stage> current_stage;
 public:
+    ~StageManager() = default;
     void update(sf::RenderWindow& window);
     void render(sf::RenderWindow& window);
     void start_stage(std::unique_ptr<Stage>&& stage);

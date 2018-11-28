@@ -28,11 +28,15 @@ enum class PIRenderMessage : unsigned int {
 };
 
 void PlayerItem::attach(std::shared_ptr<Player> pl) {
-    player = pl;
+    player_ = pl;
 }
 
 void PlayerItem::drop() {
-    player = {};
+    player_ = {};
+}
+
+std::shared_ptr<Player> PlayerItem::player() {
+    return player_.lock();
 }
 
 void PlayerItem::start() {
@@ -73,17 +77,17 @@ void UsesPlayerItem::send_update() {
     msgpackvar m;
     m["itype"] = as_ui(PIRenderMessage::UPDATE);
     m["uses"] = uses;
-    player->item_msg(std::move(m), type());
+    player()->item_msg(std::move(m), type());
 }
 
 BombItem::BombItem() : UsesPlayerItem(3) {
 }
 
 void BombItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
-    sf::Sprite spr(player->render_map()->load_texture("data/images/bomb.png"));
+    sf::Sprite spr(player()->render_map()->load_texture("data/images/bomb.png"));
     spr.setPosition(position);
     rt.draw(spr);
-    sf::Text txt(to_string(uses), player->render_map()->load_font("data/fonts/font.pcf"), 12);
+    sf::Text txt(to_string(uses), player()->render_map()->load_font("data/fonts/font.pcf"), 12);
     txt.setPosition(position);
     rt.draw(txt);
 }
@@ -94,9 +98,9 @@ void BombItem::start() {
     if (uses) {
         --uses;
         send_update();
-        auto obj = player->server_map()->add(TimedBomb::TYPE);
-        obj->place(player->tcx(), player->tcy());
-        obj->destroyed.connect([this]{
+        auto obj = player()->server_map()->add(TimedBomb::TYPE);
+        obj->place(player()->tcx(), player()->tcy());
+        obj->destroyed.connect([this] {
             ++uses;
             send_update();
         });
@@ -107,10 +111,10 @@ CrateItem::CrateItem() : UsesPlayerItem(8) {
 }
 
 void CrateItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
-    sf::Sprite spr(player->render_map()->load_texture("data/images/pwall.png"));
+    sf::Sprite spr(player()->render_map()->load_texture("data/images/pwall.png"));
     spr.setPosition(position);
     rt.draw(spr);
-    sf::Text txt(to_string(uses), player->render_map()->load_font("data/fonts/font.pcf"), 12);
+    sf::Text txt(to_string(uses), player()->render_map()->load_font("data/fonts/font.pcf"), 12);
     txt.setPosition(position);
     rt.draw(txt);
 }
@@ -121,9 +125,9 @@ void CrateItem::start() {
     if (uses) {
         --uses;
         send_update();
-        auto obj = player->server_map()->add(PlacedWall::TYPE);
-        obj->place(player->tcx(), player->tcy());
-        obj->destroyed.connect([this]{
+        auto obj = player()->server_map()->add(PlacedWall::TYPE);
+        obj->place(player()->tcx(), player()->tcy());
+        obj->destroyed.connect([this] {
             ++uses;
             send_update();
         });
@@ -134,10 +138,10 @@ MineItem::MineItem() : UsesPlayerItem(2) {
 }
 
 void MineItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
-    sf::Sprite spr(player->render_map()->load_texture("data/images/mine.png"));
+    sf::Sprite spr(player()->render_map()->load_texture("data/images/mine.png"));
     spr.setPosition(position);
     rt.draw(spr);
-    sf::Text txt(to_string(uses), player->render_map()->load_font("data/fonts/font.pcf"), 12);
+    sf::Text txt(to_string(uses), player()->render_map()->load_font("data/fonts/font.pcf"), 12);
     txt.setPosition(position);
     rt.draw(txt);
 }
@@ -148,9 +152,9 @@ void MineItem::start() {
     if (uses) {
         --uses;
         send_update();
-        auto obj = player->server_map()->add(Mine::TYPE);
-        obj->place(player->tcx(), player->tcy());
-        obj->set_side(player->side());
+        auto obj = player()->server_map()->add(Mine::TYPE);
+        obj->place(player()->tcx(), player()->tcy());
+        obj->set_side(player()->side());
     }
 }
 

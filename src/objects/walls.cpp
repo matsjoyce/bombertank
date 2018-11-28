@@ -30,7 +30,7 @@ unsigned int Wall::max_hp() {
     return 100;
 }
 
-unsigned int Wall::layer() {
+unsigned int Wall::render_layer() {
     return 2;
 }
 
@@ -45,7 +45,7 @@ unsigned int IndestructableWall::take_damage(unsigned int /*damage*/, DamageType
     return 0;
 }
 
-unsigned int IndestructableWall::layer() {
+unsigned int IndestructableWall::render_layer() {
     return 2;
 }
 
@@ -59,6 +59,6 @@ unsigned int PlacedWall::max_hp() {
     return 50;
 }
 
-unsigned int PlacedWall::layer() {
+unsigned int PlacedWall::render_layer() {
     return 2;
 }

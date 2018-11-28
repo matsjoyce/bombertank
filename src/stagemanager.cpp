@@ -37,7 +37,7 @@ struct GameState {
     thread thr;
     sf::Font font;
     int dpi_scaling_factor = 1;
-    GameState() : sm(), thr([this]{return sm.run();}) {
+    GameState() : sm(), thr([this] {return sm.run();}) {
         font.loadFromFile("data/fonts/font.pcf");
         const_cast<sf::Texture&>(font.getTexture(12)).setSmooth(false);
     }

@@ -30,6 +30,6 @@ void Chest::render(sf::RenderTarget& rt) {
 //     return 50;
 // }
 
-unsigned int Chest::layer() {
+unsigned int Chest::render_layer() {
     return 2;
 }

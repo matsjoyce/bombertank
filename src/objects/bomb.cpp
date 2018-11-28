@@ -32,7 +32,7 @@ void StaticBomb::render(sf::RenderTarget& rt) {
 pair<unsigned int, bool> kill_in_tile(ServerMap* sm, int x, int y, objptr obj, unsigned int damage) {
     bool all_dead = true;
     // TODO use one collide box and iterate though until no damage left (objs are now sorted by distance)
-    for (auto& obj2 : sm->collides(x + 5, y + 5, obj->width - 10, obj->height - 10)) {
+    for (auto& obj2 : sm->collides(x + 5, y + 5, obj->width() - 10, obj->height() - 10)) {
         damage = obj2.second->take_damage(damage, DamageType::FORCE);
         all_dead = all_dead && !obj2.second->alive();
     }
@@ -97,7 +97,7 @@ void StaticBomb::render_handle(msgpackvar m) {
     }
 }
 
-unsigned int StaticBomb::layer() {
+unsigned int StaticBomb::render_layer() {
     return 4;
 }
 
@@ -156,9 +156,11 @@ void RoboBomb::render(sf::RenderTarget& rt) {
     rt.draw(sp);
 }
 
-void Mine::collision(objptr obj, bool caused_by_self) {
-    if (obj->side() != side()) {
-        destroy();
+void Mine::update() {
+    for (auto obj : server_map()->collides(x(), y(), width(), height())) {
+        if (obj.second->side() != side()) {
+            destroy();
+        }
     }
 }
 
@@ -169,6 +171,10 @@ void Mine::render(sf::RenderTarget& rt) {
         position_sprite(sp);
         rt.draw(sp);
     }
+}
+
+unsigned int Mine::layer() {
+    return 4;
 }
 
 Explosion::Explosion(RenderMap* map_, unsigned int id_, int x_, int y_, Orientation::Orientation ori, Position pos/* = CENTER*/)

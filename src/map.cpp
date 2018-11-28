@@ -126,17 +126,6 @@ void ServerMap::halt() {
     is_running = false;
 }
 
-
-vector<objptr> ServerMap::objs_at_dir(objptr obj, Orientation::Orientation dir) {
-    vector<objptr> ret;
-    for (auto& obj2 : objects) {
-        if (obj->id != obj2.first && Orientation::angle_diff(dir, obj->angle_to(obj2.second)) < 45) {
-            ret.push_back(obj2.second);
-        }
-    }
-    return ret;
-}
-
 vector<pair<int, objptr>> ServerMap::collides(int ox, int oy, int ow, int oh) {
     vector<pair<int, objptr>> ret;
     int dist;
@@ -150,13 +139,14 @@ vector<pair<int, objptr>> ServerMap::collides(int ox, int oy, int ow, int oh) {
 }
 
 vector<pair<int, objptr>> ServerMap::collides_by_moving(int ox, int oy, int ow, int oh, Orientation::Orientation dir, int movement) {
-    int nx, ny, nw, nh;
+    int nx, ny, nw, nh, margin;
     switch (dir) {
         case Orientation::N: {
             nh = movement;
             nw = ow;
             ny = oy - movement;
             nx = ox;
+            margin = oh / 2;
             break;
         }
         case Orientation::E: {
@@ -164,6 +154,7 @@ vector<pair<int, objptr>> ServerMap::collides_by_moving(int ox, int oy, int ow, 
             nw = movement;
             ny = oy;
             nx = ox + ow;
+            margin = ow / 2;
             break;
         }
         case Orientation::S: {
@@ -171,6 +162,7 @@ vector<pair<int, objptr>> ServerMap::collides_by_moving(int ox, int oy, int ow, 
             nw = ow;
             ny = oy + oh;
             nx = ox;
+            margin = oh / 2;
             break;
         }
         case Orientation::W: {
@@ -178,6 +170,7 @@ vector<pair<int, objptr>> ServerMap::collides_by_moving(int ox, int oy, int ow, 
             nw = movement;
             ny = oy;
             nx = ox - movement;
+            margin = ow / 2;
             break;
         }
     }
@@ -185,7 +178,7 @@ vector<pair<int, objptr>> ServerMap::collides_by_moving(int ox, int oy, int ow, 
     int dist;
     for (auto& obj : objects) {
         if (obj.second->alive() && obj.second->separation_distance(nx, ny, nw, nh) < 0
-            && (dist = obj.second->separation_distance(ox, oy, ow, oh)) > -static_cast<int>(obj.second->width) / 2) {
+            && (dist = obj.second->separation_distance(ox, oy, ow, oh)) > -margin) {
             auto item = make_pair(dist, obj.second);
             ret.insert(upper_bound(ret.begin(), ret.end(), item), item);
         }

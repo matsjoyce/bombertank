@@ -36,7 +36,7 @@ void RenderMap::update() {
                 auto obj = add(event["type"].as_uint64_t(), event["id"].as_uint64_t());
                 obj->place(extract_int(event["x"]), extract_int(event["y"]));
                 obj->set_side(event["side"].as_uint64_t());
-                layers.insert(make_pair(obj->layer(), obj));
+                layers.insert(make_pair(obj->render_layer(), obj));
                 break;
             }
             case ToRenderMessage::PAUSED: {
@@ -51,7 +51,7 @@ void RenderMap::update() {
             }
             case ToRenderMessage::FOROBJ: {
                 auto id = event["id"].as_uint64_t();
-                if (objects.count(id)) {
+                if (objects.count(id) && objects[id]) {
                     objects[id]->render_handle(event);
                 }
                 else {
@@ -65,11 +65,23 @@ void RenderMap::update() {
             }
         }
     }
-    for (auto& obj : objects) {
-        obj.second->render_update();
+    for (auto iter = objects.begin(); iter != objects.end();) {
+        if (iter->second) {
+            iter->second->render_update();
+            ++iter;
+        }
+        else {
+            objects.erase(iter++);
+        }
     }
-    for (auto& eff : effects) {
-        eff.second->update();
+    for (auto iter = effects.begin(); iter != effects.end();) {
+        if (iter->second) {
+            iter->second->update();
+            ++iter;
+        }
+        else {
+            effects.erase(iter++);
+        }
     }
 }
 
@@ -99,7 +111,7 @@ void RenderMap::register_keypress(sf::Keyboard::Key key, unsigned int id) {
 }
 
 void RenderMap::handle_keypress(sf::Keyboard::Key key, bool is_down) {
-    if (!is_paused() && keypress_register.count(key) && objects.count(keypress_register[key])) {
+    if (!is_paused() && keypress_register.count(key) && objects.count(keypress_register[key]) && objects[keypress_register[key]]) {
         objects[keypress_register[key]]->handle_keypress(key, is_down);
     }
     else {
@@ -151,17 +163,17 @@ void RenderMap::remove_effect(unsigned int id) {
             break;
         }
     }
-    effects.erase(id);
+    effects[id] = {};
 }
 
 void RenderMap::remove(objptr obj) {
-    for (auto iter = layers.lower_bound(obj->layer()); iter != layers.end(); ++iter) {
+    for (auto iter = layers.lower_bound(obj->render_layer()); iter != layers.end(); ++iter) {
         if (iter->second.index() == 0 && get<0>(iter->second)->id == obj->id) {
             layers.erase(iter);
             break;
         }
     }
-    Map::remove(obj);
+    objects[obj->id] = {};
 }
 
 void RenderMap::pause() {

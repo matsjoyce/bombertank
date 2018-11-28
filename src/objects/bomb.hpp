@@ -30,7 +30,7 @@ public:
         return 5;
     }
     using Object::Object;
-    unsigned int layer() override;
+    unsigned int render_layer() override;
     void render(sf::RenderTarget& rt) override;
     void destroy(bool send=true) override;
     void render_handle(msgpackvar m) override;
@@ -50,7 +50,7 @@ public:
 class RoboBomb : public StaticBomb {
     int wait = 0;
     sf::Clock clock;
-    bool stuck;
+    bool stuck = false;
 public:
     constexpr static const int TYPE = 7;
     virtual unsigned int type() override {
@@ -70,7 +70,8 @@ public:
         return 9;
     }
     void render(sf::RenderTarget& rt) override;
-    void collision(objptr obj, bool caused_by_self) override;
+    void update() override;
+    unsigned int layer() override;
 };
 
 class Explosion : public Effect {

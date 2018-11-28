@@ -58,16 +58,20 @@ map<int, PlayerSettings> player_settings = {
 
 Player::Player(unsigned int id_, Map* map_) : Object(id_, map_) {
     if (render_map()) {
-        destroyed.connect([this]{
+        destroyed.connect([this] {
             render_map()->add_effect<DeadPlayer>(x(), y(), orientation());
         });
         setup_keys();
-        side_changed.connect([this]{setup_keys();});
+        side_changed.connect([this] {
+            setup_keys();
+        });
     }
-    auto fid = map->paused.connect([this]{
+    auto fid = map->paused.connect([this] {
         direction_stack.clear();
     });
-    destroyed.connect([this, fid]{map->paused.disconnect(fid);});
+    destroyed.connect([this, fid] {
+        map->paused.disconnect(fid);
+    });
 }
 
 void Player::render(sf::RenderTarget& rt) {
@@ -291,7 +295,7 @@ unsigned int Player::max_hp() {
     return 150;
 }
 
-unsigned int Player::layer() {
+unsigned int Player::render_layer() {
     return 6;
 }
 
