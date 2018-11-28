@@ -19,10 +19,8 @@
 #ifndef ATTACKUTILS_HPP
 #define ATTACKUTILS_HPP
 
-#include "../orientation.hpp"
+#include "../object.hpp"
 
-class ServerMap;
-
-unsigned int progressive_kill_in_direction(ServerMap* sm, int x, int y, unsigned int size, unsigned int length, Orientation::Orientation direction, int damage);
+unsigned int progressive_kill_in_direction(ServerMap* sm, int x, int y, unsigned int size, unsigned int length, Orientation::Orientation direction, int damage, DamageType type);
 
 #endif // ATTACKUTILS_HPP

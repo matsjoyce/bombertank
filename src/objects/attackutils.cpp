@@ -23,9 +23,9 @@
 using namespace std;
 
 
-unsigned int progressive_kill_in_direction(ServerMap* sm, int x, int y, unsigned int size, unsigned int length, Orientation::Orientation direction, int damage) {
+unsigned int progressive_kill_in_direction(ServerMap* sm, int x, int y, unsigned int size, unsigned int length, Orientation::Orientation direction, int damage, DamageType type) {
     for (auto& obj : sm->collides_by_moving(x, y, size, size, direction, length, false)) {
-        damage = obj.second->take_damage(damage, DamageType::FORCE);
+        damage = obj.second->take_damage(damage, type);
         if (obj.second->alive()) {
             return max(0, obj.second->separation_distance(x, y, 0, 0));
             break;

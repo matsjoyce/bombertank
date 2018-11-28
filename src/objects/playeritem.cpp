@@ -209,7 +209,7 @@ void LaserItem::start() {
         auto ori = player()->orientation();
         auto x = player()->x() + dx(ori) * (player()->width() / 2);
         auto y = player()->y() + dy(ori) * (player()->height() / 2);
-        auto dist = progressive_kill_in_direction(player()->server_map(), x, y, 4, STANDARD_OBJECT_SIZE * 7, ori, 25);
+        auto dist = progressive_kill_in_direction(player()->server_map(), x, y, 4, STANDARD_OBJECT_SIZE * 7, ori, 25, DamageType::HEAT);
 
         msgpackvar m;
         m["itype"] = as_ui(PIRenderMessage::START);

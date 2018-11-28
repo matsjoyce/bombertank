@@ -38,10 +38,10 @@ void StaticBomb::destroy(bool send /*= true*/) {
         m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
         m["type"] = as_ui(RenderObjectMessage::DESTROY);
         m["id"] = id;
-        m["n"] = progressive_kill_in_direction(sm, x(), y(), 14, STANDARD_OBJECT_SIZE * power, Orientation::N, 100) / STANDARD_OBJECT_SIZE;
-        m["e"] = progressive_kill_in_direction(sm, x(), y(), 14, STANDARD_OBJECT_SIZE * power, Orientation::E, 100) / STANDARD_OBJECT_SIZE;
-        m["s"] = progressive_kill_in_direction(sm, x(), y(), 14, STANDARD_OBJECT_SIZE * power, Orientation::S, 100) / STANDARD_OBJECT_SIZE;
-        m["w"] = progressive_kill_in_direction(sm, x(), y(), 14, STANDARD_OBJECT_SIZE * power, Orientation::W, 100) / STANDARD_OBJECT_SIZE;
+        m["n"] = progressive_kill_in_direction(sm, x(), y(), 14, STANDARD_OBJECT_SIZE * power, Orientation::N, 100, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
+        m["e"] = progressive_kill_in_direction(sm, x(), y(), 14, STANDARD_OBJECT_SIZE * power, Orientation::E, 100, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
+        m["s"] = progressive_kill_in_direction(sm, x(), y(), 14, STANDARD_OBJECT_SIZE * power, Orientation::S, 100, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
+        m["w"] = progressive_kill_in_direction(sm, x(), y(), 14, STANDARD_OBJECT_SIZE * power, Orientation::W, 100, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
         sm->event(shared_from_this(), std::move(m));
     }
     else {
@@ -97,22 +97,20 @@ RoboBomb::RoboBomb(unsigned int id_, Map* map_) : StaticBomb(id_, map_) {
 }
 
 void RoboBomb::update() {
-    if (auto sm = server_map()) {
-        if (wait) {
-            --wait;
-            return;
-        }
-        else if (stuck) {
-            auto old_dir = direction();
-            while (direction() == old_dir) {
-                set_direction(Orientation::Orientation(distribution(generator)));
-            }
-            set_orientation(direction());
-            stuck = false;
-        }
-
-        accelerate(2 - speed());
+    if (wait) {
+        --wait;
+        return;
     }
+    else if (stuck) {
+        auto old_dir = direction();
+        while (direction() == old_dir) {
+            set_direction(Orientation::Orientation(distribution(generator)));
+        }
+        set_orientation(direction());
+        stuck = false;
+    }
+
+    accelerate(2 - speed());
 }
 
 void RoboBomb::collision(objptr obj, bool caused_by_self) {
