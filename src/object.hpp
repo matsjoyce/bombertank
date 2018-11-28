@@ -93,8 +93,8 @@ public:
 
     double angle_to(objptr obj);
     int separation_distance(objptr obj);
-    int separation_distance(int ox, int oy, int ow, int oh);
-    int separation_distance(int ox, int oy, int ow, int oh, Orientation::Orientation dir, int movement);
+    int separation_distance(int ox, int oy, unsigned int ow, unsigned int oh);
+    int separation_distance(int ox, int oy, unsigned int ow, unsigned int oh, Orientation::Orientation dir, int movement);
 
     inline int x() {
         return x_;

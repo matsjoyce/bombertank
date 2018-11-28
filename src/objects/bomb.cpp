@@ -18,6 +18,7 @@
 
 #include "bomb.hpp"
 #include "player.hpp"
+#include "attackutils.hpp"
 #include <random>
 #include <iostream>
 
@@ -29,32 +30,6 @@ void StaticBomb::render(sf::RenderTarget& rt) {
     rt.draw(sp);
 }
 
-pair<unsigned int, bool> kill_in_tile(ServerMap* sm, int x, int y, objptr obj, unsigned int damage) {
-    bool all_dead = true;
-    // TODO use one collide box and iterate though until no damage left (objs are now sorted by distance)
-    for (auto& obj2 : sm->collides(x + 5, y + 5, obj->width() - 10, obj->height() - 10)) {
-        damage = obj2.second->take_damage(damage, DamageType::FORCE);
-        all_dead = all_dead && !obj2.second->alive();
-    }
-    return {damage, all_dead};
-}
-
-int kill_in_direction(ServerMap* sm, objptr obj, Orientation::Orientation ori, int range, int damage) {
-    int i = 1;
-    for (; i <= range; ++i) {
-        auto [new_dmg, all_dead] = kill_in_tile(sm, obj->x() + i * dx(ori) * STANDARD_OBJECT_SIZE, obj->y() + i * dy(ori) * STANDARD_OBJECT_SIZE, obj, damage);
-        damage = new_dmg;
-        if (!damage) {
-            if (all_dead) {
-                ++i;
-            }
-            break;
-        }
-    }
-
-    return i - 1;
-}
-
 void StaticBomb::destroy(bool send /*= true*/) {
     if (!alive()) return;
     if (auto sm = server_map()) {
@@ -63,11 +38,10 @@ void StaticBomb::destroy(bool send /*= true*/) {
         m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
         m["type"] = as_ui(RenderObjectMessage::DESTROY);
         m["id"] = id;
-        kill_in_tile(sm, x(), y(), shared_from_this(), 100);
-        m["n"] = kill_in_direction(sm, shared_from_this(), Orientation::N, power, 100);
-        m["e"] = kill_in_direction(sm, shared_from_this(), Orientation::E, power, 100);
-        m["s"] = kill_in_direction(sm, shared_from_this(), Orientation::S, power, 100);
-        m["w"] = kill_in_direction(sm, shared_from_this(), Orientation::W, power, 100);
+        m["n"] = progressive_kill_in_direction(sm, x(), y(), 14, STANDARD_OBJECT_SIZE * power, Orientation::N, 100) / STANDARD_OBJECT_SIZE;
+        m["e"] = progressive_kill_in_direction(sm, x(), y(), 14, STANDARD_OBJECT_SIZE * power, Orientation::E, 100) / STANDARD_OBJECT_SIZE;
+        m["s"] = progressive_kill_in_direction(sm, x(), y(), 14, STANDARD_OBJECT_SIZE * power, Orientation::S, 100) / STANDARD_OBJECT_SIZE;
+        m["w"] = progressive_kill_in_direction(sm, x(), y(), 14, STANDARD_OBJECT_SIZE * power, Orientation::W, 100) / STANDARD_OBJECT_SIZE;
         sm->event(shared_from_this(), std::move(m));
     }
     else {
@@ -189,8 +163,8 @@ void Explosion::render(sf::RenderTarget& rt) {
     if (time_left) {
         sf::Sprite sp(map->load_texture(position == Position::CENTER ? "data/images/explosion.png"
                                       : position == Position::MIDDLE ? "data/images/explosion_middle.png" : "data/images/explosion_side.png"));
-        sp.setOrigin(sf::Vector2f(STANDARD_OBJECT_SIZE / 2, STANDARD_OBJECT_SIZE / 2));
-        sp.setPosition(sf::Vector2f(x + STANDARD_OBJECT_SIZE / 2, y + STANDARD_OBJECT_SIZE / 2));
+        sp.setOrigin(sf::Vector2f(sp.getTextureRect().width / 2, sp.getTextureRect().height / 2));
+        sp.setPosition(sf::Vector2f(x, y));
         sp.setRotation(angle(orientation));
         sp.setColor(sf::Color(255, 255, 255, min(255, time_left * 25)));
         rt.draw(sp);

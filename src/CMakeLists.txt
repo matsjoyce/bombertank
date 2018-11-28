@@ -12,6 +12,7 @@ set(SOURCE
     objects/playeritem.cpp
     objects/bomb.cpp
     objects/chest.cpp
+    objects/attackutils.cpp
 )
 
 add_library(bombertank STATIC ${SOURCE})

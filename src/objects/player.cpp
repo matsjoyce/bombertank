@@ -407,8 +407,8 @@ void Player::set_secondary(unsigned int sec) {
 
 void DeadPlayer::render(sf::RenderTarget& rt) {
     sf::Sprite sp(map->load_texture("data/images/tank_dead.png"));
-    sp.setOrigin(sf::Vector2f(STANDARD_OBJECT_SIZE / 2, STANDARD_OBJECT_SIZE / 2));
-    sp.setPosition(sf::Vector2f(x + STANDARD_OBJECT_SIZE / 2, y + STANDARD_OBJECT_SIZE / 2));
+    sp.setOrigin(sf::Vector2f(sp.getTextureRect().width / 2, sp.getTextureRect().height / 2));
+    sp.setPosition(sf::Vector2f(x, y));
     sp.setRotation(angle(orientation));
     rt.draw(sp);
 }

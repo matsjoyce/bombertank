@@ -77,8 +77,8 @@ public:
     void resume();
     void event(objptr obj, msgpackvar&& msg);
     objptr add(unsigned int type);
-    std::vector<std::pair<int, objptr>> collides(int ox, int oy, int ow, int oh);
-    std::vector<std::pair<int, objptr>> collides_by_moving(int ox, int oy, int ow, int oh, Orientation::Orientation dir, int movement);
+    std::vector<std::pair<int, objptr>> collides(int ox, int oy, unsigned int ow, unsigned int oh);
+    std::vector<std::pair<int, objptr>> collides_by_moving(int ox, int oy, unsigned int ow, unsigned int oh, Orientation::Orientation dir, int movement, bool skip_start=true);
     void save_objects_to_map(std::ostream& f);
 };
 

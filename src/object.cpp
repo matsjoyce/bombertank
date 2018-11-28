@@ -196,37 +196,15 @@ void Object::_generate_move() {
 }
 
 int Object::separation_distance(objptr obj) {
-    return max(max(obj->x_ - x_ - static_cast<int>(width()),
-                   x_ - obj->x_ - static_cast<int>(obj->width())),
-               max(obj->y_ - y_ - static_cast<int>(height()),
-                   y_ - obj->y_ - static_cast<int>(obj->height())));
+    return separation_distance(obj->x(), obj->y(), obj->width(), obj->height());
 }
 
-int Object::separation_distance(int ox, int oy, int ow, int oh) {
-    return max(max(ox - x_ - static_cast<int>(width()),
-                   x_ - ox - static_cast<int>(ow)),
-               max(oy - y_ - static_cast<int>(height()),
-                   y_ - oy - static_cast<int>(oh)));
+int Object::separation_distance(int ox, int oy, unsigned int ow, unsigned int oh) {
+    return max(abs(ox - x_) - static_cast<int>(ow + width()) / 2, abs(oy - y_) - static_cast<int>(oh + height()) / 2);
 }
 
-int Object::separation_distance(int ox, int oy, int ow, int oh, Orientation::Orientation dir, int movement) {
-    auto dx_ = dx(dir) * movement;
-    if (dx_ > 0) {
-        ow += dx_;
-    }
-    else {
-        ox += dx_;
-        ow -= dx_;
-    }
-    auto dy_ = dy(dir) * movement;
-    if (dy_ > 0) {
-        oh += dy_;
-    }
-    else {
-        oy += dy_;
-        oh -= dy_;
-    }
-    return separation_distance(ox, oy, ow, oh);
+int Object::separation_distance(int ox, int oy, unsigned int ow, unsigned int oh, Orientation::Orientation dir, int movement) {
+    return separation_distance(ox + dx(dir) * movement, oy + dy(dir) * movement, ow, oh);
 }
 
 
@@ -234,7 +212,7 @@ void Object::render_update() {
 }
 
 unsigned int Object::take_damage(unsigned int damage, DamageType /*dt*/) {
-    cout << id << " taking " << damage << " dmg with " << hp_ << " hp" << endl;
+    cout << id << "[" << type() << "]" << " taking " << damage << " dmg with " << hp_ << " hp" << endl;
     if (damage >= hp_) {
         damage -= hp_;
         hp_ = 0;
@@ -309,8 +287,8 @@ void Object::collision(objptr /*obj*/, bool /*caused_by_self*/) {
 }
 
 void Object::position_sprite(sf::Sprite& spr) {
-    spr.setOrigin(sf::Vector2f(width() / 2, height() / 2));
-    spr.setPosition(sf::Vector2f(x_ + width() / 2, y_ + height() / 2));
+    spr.setOrigin(sf::Vector2f(spr.getTextureRect().width / 2, spr.getTextureRect().height / 2));
+    spr.setPosition(sf::Vector2f(x_, y_));
     spr.setRotation(angle(orientation_));
 }
 

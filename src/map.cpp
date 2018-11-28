@@ -126,7 +126,7 @@ void ServerMap::halt() {
     is_running = false;
 }
 
-vector<pair<int, objptr>> ServerMap::collides(int ox, int oy, int ow, int oh) {
+vector<pair<int, objptr>> ServerMap::collides(int ox, int oy, unsigned int ow, unsigned int oh) {
     vector<pair<int, objptr>> ret;
     int dist;
     for (auto& obj : objects) {
@@ -138,39 +138,30 @@ vector<pair<int, objptr>> ServerMap::collides(int ox, int oy, int ow, int oh) {
     return ret;
 }
 
-vector<pair<int, objptr>> ServerMap::collides_by_moving(int ox, int oy, int ow, int oh, Orientation::Orientation dir, int movement) {
-    int nx, ny, nw, nh, margin;
+vector<pair<int, objptr>> ServerMap::collides_by_moving(int ox, int oy, unsigned int ow, unsigned int oh,
+                                                        Orientation::Orientation dir, int movement, bool skip_start/*=true*/) {
+    int nx, ny, nw, nh, margin = numeric_limits<int>::min();
     switch (dir) {
-        case Orientation::N: {
-            nh = movement;
-            nw = ow;
-            ny = oy - movement;
-            nx = ox;
-            margin = oh / 2;
-            break;
-        }
-        case Orientation::E: {
-            nh = oh;
-            nw = movement;
-            ny = oy;
-            nx = ox + ow;
-            margin = ow / 2;
-            break;
-        }
+        case Orientation::N:
         case Orientation::S: {
             nh = movement;
             nw = ow;
-            ny = oy + oh;
+            ny = oy + dy(dir) * ((skip_start ? static_cast<int>(oh) : 0) + movement / 2);
             nx = ox;
-            margin = oh / 2;
+            if (skip_start) {
+                margin = -static_cast<int>(oh) / 2;
+            }
             break;
         }
+        case Orientation::E:
         case Orientation::W: {
             nh = oh;
             nw = movement;
             ny = oy;
-            nx = ox - movement;
-            margin = ow / 2;
+            nx = ox + dx(dir) * ((skip_start ? static_cast<int>(ow) : 0) + movement / 2);
+            if (skip_start) {
+                margin = -static_cast<int>(ow) / 2;
+            }
             break;
         }
     }
@@ -178,14 +169,13 @@ vector<pair<int, objptr>> ServerMap::collides_by_moving(int ox, int oy, int ow, 
     int dist;
     for (auto& obj : objects) {
         if (obj.second->alive() && obj.second->separation_distance(nx, ny, nw, nh) < 0
-            && (dist = obj.second->separation_distance(ox, oy, ow, oh)) > -margin) {
+            && (dist = obj.second->separation_distance(ox, oy, ow, oh)) > margin) {
             auto item = make_pair(dist, obj.second);
             ret.insert(upper_bound(ret.begin(), ret.end(), item), item);
         }
     }
     return ret;
 }
-
 
 void ServerMap::remove(objptr obj) {
     if (in_update) {
