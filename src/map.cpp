@@ -47,14 +47,6 @@ void ServerMap::event(objptr obj, msgpackvar&& msg) {
 
 objptr ServerMap::add(unsigned int type) {
     auto obj = Map::add(type, next_id++);
-    msgpackvar m;
-    m["mtype"] = as_ui(ToRenderMessage::CREATE);
-    m["id"] = obj->id;
-    m["type"] = type;
-    m["x"] = obj->x();
-    m["y"] = obj->y();
-    m["side"] = obj->side();
-    event(obj, std::move(m));
     return obj;
 }
 

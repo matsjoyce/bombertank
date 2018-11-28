@@ -31,6 +31,16 @@ Object::Object(unsigned int id_, Map* map_) : id(id_), map(map_) {
 
 void Object::post_constructor() {
     hp_ = max_hp();
+    if (auto sm = server_map()) {
+        msgpackvar m;
+        m["mtype"] = as_ui(ToRenderMessage::CREATE);
+        m["id"] = id;
+        m["type"] = type();
+        m["x"] = x_;
+        m["y"] = y_;
+        m["side"] = side_;
+        sm->event(shared_from_this(), std::move(m));
+    }
 }
 
 void Object::place(int x, int y) {

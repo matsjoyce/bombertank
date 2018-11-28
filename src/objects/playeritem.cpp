@@ -20,11 +20,12 @@
 #include <iostream>
 #include "bomb.hpp"
 #include "walls.hpp"
+#include "attackutils.hpp"
 
 using namespace std;
 
 enum class PIRenderMessage : unsigned int {
-    UPDATE, DESTROY
+    UPDATE, DESTROY, START, END
 };
 
 void PlayerItem::attach(std::shared_ptr<Player> pl) {
@@ -63,13 +64,13 @@ void UsesPlayerItem::merge_with(std::shared_ptr<PlayerItem> item) {
     send_update();
 }
 
-void UsesPlayerItem::render_handle(msgpackvar && m) {
+void UsesPlayerItem::render_handle(msgpackvar&& m) {
     switch (static_cast<PIRenderMessage>(m["itype"].as_uint64_t())) {
         case PIRenderMessage::UPDATE: {
             uses = m["uses"].as_uint64_t();
             break;
         }
-        default:;
+        default: PlayerItem::render_handle(std::move(m));
     }
 }
 
@@ -100,9 +101,12 @@ void BombItem::start() {
         send_update();
         auto obj = player()->server_map()->add(TimedBomb::TYPE);
         obj->place(player()->tcx(), player()->tcy());
-        obj->destroyed.connect([this] {
-            ++uses;
-            send_update();
+        weak_ptr<BombItem> weak_this = dynamic_pointer_cast<BombItem>(shared_from_this());
+        obj->destroyed.connect([weak_this] {
+            if (auto obj = weak_this.lock()) {
+                ++obj->uses;
+                obj->send_update();
+            }
         });
     }
 }
@@ -127,9 +131,12 @@ void CrateItem::start() {
         send_update();
         auto obj = player()->server_map()->add(PlacedWall::TYPE);
         obj->place(player()->tcx(), player()->tcy());
-        obj->destroyed.connect([this] {
-            ++uses;
-            send_update();
+        weak_ptr<CrateItem> weak_this = dynamic_pointer_cast<CrateItem>(shared_from_this());
+        obj->destroyed.connect([weak_this] {
+            if (auto obj = weak_this.lock()) {
+                ++obj->uses;
+                obj->send_update();
+            }
         });
     }
 }
@@ -158,10 +165,92 @@ void MineItem::start() {
     }
 }
 
+LaserItem::LaserItem() : UsesPlayerItem(50) {
+}
+
+void LaserItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
+    sf::Sprite spr(player()->render_map()->load_texture("data/images/laser_icon.png"));
+    spr.setPosition(position);
+    rt.draw(spr);
+    sf::Text txt(to_string(uses), player()->render_map()->load_font("data/fonts/font.pcf"), 12);
+    txt.setPosition(position);
+    rt.draw(txt);
+}
+
+void LaserItem::start() {
+    PlayerItem::start();
+    cout << "LASER " << uses << endl;
+    if (uses) {
+        --uses;
+        auto ori = player()->orientation();
+        auto x = player()->x() + dx(ori) * (player()->width() / 2);
+        auto y = player()->y() + dy(ori) * (player()->height() / 2);
+        auto dist = progressive_kill_in_direction(player()->server_map(), x, y, 4, STANDARD_OBJECT_SIZE * 7, ori, 25);
+
+        msgpackvar m;
+        m["itype"] = as_ui(PIRenderMessage::START);
+        m["dist"] = dist;
+        m["ori"] = as_ui(ori);
+        m["x"] = x;
+        m["y"] = y;
+        m["uses"] = uses;
+        player()->item_msg(std::move(m), type());
+    }
+}
+
+class LaserEffect : public Effect {
+    unsigned int dist;
+public:
+    unsigned int layer() override {
+        return 10;
+    }
+    LaserEffect(RenderMap* map_, unsigned int id_, int x_, int y_, Orientation::Orientation ori, unsigned int dist_)
+        : Effect(map_, id_, x_, y_, ori), dist(dist_) {
+        sound.setBuffer(map->load_sound_buf("data/sounds/laser-small.wav"));
+        sound.play();
+    }
+    void render(sf::RenderTarget& rt) override {
+        if (time_left) {
+            auto tex = map->load_texture("data/images/laser.png");
+            tex.setRepeated(true);
+            sf::Sprite sp(tex);
+            sp.setOrigin(sf::Vector2f(sp.getTextureRect().width / 2, dist));
+            sp.setPosition(sf::Vector2f(x, y));
+            sp.setTextureRect({0, 0, sp.getTextureRect().width, dist});
+            sp.setRotation(angle(orientation));
+            rt.draw(sp);
+        }
+    }
+    void update() override {
+        if (time_left) {
+            --time_left;
+        }
+        if (!time_left && sound.getStatus() == sf::Sound::Stopped) {
+            destroy();
+        }
+    }
+private:
+    int time_left = 5;
+    sf::Sound sound;
+};
+
+void LaserItem::render_handle(msgpackvar&& m) {
+    switch (static_cast<PIRenderMessage>(m["itype"].as_uint64_t())) {
+        case PIRenderMessage::START: {
+            player()->render_map()->add_effect<LaserEffect>(extract_int(m["x"]), extract_int(m["y"]),
+                                                            static_cast<Orientation::Orientation>(m["ori"].as_uint64_t()), m["dist"].as_uint64_t());
+            uses = m["uses"].as_uint64_t();
+            break;
+        }
+        default: UsesPlayerItem::render_handle(std::move(m));
+    }
+}
+
 map<unsigned int, function<shared_ptr<PlayerItem>()>> load_player_items() {
     decltype(load_player_items()) ret;
     ret[BombItem::TYPE] = make_shared<BombItem>;
     ret[CrateItem::TYPE] = make_shared<CrateItem>;
     ret[MineItem::TYPE] = make_shared<MineItem>;
+    ret[LaserItem::TYPE] = make_shared<LaserItem>;
     return ret;
 }

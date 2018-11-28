@@ -51,7 +51,7 @@ protected:
 public:
     UsesPlayerItem(unsigned int uses_);
     void merge_with(std::shared_ptr<PlayerItem> item) override;
-    void render_handle(msgpackvar && m) override;
+    void render_handle(msgpackvar&& m) override;
 };
 
 class BombItem : public UsesPlayerItem {
@@ -85,6 +85,18 @@ public:
     }
     void render(sf::RenderTarget& rt, sf::Vector2f position) override;
     void start() override;
+};
+
+class LaserItem : public UsesPlayerItem {
+public:
+    LaserItem();
+    constexpr static const int TYPE = 3;
+    virtual unsigned int type() override {
+        return 3;
+    }
+    void render(sf::RenderTarget& rt, sf::Vector2f position) override;
+    void start() override;
+    void render_handle(msgpackvar&& m) override;
 };
 
 std::map<unsigned int, std::function<std::shared_ptr<PlayerItem>()>> load_player_items();

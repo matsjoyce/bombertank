@@ -51,7 +51,7 @@ map<int, PlayerSettings> player_settings = {
     {1, {
             sf::Keyboard::Up, sf::Keyboard::Down, sf::Keyboard::Left, sf::Keyboard::Right,
             sf::Keyboard::Enter, sf::Keyboard::RBracket,
-            sf::Keyboard::Comma, sf::Keyboard::Period, sf::Keyboard::Backslash,
+            sf::Keyboard::Comma, sf::Keyboard::Slash, sf::Keyboard::Period,
             sf::Color(0, 128, 0)
     }},
 };
@@ -272,16 +272,19 @@ void Player::setup_keys() {
     }
 }
 
-void Player::update() {
-    if (!items.size()) {
-        if (auto sm = server_map()) {
-            add_item(make_shared<BombItem>());
-            add_item(make_shared<CrateItem>());
-            add_item(make_shared<MineItem>());
-            set_primary(BombItem::TYPE);
-            set_secondary(CrateItem::TYPE);
-        }
+void Player::post_constructor() {
+    Object::post_constructor();
+    if (auto sm = server_map()) {
+        add_item(make_shared<BombItem>());
+        add_item(make_shared<CrateItem>());
+        add_item(make_shared<MineItem>());
+        add_item(make_shared<LaserItem>());
+        set_primary(BombItem::TYPE);
+        set_secondary(CrateItem::TYPE);
     }
+}
+
+void Player::update() {
     if (direction_stack.size()) {
         if (direction() != direction_stack.back()) {
             set_direction(direction_stack.back());

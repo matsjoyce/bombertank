@@ -44,6 +44,7 @@ public:
     }
     unsigned int render_layer() override;
     Player(unsigned int id_, Map* map_);
+    void post_constructor() override;
     void render(sf::RenderTarget& rt) override;
     void handle_keypress(sf::Keyboard::Key key, bool is_down) override;
     void handle(msgpackvar m) override;
