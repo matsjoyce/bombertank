@@ -39,23 +39,10 @@ void Map::remove(objptr obj) {
 
 void ServerMap::add_controller(unsigned int side, std::unique_ptr<EventServer> es) {
     side_controllers.emplace(make_pair(side, move(es)));
-    for (auto& obj : objects) {
-        msgpackvar m;
-        m["mtype"] = as_ui(ToRenderMessage::CREATE);
-        m["id"] = obj.first;
-        m["type"] = obj.second->type();
-        m["x"] = obj.second->x();
-        m["y"] = obj.second->y();
-        m["side"] = obj.second->side();
-        side_controllers[side]->send(std::move(m));
-    }
 }
 
 void ServerMap::event(objptr obj, msgpackvar&& msg) {
-    for (auto& sc : side_controllers) {
-        auto m = msg;
-        sc.second->send(std::move(m));
-    }
+    pending_events.emplace_back(make_pair(obj, std::move(msg)));
 }
 
 objptr ServerMap::add(unsigned int type) {
@@ -83,6 +70,13 @@ void ServerMap::update() {
         remove(objects[id]);
     }
     defered_destroy.clear();
+    for (auto& event : pending_events) {
+        for (auto& sc : side_controllers) {
+            auto m = event.second;
+            sc.second->send(std::move(m));
+        }
+    }
+    pending_events.clear();
 }
 
 void ServerMap::run() {

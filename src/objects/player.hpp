@@ -21,6 +21,8 @@
 
 #include "loader.hpp"
 
+class PlayerItem;
+
 class Player : public Object {
     std::vector<Orientation::Orientation> direction_stack;
     int max_speed = 4;
@@ -30,6 +32,7 @@ class Player : public Object {
     sf::Clock anim_clock;
     std::string tex_name = "data/images/tank1.png";
     void setup_keys();
+    std::map<unsigned int, std::shared_ptr<PlayerItem>> items;
 public:
     constexpr static const int TYPE = 3;
     virtual unsigned int type() override {
@@ -47,7 +50,9 @@ public:
     void update() override;
     unsigned int max_hp() override;
     void transfer(objptr obj);
+    void add_item(std::shared_ptr<PlayerItem> item);
     void render_hud(sf::RenderTarget & rt) override;
+    void item_msg(msgpackvar&& m, unsigned int type);
 };
 
 class DeadPlayer : public Effect {

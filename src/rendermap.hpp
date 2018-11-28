@@ -32,6 +32,7 @@ class RenderMap : public Map {
     std::map<unsigned int, effptr> effects;
     std::map<std::string, sf::Texture> textures;
     std::map<std::string, sf::SoundBuffer> sound_bufs;
+    std::map<std::string, sf::Font> fonts;
     std::multimap<unsigned int, std::variant<objptr, effptr>> layers;
     unsigned int next_effect = 1;
     void remove(objptr obj) override;
@@ -46,6 +47,7 @@ public:
     void handle_keypress(sf::Keyboard::Key key, bool is_down);
     const sf::Texture& load_texture(std::string path);
     const sf::SoundBuffer& load_sound_buf(std::string path);
+    const sf::Font& load_font(std::string path);
     template<class T, class... A> effptr add_effect(A... args) {
         auto obj = std::make_shared<T>(this, next_effect++, args...);
         effects[obj->id] = obj;

@@ -62,6 +62,7 @@ unique_ptr<Stage> LoadStage::update(sf::RenderWindow& window) {
         gstate->dpi_scaling_factor = 2;
     }
     if (load_editor) {
+        gstate->sm.pause();
         auto f = ifstream("map_save.btm");
         load_objects_from_file(f, gstate->sm);
         gstate->sm.pause();
@@ -70,6 +71,7 @@ unique_ptr<Stage> LoadStage::update(sf::RenderWindow& window) {
         es2->connect(es1.get());
         gstate->rms.emplace_back(move(es1), -1);
         gstate->sm.add_controller(0, move(es2));
+        gstate->sm.resume();
         return make_unique<EditorStage>(move(gstate));
     }
     return make_unique<SelectPlayMapStage>(move(gstate));
@@ -95,6 +97,7 @@ unique_ptr<Stage> SelectPlayMapStage::update(sf::RenderWindow& window) {
         }
         if (event.type == sf::Event::KeyPressed) {
             if (event.key.code == sf::Keyboard::Enter) {
+                gstate->sm.pause();
                 auto f = ifstream(maps[current_index]);
                 gstate->players = load_objects_from_file(f, gstate->sm);
                 int i = 0;
@@ -109,6 +112,7 @@ unique_ptr<Stage> SelectPlayMapStage::update(sf::RenderWindow& window) {
                     gstate->sm.add_controller(i, move(es2));
                     ++i;
                 };
+                gstate->sm.resume();
                 return make_unique<PlayStage>(move(gstate));
             }
             else if (event.key.code == sf::Keyboard::Down) {
@@ -239,7 +243,7 @@ void PlayStage::render(sf::RenderWindow& window) {
 
 bool all_have_lives(unique_ptr<GameState>& gs) {
     for (auto& player : gs->players) {
-        if (!dynamic_cast<Player*>(player.get())->lives()) return false;
+        if (!player->alive() && !dynamic_cast<Player*>(player.get())->lives()) return false;
     }
     return true;
 }

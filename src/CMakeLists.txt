@@ -9,6 +9,7 @@ set(SOURCE
     objects/loader.cpp
     objects/walls.cpp
     objects/player.cpp
+    objects/playeritem.cpp
     objects/bomb.cpp
     objects/chest.cpp
 )

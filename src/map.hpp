@@ -67,6 +67,7 @@ class ServerMap : public Map {
     bool in_update = false;
     bool is_running = false;
     std::map<unsigned int, std::unique_ptr<EventServer>> side_controllers;
+    std::deque<std::pair<objptr, msgpackvar>> pending_events;
 public:
     void add_controller(unsigned int side, std::unique_ptr<EventServer> es);
     void update();

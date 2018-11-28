@@ -299,9 +299,9 @@ void Object::position_sprite(sf::Sprite& spr) {
 void Object::render_hud(sf::RenderTarget& rt) {
     auto rm = render_map();
 
-    sf::RectangleShape darkbg(sf::Vector2f(rt.getSize().x, 10));
+    sf::RectangleShape darkbg(sf::Vector2f(rt.getView().getSize().x, 10));
     darkbg.setPosition(0, 0);
-    darkbg.setFillColor(sf::Color(0, 0, 0, 125));
+    darkbg.setFillColor(sf::Color(0, 0, 0, 128));
     rt.draw(darkbg);
 
     sf::RectangleShape border(sf::Vector2f(202, 8));

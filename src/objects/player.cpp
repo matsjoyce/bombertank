@@ -20,16 +20,18 @@
 #include "bomb.hpp"
 #include "walls.hpp"
 #include <iostream>
+#include "playeritem.hpp"
 
 using namespace std;
 
 enum class PlayerServerMessage : unsigned int {
     START_MOVE = static_cast<unsigned int>(RenderObjectMessage::END),
-    END_MOVE, DROP_BOMB, DROP_WALL, TRANSFER
+    END_MOVE, DROP_BOMB, DROP_WALL, TRANSFER, USE_ITEM
 };
 
 enum class PlayerRenderMessage : unsigned int {
-    TRANSFER = static_cast<unsigned int>(RenderObjectMessage::END)
+    TRANSFER = static_cast<unsigned int>(RenderObjectMessage::END),
+    ADD_ITEM, FOR_ITEM
 };
 
 struct PlayerSettings {
@@ -114,22 +116,24 @@ void Player::handle(msgpackvar m) {
             break;
         }
         case PlayerServerMessage::DROP_BOMB: {
-            cout << "DROP_BOMB " << num_bombs << endl;
-            if (num_bombs) {
-                --num_bombs;
-                auto obj = server_map()->add(TimedBomb::TYPE);
-                obj->place(tcx(), tcy());
-                obj->destroyed.connect([this]{++num_bombs;});
-            }
+            items[0]->use();
+//             cout << "DROP_BOMB " << num_bombs << endl;
+//             if (num_bombs) {
+//                 --num_bombs;
+//                 auto obj = server_map()->add(TimedBomb::TYPE);
+//                 obj->place(tcx(), tcy());
+//                 obj->destroyed.connect([this]{++num_bombs;});
+//             }
             break;
         }
         case PlayerServerMessage::DROP_WALL: {
-            if (num_walls) {
-                --num_walls;
-                auto obj = server_map()->add(PlacedWall::TYPE);
-                obj->place(tcx(), tcy());
-                obj->destroyed.connect([this]{++num_walls;});
-            }
+            items[1]->use();
+//             if (num_walls) {
+//                 --num_walls;
+//                 auto obj = server_map()->add(PlacedWall::TYPE);
+//                 obj->place(tcx(), tcy());
+//                 obj->destroyed.connect([this]{++num_walls;});
+//             }
             break;
         }
         default: Object::handle(m);
@@ -140,6 +144,22 @@ void Player::render_handle(msgpackvar m) {
     switch (static_cast<PlayerRenderMessage>(m["type"].as_uint64_t())) {
         case PlayerRenderMessage::TRANSFER: {
             lives_ = m["lives"].as_uint64_t();
+            break;
+        }
+        case PlayerRenderMessage::ADD_ITEM: {
+            auto type = m["item"].as_uint64_t();
+            auto item = items[type] = load_player_items()[type]();
+            item->attach(dynamic_pointer_cast<Player>(shared_from_this()));
+            break;
+        }
+        case PlayerRenderMessage::FOR_ITEM: {
+            auto type = m["item"].as_uint64_t();
+            if (items.count(type)) {
+                items[type]->render_handle(std::move(m));
+            }
+            else {
+                cout << "Event for non-existent item " << type << endl;
+            }
             break;
         }
         default: Object::render_handle(m);
@@ -164,6 +184,12 @@ void Player::setup_keys() {
 }
 
 void Player::update() {
+    if (!items.size()) {
+        if (auto sm = server_map()) {
+            add_item(make_shared<BombItem>());
+            add_item(make_shared<CrateItem>());
+        }
+    }
     if (direction_stack.size()) {
         if (direction() != direction_stack.back()) {
             set_direction(direction_stack.back());
@@ -210,8 +236,45 @@ void Player::render_hud(sf::RenderTarget& rt) {
     sp_fg.setTextureRect(sf::IntRect(0, 0, 10 * lives_, 10));
     sp_fg.setPosition(204, 0);
     rt.draw(sp_fg);
+
+    sf::RectangleShape lowerbg(sf::Vector2f(rt.getView().getSize().x, STANDARD_OBJECT_SIZE + 2));
+    lowerbg.setFillColor(sf::Color(0, 0, 0, 128));
+    lowerbg.setPosition(0, rt.getView().getSize().y - lowerbg.getSize().y);
+    rt.draw(lowerbg);
+
+    int x = 1;
+
+    for (auto& item : items) {
+        item.second->render(rt, sf::Vector2f(x, lowerbg.getPosition().y + 1));
+        x += STANDARD_OBJECT_SIZE + 2;
+    }
 }
 
+void Player::add_item(shared_ptr<PlayerItem> item) {
+    if (auto sm = server_map()) {
+        if (items.count(item->type())) {
+            items[item->type()]->merge_with(item);
+        }
+        else {
+            item->attach(dynamic_pointer_cast<Player>(shared_from_this()));
+            items.emplace(item->type(), item);
+            msgpackvar m;
+            m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
+            m["id"] = id;
+            m["type"] = as_ui(PlayerRenderMessage::ADD_ITEM);
+            m["item"] = item->type();
+            sm->event(shared_from_this(), std::move(m));
+        }
+    }
+}
+
+void Player::item_msg(msgpackvar&& m, unsigned int type) {
+    m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
+    m["id"] = id;
+    m["type"] = as_ui(PlayerRenderMessage::FOR_ITEM);
+    m["item"] = type;
+    server_map()->event(shared_from_this(), std::move(m));
+}
 
 void DeadPlayer::render(sf::RenderTarget& rt) {
     sf::Sprite sp(map->load_texture("data/images/tank_dead.png"));

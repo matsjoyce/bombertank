@@ -129,6 +129,21 @@ const sf::SoundBuffer& RenderMap::load_sound_buf(std::string path) {
     return sndbuf;
 }
 
+const sf::Font& RenderMap::load_font(std::string path) {
+    auto font_iter = fonts.find(path);
+    if (font_iter != fonts.end()) {
+        return font_iter->second;
+    }
+    auto& font = fonts[path];
+    cout << "Loading " << path << " as font" << endl;
+    if (!font.loadFromFile(path)) {
+        cout << "Could not load " << path << endl;
+    }
+    // HACK! If we load a font that uses a different size we have a problem.
+    const_cast<sf::Texture&>(font.getTexture(12)).setSmooth(false);
+    return font;
+}
+
 void RenderMap::remove_effect(unsigned int id) {
     for (auto iter = layers.lower_bound(effects[id]->layer()); iter != layers.end(); ++iter) {
         if (iter->second.index() == 1 && get<1>(iter->second)->id == id) {
