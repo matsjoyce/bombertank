@@ -39,6 +39,7 @@ class RenderMap : public Map {
     std::unique_ptr<EventServer> es;
     unsigned int side_;
     objptr following;
+    Point center_;
 public:
     RenderMap(std::unique_ptr<EventServer> evs, unsigned int side);
     void update();
@@ -62,6 +63,8 @@ public:
         return side_;
     }
     void follow(objptr obj);
+    void center_on(Point center);
+    Point center();
 };
 
 #endif // RENDERMAP_HPP

@@ -25,8 +25,7 @@
 #include "signal.hpp"
 #include <SFML/Graphics.hpp>
 #include "msgpack_utils.hpp"
-
-constexpr const int STANDARD_OBJECT_SIZE = 24;
+#include "rect.hpp"
 
 class Map;
 class RenderMap;
@@ -53,7 +52,7 @@ enum class ServerObjectMessage : unsigned int {
     END
 };
 
-class Object : public std::enable_shared_from_this<Object> {
+class Object : public std::enable_shared_from_this<Object>, public Rect {
 public:
     Object(unsigned int id_, Map* map_);
     virtual ~Object() = default;
@@ -61,19 +60,42 @@ public:
     const unsigned int id;
     virtual unsigned int layer();
     virtual unsigned int type();
-    virtual unsigned int width();
-    virtual unsigned int height();
 
     Signal<> destroyed;
     Signal<> side_changed;
 
-    void place(int x, int y);
-    void place_on_tile(int tx, int ty);
+    inline int accel() const {
+        return accel_;
+    }
     void accelerate(int amount);
+
+    inline int speed() const {
+        return speed_;
+    }
+    inline auto direction() const {
+        return direction_;
+    }
     void set_direction(Orientation::Orientation dir);
+    inline auto orientation() const {
+        return orientation_;
+    }
     void set_orientation(Orientation::Orientation dir);
-    void set_side(unsigned int side);
+    inline auto hp() const {
+        return hp_;
+    }
     void set_hp(unsigned int hp);
+    virtual unsigned int max_hp();
+
+    inline unsigned int side() const {
+        return side_;
+    }
+    void set_side(unsigned int side);
+
+    virtual unsigned int take_damage(unsigned int damage, DamageType dt);
+    inline bool alive() {
+        return is_alive;
+    }
+    void position_sprite(sf::Sprite& spr);
 
     void start_update();
     virtual void update();
@@ -91,27 +113,28 @@ public:
     virtual void handle_keypress(sf::Keyboard::Key key, bool is_down);
     RenderMap* render_map();
 
-    double angle_to(objptr obj);
+    using Rect::separation_distance;
+
+    // DEPRECATED
     int separation_distance(objptr obj);
     int separation_distance(int ox, int oy, unsigned int ow, unsigned int oh);
     int separation_distance(int ox, int oy, unsigned int ow, unsigned int oh, Orientation::Orientation dir, int movement);
+    void place(int x, int y);
+    void place_on_tile(int tx, int ty);
 
     inline int x() {
-        return x_;
+        return center().x;
     }
     inline int y() {
-        return y_;
-    }
-    inline unsigned int side() {
-        return side_;
+        return center().y;
     }
     // Tile x
     inline int tx() {
-        return std::round(static_cast<float>(x_) / STANDARD_OBJECT_SIZE);
+        return std::round(static_cast<float>(x()) / STANDARD_OBJECT_SIZE);
     }
     // Tile y
     inline int ty() {
-        return std::round(static_cast<float>(y_) / STANDARD_OBJECT_SIZE);
+        return std::round(static_cast<float>(y()) / STANDARD_OBJECT_SIZE);
     }
     // Tile x converted
     inline int tcx() {
@@ -121,27 +144,8 @@ public:
     inline int tcy() {
         return ty() * STANDARD_OBJECT_SIZE;
     }
-    inline int speed() {
-        return speed_;
-    }
-    inline int accel() {
-        return accel_;
-    }
-    inline auto direction() {
-        return direction_;
-    }
-    inline auto orientation() {
-        return orientation_;
-    }
-    inline auto hp() {
-        return hp_;
-    }
-    virtual unsigned int take_damage(unsigned int damage, DamageType dt);
-    inline bool alive() {
-        return is_alive;
-    }
-    virtual unsigned int max_hp();
-    void position_sprite(sf::Sprite& spr);
+
+    void _generate_move();
 protected:
     Map* map;
 private:
@@ -150,11 +154,8 @@ private:
     int speed_ = 0;
     int last_speed = 0;
     Orientation::Orientation last_orientation = Orientation::N;
-    int x_ = 0, y_ = 0;
     unsigned int hp_ = -1, side_ = -1;
     bool is_alive = true;
-
-    void _generate_move();
 };
 
 #endif // OBJECT_HPP

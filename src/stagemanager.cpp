@@ -29,6 +29,8 @@
 namespace fs = std::filesystem;
 using namespace std;
 
+constexpr unsigned int SCALEUP = 2;
+
 // TODO WARNING: The below code interacts with the ServerMap directly which is NOT threadsafe! Must be migrated to use rendermaps!
 
 struct GameState {
@@ -89,9 +91,6 @@ SelectPlayMapStage::SelectPlayMapStage(std::unique_ptr<GameState> gs) : gstate(m
 }
 
 unique_ptr<Stage> SelectPlayMapStage::update(sf::RenderWindow& window) {
-    if (window.getSize().x > 2000) {
-        gstate->dpi_scaling_factor = 2;
-    }
     sf::Event event;
     while (window.pollEvent(event)) {
         if (event.type == sf::Event::Closed) {
@@ -201,7 +200,7 @@ unique_ptr<Stage> PlayStage::update(sf::RenderWindow& window) {
 }
 
 void draw_darkbg_text(sf::View& view, sf::RenderTarget& window, unique_ptr<GameState>& gstate, int darkness, sf::Text& text) {
-    const unsigned int scaleup = 12 * gstate->dpi_scaling_factor;
+    const unsigned int scaleup = 6 * SCALEUP * gstate->dpi_scaling_factor;
 
     view.reset(sf::FloatRect(sf::Vector2f(0, 0), sf::Vector2f(window.getSize() / scaleup)));
     view.setViewport(sf::FloatRect(0, 0, 1.0, 1.0));
@@ -221,7 +220,7 @@ void draw_darkbg_text(sf::View& view, sf::RenderTarget& window, unique_ptr<GameS
 
 void PlayStage::render(sf::RenderWindow& window) {
     sf::View view;
-    view.reset(sf::FloatRect(0, 0, window.getSize().x / 2 / gstate->dpi_scaling_factor, window.getSize().y / 4 / gstate->dpi_scaling_factor));
+    view.reset(sf::FloatRect(0, 0, window.getSize().x / SCALEUP / gstate->dpi_scaling_factor, window.getSize().y / SCALEUP / 2 / gstate->dpi_scaling_factor));
 
     view.setViewport(sf::FloatRect(0, 0, 1.0, 0.5));
     window.setView(view);
@@ -255,7 +254,7 @@ GameOverStage::GameOverStage(unique_ptr<GameState> gs) : gstate(move(gs)), text(
 
 void GameOverStage::render(sf::RenderWindow& window) {
     sf::View view;
-    view.reset(sf::FloatRect(0, 0, window.getSize().x / 2 / gstate->dpi_scaling_factor, window.getSize().y / 4 / gstate->dpi_scaling_factor));
+    view.reset(sf::FloatRect(0, 0, window.getSize().x / SCALEUP / gstate->dpi_scaling_factor, window.getSize().y / SCALEUP / 2 / gstate->dpi_scaling_factor));
 
     view.setViewport(sf::FloatRect(0, 0, 1.0, 0.5));
     window.setView(view);
@@ -311,26 +310,17 @@ unique_ptr<Stage> EditorStage::update(sf::RenderWindow& window) {
             window.close();
         }
         if (event.type == sf::Event::MouseButtonPressed) {
-            int x = (event.mouseButton.x / 2 / gstate->dpi_scaling_factor + 12) / STANDARD_OBJECT_SIZE + dx;
-            int y = (event.mouseButton.y / 2 / gstate->dpi_scaling_factor + 12) / STANDARD_OBJECT_SIZE + dy;
-            if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift)) {
-                int start_x = min(x, last_x), end_x = max(x, last_x);
-                int start_y = min(y, last_y), end_y = max(y, last_y);
-                for (int x_ = start_x; x_ <= end_x; ++x_) {
-                    for (int y_ = start_y; y_ <= end_y; ++y_) {
-                        if (x_ != last_x || y_ != last_y) {
-                            auto obj = gstate->sm.add(placing);
-                            obj->place_on_tile(x_, y_);
-                        }
-                    }
+            auto pos = ((Point(event.mouseButton.x, event.mouseButton.y) - Point(window.getSize()) / 2) / SCALEUP / gstate->dpi_scaling_factor).to_tile() + gstate->rms[0].center().to_tile();
+            auto r = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift) ? Rect(pos, last_pos) : Rect(pos, pos);
+            r.set_size(r.width() + 1, r.height() + 1);
+            for (auto point : RectangularIterator(r)) {
+                if (point != last_pos) {
+                    auto obj = gstate->sm.add(placing);
+                    obj->set_nw_corner(point.from_tile());
+                    obj->_generate_move();
                 }
             }
-            else {
-                auto obj = gstate->sm.add(placing);
-                obj->place_on_tile(x, y);
-            }
-            last_x = x;
-            last_y = y;
+            last_pos = pos;
         }
         if (event.type == sf::Event::KeyPressed) {
             if (event.key.control && event.key.code == sf::Keyboard::S) {
@@ -340,38 +330,25 @@ unique_ptr<Stage> EditorStage::update(sf::RenderWindow& window) {
                 f.close();
             }
             else if (event.key.code == sf::Keyboard::Delete) {
-                auto pos = sf::Mouse::getPosition(window);
-                int x = (pos.x / 2 / gstate->dpi_scaling_factor + 12) / STANDARD_OBJECT_SIZE + dx;
-                int y = (pos.y / 2 / gstate->dpi_scaling_factor + 12) / STANDARD_OBJECT_SIZE + dy;
-                if (event.key.shift) {
-                    int start_x = min(x, last_dx), end_x = max(x, last_dx);
-                    int start_y = min(y, last_dy), end_y = max(y, last_dy);
-
-                    for (auto& obj : gstate->sm.collides((start_x + end_x) * STANDARD_OBJECT_SIZE / 2, (start_y + end_y) * STANDARD_OBJECT_SIZE / 2,
-                                                         (end_x - start_x + 1) * STANDARD_OBJECT_SIZE,
-                                                         (end_y - start_y + 1) * STANDARD_OBJECT_SIZE)) {
-                        obj.second->destroy();
-                    }
+                auto pos = ((Point(sf::Mouse::getPosition(window)) - Point(window.getSize()) / 2) / SCALEUP / gstate->dpi_scaling_factor).to_tile() + gstate->rms[0].center().to_tile();
+                auto r = event.key.shift ? Rect(pos.from_tile(), last_pos.from_tile()) : Rect(pos.from_tile(), pos.from_tile());
+                r.set_size(r.width() + STANDARD_OBJECT_SIZE, r.height() + STANDARD_OBJECT_SIZE);
+                for (auto& obj : gstate->sm.collides(r)) {
+                    obj.second->destroy();
                 }
-                else {
-                    for (auto& obj : gstate->sm.collides(x * STANDARD_OBJECT_SIZE, y * STANDARD_OBJECT_SIZE, STANDARD_OBJECT_SIZE, STANDARD_OBJECT_SIZE)) {
-                        obj.second->destroy();
-                    }
-                }
-                last_dx = x;
-                last_dy = y;
+                last_pos = pos;
             }
             else if (event.key.code == sf::Keyboard::W) {
-                dy -= 1;
+                gstate->rms[0].center_on(gstate->rms[0].center() - Point(0, STANDARD_OBJECT_SIZE));
             }
             else if (event.key.code == sf::Keyboard::A) {
-                dx -= 1;
+                gstate->rms[0].center_on(gstate->rms[0].center() - Point(STANDARD_OBJECT_SIZE, 0));
             }
             else if (event.key.code == sf::Keyboard::S) {
-                dy += 1;
+                gstate->rms[0].center_on(gstate->rms[0].center() + Point(0, STANDARD_OBJECT_SIZE));
             }
             else if (event.key.code == sf::Keyboard::D) {
-                dx += 1;
+                gstate->rms[0].center_on(gstate->rms[0].center() + Point(STANDARD_OBJECT_SIZE, 0));
             }
         }
         if (event.type == sf::Event::TextEntered) {
@@ -389,17 +366,15 @@ unique_ptr<Stage> EditorStage::update(sf::RenderWindow& window) {
 
 void EditorStage::render(sf::RenderWindow& window) {
     sf::View view;
-    view.reset(sf::FloatRect(0, 0, window.getSize().x / 2 / gstate->dpi_scaling_factor, window.getSize().y / 2 / gstate->dpi_scaling_factor));
+    view.reset(sf::FloatRect({0, 0}, Point(window.getSize()) / SCALEUP / gstate->dpi_scaling_factor));
     window.setView(view);
 
     sf::Texture tex = gstate->rms[0].load_texture("data/images/blank.png");
     tex.setRepeated(true);
     sf::Sprite spr(tex);
-    spr.setTextureRect(sf::IntRect(12, 12, window.getSize().x / 2 / gstate->dpi_scaling_factor + 12, window.getSize().y / 2 / gstate->dpi_scaling_factor + 12));
+    spr.setTextureRect(sf::IntRect(Point(STANDARD_OBJECT_SIZE, STANDARD_OBJECT_SIZE) - Point(window.getSize()) / 2 / SCALEUP / gstate->dpi_scaling_factor % STANDARD_OBJECT_SIZE,
+                                   Point(window.getSize()) / SCALEUP / gstate->dpi_scaling_factor));
     window.draw(spr);
-
-    view.reset(sf::FloatRect(dx * STANDARD_OBJECT_SIZE, dy * STANDARD_OBJECT_SIZE, window.getSize().x / 2 / gstate->dpi_scaling_factor, window.getSize().y / 2 / gstate->dpi_scaling_factor));
-    window.setView(view);
 
     gstate->rms[0].render(window);
 }

@@ -1,4 +1,6 @@
 set(SOURCE
+    point.cpp
+    rect.cpp
     object.cpp
     map.cpp
     rendermap.cpp

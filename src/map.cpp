@@ -140,6 +140,18 @@ vector<pair<int, objptr>> ServerMap::collides(int ox, int oy, unsigned int ow, u
     return ret;
 }
 
+vector<pair<int, objptr>> ServerMap::collides(const Rect& r) {
+    vector<pair<int, objptr>> ret;
+    int dist;
+    for (auto& obj : objects) {
+        if (!defered_destroy.count(obj.first) && (dist = obj.second->separation_distance(r)) < 0) {
+            auto item = make_pair(dist, obj.second);
+            ret.insert(upper_bound(ret.begin(), ret.end(), item), item);
+        }
+    }
+    return ret;
+}
+
 vector<pair<int, objptr>> ServerMap::collides_by_moving(int ox, int oy, unsigned int ow, unsigned int oh,
                                                         Orientation::Orientation dir, int movement, bool skip_start/*=true*/) {
     int nx, ny, nw, nh, margin = numeric_limits<int>::min();
@@ -219,7 +231,8 @@ std::vector<objptr> load_objects_from_file(std::istream& f, ServerMap& map) {
     vector<objptr> ret;
     while (f >> type >> x >> y) {
         auto obj = map.add(type);
-        obj->place_on_tile(x, y);
+        obj->set_nw_corner(Point(x, y).from_tile());
+        obj->_generate_move();
         if (type == Player::TYPE) {
             ret.push_back(obj);
         }

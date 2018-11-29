@@ -87,9 +87,7 @@ void RenderMap::update() {
 
 void RenderMap::render(sf::RenderTarget& rt) {
     auto view = rt.getView();
-    if (following) {
-        view.setCenter(sf::Vector2f(following->x(), following->y()));
-    }
+    view.setCenter(center());
     rt.setView(view);
     for (auto& obj : layers) {
         if (obj.second.index() == 0) {
@@ -191,3 +189,15 @@ void RenderMap::resume() {
 void RenderMap::follow(objptr obj) {
     following = obj;
 }
+
+void RenderMap::center_on(Point center) {
+    center_ = center;
+}
+
+Point RenderMap::center() {
+    if (following) {
+        return following->center();
+    }
+    return center_;
+}
+

@@ -21,6 +21,7 @@
 
 #include <SFML/Graphics.hpp>
 #include <memory>
+#include "point.hpp"
 
 class Stage {
 public:
@@ -74,9 +75,7 @@ public:
 class EditorStage : public Stage {
     std::unique_ptr<GameState> gstate;
     int placing = 1;
-    int last_x = 0, last_y = 0;
-    int last_dx = 0, last_dy = 0;
-    int dx = 0, dy = 0;
+    Point last_pos;
 public:
     EditorStage(std::unique_ptr<GameState> gs);
     std::unique_ptr<Stage> update(sf::RenderWindow& window) override;

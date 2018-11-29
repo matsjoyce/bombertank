@@ -26,7 +26,7 @@ using namespace std;
 
 const double PI = 3.14159265358979323846;
 
-Object::Object(unsigned int id_, Map* map_) : id(id_), map(map_) {
+Object::Object(unsigned int id_, Map* map_) : Rect(STANDARD_OBJECT_SIZE, STANDARD_OBJECT_SIZE), id(id_), map(map_) {
 }
 
 void Object::post_constructor() {
@@ -36,16 +36,15 @@ void Object::post_constructor() {
         m["mtype"] = as_ui(ToRenderMessage::CREATE);
         m["id"] = id;
         m["type"] = type();
-        m["x"] = x_;
-        m["y"] = y_;
+        m["x"] = nw_corner().x;
+        m["y"] = nw_corner().y;
         m["side"] = side_;
         sm->event(shared_from_this(), std::move(m));
     }
 }
 
 void Object::place(int x, int y) {
-    x_ = x;
-    y_ = y;
+    set_center(x, y);
     _generate_move();
 }
 
@@ -67,8 +66,8 @@ void Object::handle(msgpackvar m) {
 void Object::render_handle(msgpackvar m) {
     switch (static_cast<RenderObjectMessage>(m["type"].as_uint64_t())) {
         case RenderObjectMessage::MOVE: {
-            x_ = extract_int(m["x"]);
-            y_ = extract_int(m["y"]);
+
+            set_nw_corner(extract_int(m["x"]), extract_int(m["y"]));
 //             accel_ = gm.accel(); // TODO Is this required?
             speed_ = extract_int(m["speed"]);
             direction_ = Orientation::Orientation(m["dir"].as_uint64_t());
@@ -99,14 +98,6 @@ void Object::handle_keypress(sf::Keyboard::Key /*key*/, bool /*is_down*/) {
 
 void Object::start_update() {
     accel_ = -speed_;
-}
-
-unsigned int Object::width() {
-    return STANDARD_OBJECT_SIZE;
-}
-
-unsigned int Object::height() {
-    return STANDARD_OBJECT_SIZE;
 }
 
 
@@ -140,8 +131,7 @@ void Object::end_update() {
         }
 
         if (speed_) {
-            x_ += dx(direction_) * speed_;
-            y_ += dy(direction_) * speed_;
+            move(dx(direction_) * speed_, dy(direction_) * speed_);
         }
         else if (go_total) {
             auto dir = direction_;
@@ -152,8 +142,7 @@ void Object::end_update() {
                 dir = right(direction_);
             }
             if (dir != direction_ && !server_map()->collides_by_moving(x(), y(), width(), height(), dir, 1).size()) {
-                x_ += dx(dir);
-                y_ += dy(dir);
+                move(dx(dir), dy(dir));
                 edge_help = true;
             }
         }
@@ -168,10 +157,6 @@ void Object::end_update() {
 
 void Object::accelerate(int amount) {
     accel_ = amount;
-}
-
-double Object::angle_to(objptr obj) {
-    return atan2(obj->x_ - x_, y_ - obj->y_) * 180 / PI;
 }
 
 RenderMap* Object::render_map() {
@@ -196,8 +181,8 @@ void Object::_generate_move() {
         m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
         m["type"] = as_ui(RenderObjectMessage::MOVE);
         m["id"] = id;
-        m["x"] = x_;
-        m["y"] = y_;
+        m["x"] = nw_corner().x;
+        m["y"] = nw_corner().y;
         m["speed"] = speed_;
         m["dir"] = as_ui(direction_);
         m["ori"] = as_ui(orientation_);
@@ -210,7 +195,7 @@ int Object::separation_distance(objptr obj) {
 }
 
 int Object::separation_distance(int ox, int oy, unsigned int ow, unsigned int oh) {
-    return max(abs(ox - x_) - static_cast<int>(ow + width()) / 2, abs(oy - y_) - static_cast<int>(oh + height()) / 2);
+    return max(abs(ox - x()) - static_cast<int>(ow + width()) / 2, abs(oy - y()) - static_cast<int>(oh + height()) / 2);
 }
 
 int Object::separation_distance(int ox, int oy, unsigned int ow, unsigned int oh, Orientation::Orientation dir, int movement) {
@@ -298,7 +283,7 @@ void Object::collision(objptr /*obj*/, bool /*caused_by_self*/) {
 
 void Object::position_sprite(sf::Sprite& spr) {
     spr.setOrigin(sf::Vector2f(spr.getTextureRect().width / 2, spr.getTextureRect().height / 2));
-    spr.setPosition(sf::Vector2f(x_, y_));
+    spr.setPosition(center());
     spr.setRotation(angle(orientation_));
 }
 
