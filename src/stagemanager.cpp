@@ -29,6 +29,8 @@
 namespace fs = std::filesystem;
 using namespace std;
 
+// TODO WARNING: The below code interacts with the ServerMap directly which is NOT threadsafe! Must be migrated to use rendermaps!
+
 struct GameState {
     ServerMap sm;
     vector<pair<int, int>> starting_positions;
@@ -62,16 +64,16 @@ unique_ptr<Stage> LoadStage::update(sf::RenderWindow& window) {
         gstate->dpi_scaling_factor = 2;
     }
     if (load_editor) {
-        gstate->sm.pause();
+        gstate->sm.pause(true);
         auto f = ifstream("map_save.btm");
         load_objects_from_file(f, gstate->sm);
-        gstate->sm.pause();
         auto es1 = make_unique<EventServer>(), es2 = make_unique<EventServer>();
         es1->connect(es2.get());
         es2->connect(es1.get());
         gstate->rms.emplace_back(move(es1), -1);
         gstate->sm.add_controller(0, move(es2));
         gstate->sm.resume();
+        gstate->sm.pause(false);
         return make_unique<EditorStage>(move(gstate));
     }
     return make_unique<SelectPlayMapStage>(move(gstate));
@@ -97,7 +99,7 @@ unique_ptr<Stage> SelectPlayMapStage::update(sf::RenderWindow& window) {
         }
         if (event.type == sf::Event::KeyPressed) {
             if (event.key.code == sf::Keyboard::Enter) {
-                gstate->sm.pause();
+                gstate->sm.pause(true);
                 auto f = ifstream(maps[current_index]);
                 gstate->players = load_objects_from_file(f, gstate->sm);
                 int i = 0;
@@ -309,8 +311,8 @@ unique_ptr<Stage> EditorStage::update(sf::RenderWindow& window) {
             window.close();
         }
         if (event.type == sf::Event::MouseButtonPressed) {
-            int x = event.mouseButton.x / STANDARD_OBJECT_SIZE / 2 / gstate->dpi_scaling_factor;
-            int y = event.mouseButton.y / STANDARD_OBJECT_SIZE / 2 / gstate->dpi_scaling_factor;
+            int x = (event.mouseButton.x / 2 / gstate->dpi_scaling_factor + 12) / STANDARD_OBJECT_SIZE + dx;
+            int y = (event.mouseButton.y / 2 / gstate->dpi_scaling_factor + 12) / STANDARD_OBJECT_SIZE + dy;
             if (sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift)) {
                 int start_x = min(x, last_x), end_x = max(x, last_x);
                 int start_y = min(y, last_y), end_y = max(y, last_y);
@@ -339,13 +341,13 @@ unique_ptr<Stage> EditorStage::update(sf::RenderWindow& window) {
             }
             else if (event.key.code == sf::Keyboard::Delete) {
                 auto pos = sf::Mouse::getPosition(window);
-                int x = pos.x / STANDARD_OBJECT_SIZE / 2 / gstate->dpi_scaling_factor;
-                int y = pos.y / STANDARD_OBJECT_SIZE / 2 / gstate->dpi_scaling_factor;
+                int x = (pos.x / 2 / gstate->dpi_scaling_factor + 12) / STANDARD_OBJECT_SIZE + dx;
+                int y = (pos.y / 2 / gstate->dpi_scaling_factor + 12) / STANDARD_OBJECT_SIZE + dy;
                 if (event.key.shift) {
                     int start_x = min(x, last_dx), end_x = max(x, last_dx);
                     int start_y = min(y, last_dy), end_y = max(y, last_dy);
 
-                    for (auto& obj : gstate->sm.collides(start_x * STANDARD_OBJECT_SIZE, start_y * STANDARD_OBJECT_SIZE,
+                    for (auto& obj : gstate->sm.collides((start_x + end_x) * STANDARD_OBJECT_SIZE / 2, (start_y + end_y) * STANDARD_OBJECT_SIZE / 2,
                                                          (end_x - start_x + 1) * STANDARD_OBJECT_SIZE,
                                                          (end_y - start_y + 1) * STANDARD_OBJECT_SIZE)) {
                         obj.second->destroy();
@@ -358,6 +360,18 @@ unique_ptr<Stage> EditorStage::update(sf::RenderWindow& window) {
                 }
                 last_dx = x;
                 last_dy = y;
+            }
+            else if (event.key.code == sf::Keyboard::W) {
+                dy -= 1;
+            }
+            else if (event.key.code == sf::Keyboard::A) {
+                dx -= 1;
+            }
+            else if (event.key.code == sf::Keyboard::S) {
+                dy += 1;
+            }
+            else if (event.key.code == sf::Keyboard::D) {
+                dx += 1;
             }
         }
         if (event.type == sf::Event::TextEntered) {
@@ -381,8 +395,11 @@ void EditorStage::render(sf::RenderWindow& window) {
     sf::Texture tex = gstate->rms[0].load_texture("data/images/blank.png");
     tex.setRepeated(true);
     sf::Sprite spr(tex);
-    spr.setTextureRect(sf::IntRect(0, 0, window.getSize().x / 2 / gstate->dpi_scaling_factor, window.getSize().y / 2 / gstate->dpi_scaling_factor));
+    spr.setTextureRect(sf::IntRect(12, 12, window.getSize().x / 2 / gstate->dpi_scaling_factor + 12, window.getSize().y / 2 / gstate->dpi_scaling_factor + 12));
     window.draw(spr);
+
+    view.reset(sf::FloatRect(dx * STANDARD_OBJECT_SIZE, dy * STANDARD_OBJECT_SIZE, window.getSize().x / 2 / gstate->dpi_scaling_factor, window.getSize().y / 2 / gstate->dpi_scaling_factor));
+    window.setView(view);
 
     gstate->rms[0].render(window);
 }

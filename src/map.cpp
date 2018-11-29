@@ -42,10 +42,14 @@ void ServerMap::add_controller(unsigned int side, std::unique_ptr<EventServer> e
 }
 
 void ServerMap::event(objptr obj, msgpackvar&& msg) {
+    // HACK should not need thread safety
+    lock_guard<recursive_mutex> lg(mutex);
     pending_events.emplace_back(make_pair(obj, std::move(msg)));
 }
 
 objptr ServerMap::add(unsigned int type) {
+    // HACK should not need thread safety
+    lock_guard<recursive_mutex> lg(mutex);
     auto obj = Map::add(type, next_id++);
     return obj;
 }
@@ -62,13 +66,6 @@ void ServerMap::update() {
         remove(objects[id]);
     }
     defered_destroy.clear();
-    for (auto& event : pending_events) {
-        for (auto& sc : side_controllers) {
-            auto m = event.second;
-            sc.second->send(std::move(m));
-        }
-    }
-    pending_events.clear();
 }
 
 void ServerMap::run() {
@@ -76,38 +73,51 @@ void ServerMap::run() {
     while (is_running) {
         auto start = chrono::high_resolution_clock::now();
 
-        for (auto& sc : side_controllers) {
-            for (auto event : sc.second->events()) {
-                switch (static_cast<ToServerMessage>(event["mtype"].as_uint64_t())) {
-                    case ToServerMessage::PAUSE: {
-                        pause();
-                        break;
-                    }
-                    case ToServerMessage::RESUME: {
-                        resume();
-                        break;
-                    }
-                    case ToServerMessage::FOROBJ: {
-                        auto id = event["id"].as_uint64_t();
-                        if (is_paused_) {
-                            cout << "Event for obj " << id << " while paused!" << endl;
+        {
+            // HACK should not need thread safety
+            lock_guard<recursive_mutex> lg(mutex);
+            for (auto& sc : side_controllers) {
+                for (auto event : sc.second->events()) {
+                    switch (static_cast<ToServerMessage>(event["mtype"].as_uint64_t())) {
+                        case ToServerMessage::PAUSE: {
+                            pause();
+                            break;
                         }
-                        else if (objects.count(id)) {
-                            objects[id]->handle(event);
+                        case ToServerMessage::RESUME: {
+                            resume();
+                            break;
                         }
-                        else {
-                            cout << "Event for non-existent object " << id << endl;
+                        case ToServerMessage::FOROBJ: {
+                            auto id = event["id"].as_uint64_t();
+                            if (is_paused_) {
+                                cout << "Event for obj " << id << " while paused!" << endl;
+                            }
+                            else if (objects.count(id)) {
+                                objects[id]->handle(event);
+                            }
+                            else {
+                                cout << "Event for non-existent object " << id << endl;
+                            }
+                            break;
                         }
-                        break;
-                    }
-                    default: {
-                        cout << "Unhandled event in ServerMap: " << event["type"].as_uint64_t() << endl;
+                        default: {
+                            cout << "Unhandled event in ServerMap: " << event["type"].as_uint64_t() << endl;
+                        }
                     }
                 }
             }
-        }
-        if (!is_paused_) {
-            update();
+            if (!is_paused_) {
+                update();
+            }
+            if (!events_paused) {
+                for (auto& event : pending_events) {
+                    for (auto& sc : side_controllers) {
+                        auto m = event.second;
+                        sc.second->send(std::move(m));
+                    }
+                }
+                pending_events.clear();
+            }
         }
         auto end = chrono::high_resolution_clock::now();
         this_thread::sleep_for(std::chrono::milliseconds(50) - (end - start));
@@ -184,8 +194,9 @@ void ServerMap::save_objects_to_map(std::ostream& f) {
     }
 }
 
-void ServerMap::pause() {
+void ServerMap::pause(bool events_too/*=false*/) {
     is_paused_ = true;
+    events_paused = events_too;
     paused.emit();
     msgpackvar m;
     m["mtype"] = as_ui(ToRenderMessage::PAUSED);
@@ -195,6 +206,7 @@ void ServerMap::pause() {
 
 void ServerMap::resume() {
     is_paused_ = false;
+    events_paused = false;
     resumed.emit();
     msgpackvar m;
     m["mtype"] = as_ui(ToRenderMessage::RESUMED);

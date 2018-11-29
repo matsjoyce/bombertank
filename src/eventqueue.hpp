@@ -28,30 +28,23 @@
 
 
 class EventServer {
-    std::mutex qmu;
-    std::queue<msgpackvar> qu;
-    std::condition_variable cv;
-
     std::mutex mu;
     std::vector<msgpackvar> buf;
-    std::thread rt;
+//     std::thread rt;
 
     EventServer* other;
+    inline void push(msgpackvar&& m) {
+        std::lock_guard<std::mutex> lock(mu);
+        buf.emplace_back(std::forward<msgpackvar>(m));
+    }
 public:
     EventServer();
     ~EventServer();
     inline void send(msgpackvar&& m) {
         other->push(std::forward<msgpackvar>(m));
     }
-    inline void push(msgpackvar&& m) {
-        {
-            std::lock_guard<std::mutex> lock(qmu);
-            qu.push(std::forward<msgpackvar>(m));
-        }
-        cv.notify_one();
-    }
     std::vector<msgpackvar> events();
-    void run();
+//     void run();
     inline void connect(EventServer* s) {
         other = s;
     }

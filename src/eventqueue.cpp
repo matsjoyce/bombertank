@@ -21,12 +21,12 @@
 
 using namespace std;
 
-EventServer::EventServer() : rt(thread{[this]{return run();}}) {
+EventServer::EventServer()/* : rt(thread{[this]{return run();}})*/ {
 }
 
 EventServer::~EventServer() {
-    push(msgpackvar{{"halt_now", true}});
-    rt.join();
+//     push(msgpackvar{{"halt_now", true}});
+//     rt.join();
 }
 
 
@@ -37,22 +37,22 @@ vector<msgpackvar> EventServer::events() {
     return ret;
 }
 
-void EventServer::run() {
-    cout << "EventServer::run is go!" << endl;
-    msgpackvar m;
-    while (true) {
-        {
-            unique_lock<mutex> ul(qmu);
-            cv.wait(ul, [this]{return !qu.empty();});
-            m = std::move(qu.front());
-            qu.pop();
-        }
-        if (m.count("halt_now")) {
-            return;
-        }
-        {
-            lock_guard<mutex> lg(mu);
-            buf.emplace_back(std::move(m));
-        }
-    }
-}
+// void EventServer::run() {
+//     cout << "EventServer::run is go!" << endl;
+//     msgpackvar m;
+//     while (true) {
+//         {
+//             unique_lock<mutex> ul(qmu);
+//             cv.wait(ul, [this]{return !qu.empty();});
+//             m = std::move(qu.front());
+//             qu.pop();
+//         }
+//         if (m.count("halt_now")) {
+//             return;
+//         }
+//         {
+//             lock_guard<mutex> lg(mu);
+//             buf.emplace_back(std::move(m));
+//         }
+//     }
+// }

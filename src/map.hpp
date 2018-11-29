@@ -49,9 +49,6 @@ protected:
     virtual void remove(objptr obj);
     bool is_paused_ = false;
 public:
-    inline objptr get_object(unsigned int id) {
-        return objects[id];
-    }
     Signal<> paused;
     Signal<> resumed;
     inline bool is_paused() const {
@@ -68,12 +65,14 @@ class ServerMap : public Map {
     bool is_running = false;
     std::map<unsigned int, std::unique_ptr<EventServer>> side_controllers;
     std::deque<std::pair<objptr, msgpackvar>> pending_events;
+    std::recursive_mutex mutex;
+    bool events_paused = false;
 public:
     void add_controller(unsigned int side, std::unique_ptr<EventServer> es);
     void update();
     void run();
     void halt();
-    void pause();
+    void pause(bool events_too=false);
     void resume();
     void event(objptr obj, msgpackvar&& msg);
     objptr add(unsigned int type);
