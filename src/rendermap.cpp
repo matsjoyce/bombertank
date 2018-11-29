@@ -34,7 +34,8 @@ void RenderMap::update() {
         switch (static_cast<ToRenderMessage>(event["mtype"].as_uint64_t())) {
             case ToRenderMessage::CREATE: {
                 auto obj = add(event["type"].as_uint64_t(), event["id"].as_uint64_t());
-                obj->place(extract_int(event["x"]), extract_int(event["y"]));
+                obj->set_nw_corner(extract_int(event["x"]), extract_int(event["y"]));
+                obj->_generate_move();
                 obj->set_side(event["side"].as_uint64_t());
                 layers.insert(make_pair(obj->render_layer(), obj));
                 break;

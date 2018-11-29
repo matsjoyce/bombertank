@@ -79,7 +79,7 @@ class Explosion : public Effect {
 public:
     enum class Position {CENTER, MIDDLE, END};
     unsigned int layer() override;
-    Explosion(RenderMap* map_, unsigned int id_, int x_, int y_, Orientation::Orientation ori=Orientation::N, Position pos = Position::CENTER);
+    Explosion(RenderMap* map_, unsigned int id_, Point pos_, Orientation::Orientation ori=Orientation::N, Position pos = Position::CENTER);
     void render(sf::RenderTarget& rt) override;
     void update() override;
 private:

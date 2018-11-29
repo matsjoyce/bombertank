@@ -31,6 +31,7 @@ class Rect {
     inline void internal_on_change() {
         dirty = true;
     }
+    Rect(int x, int y, unsigned int w, unsigned int h) : x_(x), y_(y), width_(w), height_(h) {}
 protected:
     bool dirty = false;
 public:
@@ -240,6 +241,23 @@ public:
         set_size(s.x, s.y);
     }
 
+    inline unsigned int dimension_in_dir(Orientation::Orientation ori) const {
+        switch (ori) {
+            case Orientation::N: return width_;
+            case Orientation::E: return height_;
+            case Orientation::S: return width_;
+            case Orientation::W: return height_;
+        }
+    }
+    inline void set_dimension_in_dir(Orientation::Orientation ori, unsigned int dim) {
+        switch (ori) {
+            case Orientation::N: return set_width(dim);
+            case Orientation::E: return set_height(dim);
+            case Orientation::S: return set_width(dim);
+            case Orientation::W: return set_height(dim);
+        }
+    }
+
     // Movement
 
     inline void move(int dx, int dy) {
@@ -249,6 +267,28 @@ public:
     }
     inline void move(const Point& p) {
         move(p.x, p.y);
+    }
+    inline Rect moved(int dx, int dy) const {
+        return {x_ + dx, y_ + dy, width_, height_};
+    }
+    inline Rect moved(const Point& p) const {
+        return {x_ + p.x, y_ + p.y, width_, height_};
+    }
+    inline Rect extended(Orientation::Orientation ori, unsigned int dist) const {
+        switch (ori) {
+            case Orientation::N: return {x_, y_ - static_cast<int>(dist), width_, height_ + dist};
+            case Orientation::W: return {x_ - static_cast<int>(dist), y_, width_ + dist, height_};
+            case Orientation::S: return {x_, y_, width_, height_ + dist};
+            case Orientation::E: return {x_, y_, width_ + dist, height_};
+        }
+    }
+    inline Rect movement_rect(Orientation::Orientation ori, unsigned int dist) const {
+        switch (ori) {
+            case Orientation::N: return {x_, y_ - static_cast<int>(dist), width_, dist};
+            case Orientation::W: return {x_ - static_cast<int>(dist), y_, dist, height_};
+            case Orientation::S: return {x_, y_ + static_cast<int>(height_), width_, dist};
+            case Orientation::E: return {x_ + static_cast<int>(width_), y_, dist, height_};
+        }
     }
 
     // Collisions

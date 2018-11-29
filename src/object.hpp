@@ -57,12 +57,12 @@ public:
     Object(unsigned int id_, Map* map_);
     virtual ~Object() = default;
     virtual void post_constructor();
-    const unsigned int id;
-    virtual unsigned int layer();
-    virtual unsigned int type();
 
     Signal<> destroyed;
     Signal<> side_changed;
+
+    const unsigned int id;
+    virtual unsigned int type();
 
     inline int accel() const {
         return accel_;
@@ -72,14 +72,17 @@ public:
     inline int speed() const {
         return speed_;
     }
+
     inline auto direction() const {
         return direction_;
     }
     void set_direction(Orientation::Orientation dir);
+
     inline auto orientation() const {
         return orientation_;
     }
     void set_orientation(Orientation::Orientation dir);
+
     inline auto hp() const {
         return hp_;
     }
@@ -95,14 +98,16 @@ public:
     inline bool alive() {
         return is_alive;
     }
-    void position_sprite(sf::Sprite& spr);
 
+    virtual unsigned int layer();
     void start_update();
     virtual void update();
     void end_update();
     virtual void handle(msgpackvar m);
     virtual void destroy(bool send=true);
     virtual void collision(objptr obj, bool caused_by_self);
+    using Rect::separation_distance;
+    int separation_distance(objptr obj);
     ServerMap* server_map();
 
     virtual unsigned int render_layer();
@@ -112,39 +117,9 @@ public:
     virtual void render_handle(msgpackvar m);
     virtual void handle_keypress(sf::Keyboard::Key key, bool is_down);
     RenderMap* render_map();
-
-    using Rect::separation_distance;
+    void position_sprite(sf::Sprite& spr);
 
     // DEPRECATED
-    int separation_distance(objptr obj);
-    int separation_distance(int ox, int oy, unsigned int ow, unsigned int oh);
-    int separation_distance(int ox, int oy, unsigned int ow, unsigned int oh, Orientation::Orientation dir, int movement);
-    void place(int x, int y);
-    void place_on_tile(int tx, int ty);
-
-    inline int x() {
-        return center().x;
-    }
-    inline int y() {
-        return center().y;
-    }
-    // Tile x
-    inline int tx() {
-        return std::round(static_cast<float>(x()) / STANDARD_OBJECT_SIZE);
-    }
-    // Tile y
-    inline int ty() {
-        return std::round(static_cast<float>(y()) / STANDARD_OBJECT_SIZE);
-    }
-    // Tile x converted
-    inline int tcx() {
-        return tx() * STANDARD_OBJECT_SIZE;
-    }
-    // Tile y converted
-    inline int tcy() {
-        return ty() * STANDARD_OBJECT_SIZE;
-    }
-
     void _generate_move();
 protected:
     Map* map;

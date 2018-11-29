@@ -21,6 +21,7 @@
 
 #include <SFML/Graphics.hpp>
 #include "orientation.hpp"
+#include "point.hpp"
 #include <memory>
 
 class RenderMap;
@@ -31,12 +32,12 @@ using effptr = std::shared_ptr<Effect>;
 class Effect : public std::enable_shared_from_this<Effect> {
 public:
     const unsigned int id;
-    int x, y;
+    Point pos;
     Orientation::Orientation orientation;
     virtual unsigned int layer();
     RenderMap* map;
 
-    Effect(RenderMap* map_, unsigned int id_, int x_, int y_, Orientation::Orientation ori=Orientation::N);
+    Effect(RenderMap* map_, unsigned int id_, Point pos_, Orientation::Orientation ori=Orientation::N);
     virtual ~Effect() = default;
 
     virtual void update();

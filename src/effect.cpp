@@ -21,7 +21,7 @@
 
 using namespace std;
 
-Effect::Effect(RenderMap* map_, unsigned int id_, int x_, int y_, Orientation::Orientation ori) : id(id_), x(x_), y(y_), orientation(ori), map(map_) {
+Effect::Effect(RenderMap* map_, unsigned int id_, Point pos_, Orientation::Orientation ori) : id(id_), pos(pos_), orientation(ori), map(map_) {
 }
 
 void Effect::update() {

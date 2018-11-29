@@ -59,7 +59,7 @@ map<int, PlayerSettings> player_settings = {
 Player::Player(unsigned int id_, Map* map_) : Object(id_, map_) {
     if (render_map()) {
         destroyed.connect([this] {
-            render_map()->add_effect<DeadPlayer>(x(), y(), orientation());
+            render_map()->add_effect<DeadPlayer>(center(), orientation());
         });
         setup_keys();
         side_changed.connect([this] {
@@ -412,7 +412,7 @@ void Player::set_secondary(unsigned int sec) {
 void DeadPlayer::render(sf::RenderTarget& rt) {
     sf::Sprite sp(map->load_texture("data/images/tank_dead.png"));
     sp.setOrigin(sf::Vector2f(sp.getTextureRect().width / 2, sp.getTextureRect().height / 2));
-    sp.setPosition(sf::Vector2f(x, y));
+    sp.setPosition(pos);
     sp.setRotation(angle(orientation));
     rt.draw(sp);
 }

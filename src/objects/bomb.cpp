@@ -38,10 +38,10 @@ void StaticBomb::destroy(bool send /*= true*/) {
         m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
         m["type"] = as_ui(RenderObjectMessage::DESTROY);
         m["id"] = id;
-        m["n"] = progressive_kill_in_direction(sm, x(), y(), 14, STANDARD_OBJECT_SIZE * power, Orientation::N, 100, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
-        m["e"] = progressive_kill_in_direction(sm, x(), y(), 14, STANDARD_OBJECT_SIZE * power, Orientation::E, 100, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
-        m["s"] = progressive_kill_in_direction(sm, x(), y(), 14, STANDARD_OBJECT_SIZE * power, Orientation::S, 100, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
-        m["w"] = progressive_kill_in_direction(sm, x(), y(), 14, STANDARD_OBJECT_SIZE * power, Orientation::W, 100, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
+        m["n"] = progressive_kill_in_direction(sm, center(), 14, STANDARD_OBJECT_SIZE * power, Orientation::N, 100, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
+        m["e"] = progressive_kill_in_direction(sm, center(), 14, STANDARD_OBJECT_SIZE * power, Orientation::E, 100, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
+        m["s"] = progressive_kill_in_direction(sm, center(), 14, STANDARD_OBJECT_SIZE * power, Orientation::S, 100, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
+        m["w"] = progressive_kill_in_direction(sm, center(), 14, STANDARD_OBJECT_SIZE * power, Orientation::W, 100, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
         sm->event(shared_from_this(), std::move(m));
     }
     else {
@@ -49,20 +49,20 @@ void StaticBomb::destroy(bool send /*= true*/) {
     }
 }
 
-void add_sides(RenderMap* rm, Orientation::Orientation ori, int num, int x, int y) {
+void add_sides(RenderMap* rm, Orientation::Orientation ori, int num, Point p) {
     for (int i = 1; i <= num; ++i) {
-        rm->add_effect<Explosion>(x + i * dx(ori) * STANDARD_OBJECT_SIZE, y + i * dy(ori) * STANDARD_OBJECT_SIZE, ori, i == num ? Explosion::Position::END : Explosion::Position::MIDDLE);
+        rm->add_effect<Explosion>(p + Point(ori) * i * STANDARD_OBJECT_SIZE, ori, i == num ? Explosion::Position::END : Explosion::Position::MIDDLE);
     }
 }
 
 void StaticBomb::render_handle(msgpackvar m) {
     if (m["type"].as_uint64_t() == as_ui(RenderObjectMessage::DESTROY)) {
         if (auto rm = render_map()) {
-            rm->add_effect<Explosion>(x(), y());
-            add_sides(rm, Orientation::N, m["n"].as_uint64_t(), x(), y());
-            add_sides(rm, Orientation::E, m["e"].as_uint64_t(), x(), y());
-            add_sides(rm, Orientation::S, m["s"].as_uint64_t(), x(), y());
-            add_sides(rm, Orientation::W, m["w"].as_uint64_t(), x(), y());
+            rm->add_effect<Explosion>(center());
+            add_sides(rm, Orientation::N, m["n"].as_uint64_t(), center());
+            add_sides(rm, Orientation::E, m["e"].as_uint64_t(), center());
+            add_sides(rm, Orientation::S, m["s"].as_uint64_t(), center());
+            add_sides(rm, Orientation::W, m["w"].as_uint64_t(), center());
         }
         destroy();
     }
@@ -135,7 +135,7 @@ void RoboBomb::render(sf::RenderTarget& rt) {
 }
 
 void Mine::update() {
-    for (auto obj : server_map()->collides(x(), y(), width(), height())) {
+    for (auto obj : server_map()->collides(*this)) {
         if (obj.second->side() != side()) {
             destroy();
         }
@@ -155,8 +155,8 @@ unsigned int Mine::layer() {
     return 4;
 }
 
-Explosion::Explosion(RenderMap* map_, unsigned int id_, int x_, int y_, Orientation::Orientation ori, Position pos/* = CENTER*/)
-    : Effect(map_, id_, x_, y_, ori), position(pos) {
+Explosion::Explosion(RenderMap* map_, unsigned int id_, Point pos_, Orientation::Orientation ori, Position pos/* = CENTER*/)
+    : Effect(map_, id_, pos_, ori), position(pos) {
     if (pos == Position::CENTER) {
         sound.setBuffer(map->load_sound_buf("data/sounds/explosion.ogg"));
         sound.play();
@@ -168,7 +168,7 @@ void Explosion::render(sf::RenderTarget& rt) {
         sf::Sprite sp(map->load_texture(position == Position::CENTER ? "data/images/explosion.png"
                                       : position == Position::MIDDLE ? "data/images/explosion_middle.png" : "data/images/explosion_side.png"));
         sp.setOrigin(sf::Vector2f(sp.getTextureRect().width / 2, sp.getTextureRect().height / 2));
-        sp.setPosition(sf::Vector2f(x, y));
+        sp.setPosition(pos);
         sp.setRotation(angle(orientation));
         sp.setColor(sf::Color(255, 255, 255, min(255, time_left * 25)));
         rt.draw(sp);

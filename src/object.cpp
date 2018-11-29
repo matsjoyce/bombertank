@@ -43,16 +43,6 @@ void Object::post_constructor() {
     }
 }
 
-void Object::place(int x, int y) {
-    set_center(x, y);
-    _generate_move();
-}
-
-void Object::place_on_tile(int tx, int ty) {
-    place(tx * STANDARD_OBJECT_SIZE, ty * STANDARD_OBJECT_SIZE);
-}
-
-
 void Object::update() {
 }
 
@@ -111,7 +101,7 @@ void Object::end_update() {
     bool edge_help = false;
     if (speed_) {
         int go_left = 0, go_right = 0, go_total = 0;
-        for (auto& obj : server_map()->collides_by_moving(x(), y(), width(), height(), direction(), speed())) {
+        for (auto& obj : server_map()->collides_by_moving(*this, direction(), speed())) {
             if (obj.second->layer() != layer()) {
                 continue;
             }
@@ -124,8 +114,8 @@ void Object::end_update() {
             collision(obj.second, true);
             obj.second->collision(shared_from_this(), false);
             if (obj.first == 0) {
-                go_right += obj.second->separation_distance(x() + dx(right(direction_)) * GET_ROUND_MARGIN, y() + dy(right(direction_)) * GET_ROUND_MARGIN, width(), height(), direction_, 1) >= 0;
-                go_left += obj.second->separation_distance(x() + dx(left(direction_)) * GET_ROUND_MARGIN, y() + dy(left(direction_)) * GET_ROUND_MARGIN, width(), height(), direction_, 1) >= 0;
+                go_right += obj.second->separation_distance(moved(Point(right(direction_)) * GET_ROUND_MARGIN).moved(Point(direction_))) >= 0;
+                go_left += obj.second->separation_distance(moved(Point(left(direction_)) * GET_ROUND_MARGIN).moved(Point(direction_))) >= 0;
                 go_total += 1;
             }
         }
@@ -141,7 +131,7 @@ void Object::end_update() {
             else if (go_right == go_total) {
                 dir = right(direction_);
             }
-            if (dir != direction_ && !server_map()->collides_by_moving(x(), y(), width(), height(), dir, 1).size()) {
+            if (dir != direction_ && !server_map()->collides_by_moving(*this, dir, 1).size()) {
                 move(dx(dir), dy(dir));
                 edge_help = true;
             }
@@ -191,17 +181,8 @@ void Object::_generate_move() {
 }
 
 int Object::separation_distance(objptr obj) {
-    return separation_distance(obj->x(), obj->y(), obj->width(), obj->height());
+    return separation_distance(*obj);
 }
-
-int Object::separation_distance(int ox, int oy, unsigned int ow, unsigned int oh) {
-    return max(abs(ox - x()) - static_cast<int>(ow + width()) / 2, abs(oy - y()) - static_cast<int>(oh + height()) / 2);
-}
-
-int Object::separation_distance(int ox, int oy, unsigned int ow, unsigned int oh, Orientation::Orientation dir, int movement) {
-    return separation_distance(ox + dx(dir) * movement, oy + dy(dir) * movement, ow, oh);
-}
-
 
 void Object::render_update() {
 }

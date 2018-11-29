@@ -128,18 +128,6 @@ void ServerMap::halt() {
     is_running = false;
 }
 
-vector<pair<int, objptr>> ServerMap::collides(int ox, int oy, unsigned int ow, unsigned int oh) {
-    vector<pair<int, objptr>> ret;
-    int dist;
-    for (auto& obj : objects) {
-        if (!defered_destroy.count(obj.first) && (dist = obj.second->separation_distance(ox, oy, ow, oh)) < 0) {
-            auto item = make_pair(dist, obj.second);
-            ret.insert(upper_bound(ret.begin(), ret.end(), item), item);
-        }
-    }
-    return ret;
-}
-
 vector<pair<int, objptr>> ServerMap::collides(const Rect& r) {
     vector<pair<int, objptr>> ret;
     int dist;
@@ -152,38 +140,25 @@ vector<pair<int, objptr>> ServerMap::collides(const Rect& r) {
     return ret;
 }
 
-vector<pair<int, objptr>> ServerMap::collides_by_moving(int ox, int oy, unsigned int ow, unsigned int oh,
-                                                        Orientation::Orientation dir, int movement, bool skip_start/*=true*/) {
-    int nx, ny, nw, nh, margin = numeric_limits<int>::min();
-    switch (dir) {
-        case Orientation::N:
-        case Orientation::S: {
-            nh = movement;
-            nw = ow;
-            ny = oy + dy(dir) * ((skip_start ? static_cast<int>(oh) : 0) + movement) / 2;
-            nx = ox;
-            if (skip_start) {
-                margin = -static_cast<int>(oh) / 2;
-            }
-            break;
-        }
-        case Orientation::E:
-        case Orientation::W: {
-            nh = oh;
-            nw = movement;
-            ny = oy;
-            nx = ox + dx(dir) * ((skip_start ? static_cast<int>(ow) : 0) + movement) / 2;
-            if (skip_start) {
-                margin = -static_cast<int>(ow) / 2;
-            }
-            break;
+vector<pair<int, objptr>> ServerMap::collides(const Rect& r, std::function<int(objptr)> sortfunc) {
+    vector<pair<int, objptr>> ret;
+    for (auto& obj : objects) {
+        if (!defered_destroy.count(obj.first) && obj.second->separation_distance(r) < 0) {
+            auto item = make_pair(sortfunc(obj.second), obj.second);
+            ret.insert(upper_bound(ret.begin(), ret.end(), item), item);
         }
     }
+    return ret;
+}
+
+vector<pair<int, objptr>> ServerMap::collides_by_moving(const Rect& r, Orientation::Orientation dir, int movement) {
+    auto mr = r.movement_rect(dir, movement);
+    auto margin = -static_cast<int>(r.dimension_in_dir(dir)) / 2;
     vector<pair<int, objptr>> ret;
     int dist;
     for (auto& obj : objects) {
-        if (obj.second->alive() && obj.second->separation_distance(nx, ny, nw, nh) < 0
-            && (dist = obj.second->separation_distance(ox, oy, ow, oh)) > margin) {
+        if (obj.second->alive() && obj.second->separation_distance(mr) < 0
+            && (dist = obj.second->separation_distance(r)) > margin) {
             auto item = make_pair(dist, obj.second);
             ret.insert(upper_bound(ret.begin(), ret.end(), item), item);
         }
@@ -202,7 +177,8 @@ void ServerMap::remove(objptr obj) {
 
 void ServerMap::save_objects_to_map(std::ostream& f) {
     for (auto& obj : objects) {
-        f << obj.second->type() << " " << obj.second->tx() << " " << obj.second->ty() << endl;
+        auto pos = obj.second->nw_corner().to_tile();
+        f << obj.second->type() << " " << pos.x << " " << pos.y << endl;
     }
 }
 

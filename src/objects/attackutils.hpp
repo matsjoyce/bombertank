@@ -21,6 +21,6 @@
 
 #include "../object.hpp"
 
-unsigned int progressive_kill_in_direction(ServerMap* sm, int x, int y, unsigned int size, unsigned int length, Orientation::Orientation direction, int damage, DamageType type);
+unsigned int progressive_kill_in_direction(ServerMap* sm, Point start, unsigned int size, unsigned int length, Orientation::Orientation direction, int damage, DamageType type);
 
 #endif // ATTACKUTILS_HPP

@@ -35,7 +35,7 @@ constexpr unsigned int SCALEUP = 2;
 
 struct GameState {
     ServerMap sm;
-    vector<pair<int, int>> starting_positions;
+    vector<Point> starting_positions;
     vector<objptr> players;
     vector<RenderMap> rms;
     thread thr;
@@ -103,7 +103,7 @@ unique_ptr<Stage> SelectPlayMapStage::update(sf::RenderWindow& window) {
                 gstate->players = load_objects_from_file(f, gstate->sm);
                 int i = 0;
                 for (auto& player : gstate->players) {
-                    gstate->starting_positions.emplace_back(make_pair(player->x(), player->y()));
+                    gstate->starting_positions.emplace_back(player->nw_corner());
                     player->set_side(i);
 
                     auto es1 = make_unique<EventServer>(), es2 = make_unique<EventServer>();
@@ -286,7 +286,8 @@ unique_ptr<Stage> GameOverStage::update(sf::RenderWindow& window) {
                     }
                     auto obj = gstate->sm.add(Player::TYPE);
                     pl->transfer(obj);
-                    obj->place(gstate->starting_positions[i].first, gstate->starting_positions[i].second);
+                    obj->set_nw_corner(gstate->starting_positions[i]);
+                    obj->_generate_move();
                     gstate->players[i] = obj;
                 }
             }

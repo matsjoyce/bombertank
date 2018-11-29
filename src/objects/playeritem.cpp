@@ -100,7 +100,8 @@ void BombItem::start() {
         --uses;
         send_update();
         auto obj = player()->server_map()->add(TimedBomb::TYPE);
-        obj->place(player()->tcx(), player()->tcy());
+        obj->set_nw_corner(player()->center().to_tile().from_tile());
+        obj->_generate_move();
         weak_ptr<BombItem> weak_this = dynamic_pointer_cast<BombItem>(shared_from_this());
         obj->destroyed.connect([weak_this] {
             if (auto obj = weak_this.lock()) {
@@ -130,7 +131,8 @@ void CrateItem::start() {
         --uses;
         send_update();
         auto obj = player()->server_map()->add(PlacedWall::TYPE);
-        obj->place(player()->tcx(), player()->tcy());
+        obj->set_nw_corner(player()->center().to_tile().from_tile());
+        obj->_generate_move();
         weak_ptr<CrateItem> weak_this = dynamic_pointer_cast<CrateItem>(shared_from_this());
         obj->destroyed.connect([weak_this] {
             if (auto obj = weak_this.lock()) {
@@ -160,7 +162,8 @@ void MineItem::start() {
         --uses;
         send_update();
         auto obj = player()->server_map()->add(Mine::TYPE);
-        obj->place(player()->tcx(), player()->tcy());
+        obj->set_nw_corner(player()->center().to_tile().from_tile());
+        obj->_generate_move();
         obj->set_side(player()->side());
     }
 }
@@ -184,7 +187,8 @@ void ChargeItem::start() {
         --uses;
         send_update();
         auto obj = player()->server_map()->add(StaticBomb::TYPE);
-        obj->place(player()->tcx(), player()->tcy());
+        obj->set_nw_corner(player()->center().to_tile().from_tile());
+        obj->_generate_move();
         obj->set_side(player()->side());
     }
 }
@@ -207,16 +211,15 @@ void LaserItem::start() {
     if (uses) {
         --uses;
         auto ori = player()->orientation();
-        auto x = player()->x() + dx(ori) * (player()->width() / 2);
-        auto y = player()->y() + dy(ori) * (player()->height() / 2);
-        auto dist = progressive_kill_in_direction(player()->server_map(), x, y, 4, STANDARD_OBJECT_SIZE * 10, ori, 10, DamageType::HEAT);
+        auto pos = player()->dir_center(ori);
+        auto dist = progressive_kill_in_direction(player()->server_map(), pos, 4, STANDARD_OBJECT_SIZE * 10, ori, 10, DamageType::HEAT);
 
         msgpackvar m;
         m["itype"] = as_ui(PIRenderMessage::START);
         m["dist"] = dist;
         m["ori"] = as_ui(ori);
-        m["x"] = x;
-        m["y"] = y;
+        m["x"] = pos.x;
+        m["y"] = pos.y;
         m["uses"] = uses;
         player()->item_msg(std::move(m), type());
     }
@@ -228,8 +231,8 @@ public:
     unsigned int layer() override {
         return 5;
     }
-    LaserEffect(RenderMap* map_, unsigned int id_, int x_, int y_, Orientation::Orientation ori, unsigned int dist_)
-        : Effect(map_, id_, x_, y_, ori), dist(dist_) {
+    LaserEffect(RenderMap* map_, unsigned int id_, Point pos_, Orientation::Orientation ori, unsigned int dist_)
+        : Effect(map_, id_, pos_, ori), dist(dist_) {
         sound.setBuffer(map->load_sound_buf("data/sounds/laser-small.wav"));
         sound.play();
     }
@@ -239,7 +242,7 @@ public:
             tex.setRepeated(true);
             sf::Sprite sp(tex);
             sp.setOrigin(sf::Vector2f(sp.getTextureRect().width / 2, dist));
-            sp.setPosition(sf::Vector2f(x, y));
+            sp.setPosition(pos);
             sp.setTextureRect({0, 0, sp.getTextureRect().width, static_cast<int>(dist)});
             sp.setRotation(angle(orientation));
             rt.draw(sp);
@@ -261,7 +264,7 @@ private:
 void LaserItem::render_handle(msgpackvar&& m) {
     switch (static_cast<PIRenderMessage>(m["itype"].as_uint64_t())) {
         case PIRenderMessage::START: {
-            player()->render_map()->add_effect<LaserEffect>(extract_int(m["x"]), extract_int(m["y"]),
+            player()->render_map()->add_effect<LaserEffect>(Point(extract_int(m["x"]), extract_int(m["y"])),
                                                             static_cast<Orientation::Orientation>(m["ori"].as_uint64_t()), m["dist"].as_uint64_t());
             uses = m["uses"].as_uint64_t();
             break;

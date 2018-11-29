@@ -22,6 +22,7 @@
 #include <SFML/System/Vector2.hpp>
 #include <cmath>
 #include <ostream>
+#include "orientation.hpp"
 
 constexpr const int STANDARD_OBJECT_SIZE = 24;
 
@@ -44,6 +45,7 @@ public:
     T x = 0, y = 0;
     Vec() = default;
     Vec(T x_, T y_) : x(x_), y(y_) {}
+    Vec(Orientation::Orientation ori) : x(dx(ori)), y(dy(ori)) {}
 
     // Inline Vec operators
 
@@ -162,6 +164,17 @@ class Size : public Vec<unsigned int, Size> {
 public:
     using Vec<unsigned int, Size>::Vec;
     Size(const sf::Vector2u& p) : Vec<unsigned int, Size>(p.x, p.y) {}
+
+    // Rotation
+
+    inline Size rotate(Orientation::Orientation ori) {
+        switch (ori) {
+            case Orientation::N:
+            case Orientation::S: return {x, y};
+            case Orientation::E:
+            case Orientation::W: return {y, x};
+        }
+    }
 };
 
 class Point : public Vec<int, Point> {
@@ -178,6 +191,17 @@ public:
     }
     inline Size to_size() {
         return {static_cast<unsigned int>(std::abs(x)), static_cast<unsigned int>(std::abs(y))};
+    }
+
+    // Rotation
+
+    inline Point rotate(Orientation::Orientation ori) {
+        switch (ori) {
+            case Orientation::N: return {x, y};
+            case Orientation::W: return {-y, x};
+            case Orientation::S: return {-x, -y};
+            case Orientation::E: return {y, -x};
+        }
     }
 };
 
