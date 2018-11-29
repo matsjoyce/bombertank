@@ -17,6 +17,10 @@
  */
 
 #include "chest.hpp"
+#include "player.hpp"
+#include "playeritem.hpp"
+#include <random>
+#include <iterator>
 
 using namespace std;
 
@@ -26,10 +30,24 @@ void Chest::render(sf::RenderTarget& rt) {
     rt.draw(sp);
 }
 
-// unsigned int Chest::max_hp() {
-//     return 50;
-// }
-
 unsigned int Chest::render_layer() {
     return 2;
+}
+
+// HACK put this somewhere official like Map
+namespace {
+    random_device rd;
+    mt19937 generator(rd());
+}
+
+void Chest::collision(objptr obj, bool /*caused_by_self*/) {
+    if (auto pl = dynamic_pointer_cast<Player>(obj)) {
+        auto pis = load_player_items();
+        if (!pis.size()) return;
+        uniform_int_distribution<int> distribution(0, pis.size() - 1);
+        auto iter = pis.begin();
+        advance(iter, distribution(generator));
+        pl->add_item(iter->second());
+        destroy();
+    }
 }

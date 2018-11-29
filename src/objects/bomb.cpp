@@ -88,9 +88,12 @@ void TimedBomb::render(sf::RenderTarget& rt) {
     rt.draw(sp);
 }
 
-random_device rd;
-mt19937 generator(rd());
-uniform_int_distribution<int> distribution(0, 3);
+// HACK put this somewhere official like Map
+namespace {
+    random_device rd;
+    mt19937 generator(rd());
+    uniform_int_distribution<int> distribution(0, 3);
+}
 
 RoboBomb::RoboBomb(unsigned int id_, Map* map_) : StaticBomb(id_, map_) {
     set_direction(Orientation::Orientation(distribution(generator)));

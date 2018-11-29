@@ -78,8 +78,6 @@ public:
     objptr add(unsigned int type);
     std::vector<std::pair<int, objptr>> collides(const Rect& r);
     std::vector<std::pair<int, objptr>> collides(const Rect& r, std::function<int(objptr)> sortfunc);
-
-    // DEPRECATED
     std::vector<std::pair<int, objptr>> collides_by_moving(const Rect& r, Orientation::Orientation dir, int movement);
     void save_objects_to_map(std::ostream& f);
 };
