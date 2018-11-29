@@ -209,7 +209,7 @@ void LaserItem::start() {
         auto ori = player()->orientation();
         auto x = player()->x() + dx(ori) * (player()->width() / 2);
         auto y = player()->y() + dy(ori) * (player()->height() / 2);
-        auto dist = progressive_kill_in_direction(player()->server_map(), x, y, 4, STANDARD_OBJECT_SIZE * 7, ori, 25, DamageType::HEAT);
+        auto dist = progressive_kill_in_direction(player()->server_map(), x, y, 4, STANDARD_OBJECT_SIZE * 10, ori, 10, DamageType::HEAT);
 
         msgpackvar m;
         m["itype"] = as_ui(PIRenderMessage::START);
@@ -240,7 +240,7 @@ public:
             sf::Sprite sp(tex);
             sp.setOrigin(sf::Vector2f(sp.getTextureRect().width / 2, dist));
             sp.setPosition(sf::Vector2f(x, y));
-            sp.setTextureRect({0, 0, sp.getTextureRect().width, dist});
+            sp.setTextureRect({0, 0, sp.getTextureRect().width, static_cast<int>(dist)});
             sp.setRotation(angle(orientation));
             rt.draw(sp);
         }
