@@ -68,6 +68,12 @@ Player::Player(unsigned int id_, Map* map_) : Object(id_, map_) {
     }
     auto fid = map->paused.connect([this] {
         direction_stack.clear();
+        if (items.count(primary_item) && items[primary_item]->active()) {
+            items[primary_item]->end();
+        }
+        if (items.count(secondary_item) && items[secondary_item]->active()) {
+            items[secondary_item]->end();
+        }
     });
     destroyed.connect([this, fid] {
         map->paused.disconnect(fid);
