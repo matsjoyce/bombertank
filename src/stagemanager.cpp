@@ -173,6 +173,9 @@ unique_ptr<Stage> PlayStage::update(sf::RenderWindow& window) {
                     gstate->sm.resume();
                 }
             }
+            else if (event.key.control && event.key.code == sf::Keyboard::Q) {
+                return make_unique<LoadStage>();
+            }
             else {
                 for (auto& rm : gstate->rms) {
                     rm.handle_keypress(event.key.code, true);
@@ -277,22 +280,27 @@ unique_ptr<Stage> GameOverStage::update(sf::RenderWindow& window) {
         if (event.type == sf::Event::Closed) {
             window.close();
         }
-        if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Space) {
-            for (unsigned int i = 0; i < gstate->players.size(); ++i) {
-                if (!gstate->players[i]->alive()) {
-                    auto pl = dynamic_cast<Player*>(gstate->players[i].get());
-                    if (!pl->lives()) {
-                        return make_unique<LoadStage>();
+        if (event.type == sf::Event::KeyPressed) {
+            if (event.key.code == sf::Keyboard::Space) {
+                for (unsigned int i = 0; i < gstate->players.size(); ++i) {
+                    if (!gstate->players[i]->alive()) {
+                        auto pl = dynamic_cast<Player*>(gstate->players[i].get());
+                        if (!pl->lives()) {
+                            return make_unique<LoadStage>();
+                        }
+                        auto obj = gstate->sm.add(Player::TYPE);
+                        pl->transfer(obj);
+                        obj->set_nw_corner(gstate->starting_positions[i]);
+                        obj->_generate_move();
+                        gstate->players[i] = obj;
                     }
-                    auto obj = gstate->sm.add(Player::TYPE);
-                    pl->transfer(obj);
-                    obj->set_nw_corner(gstate->starting_positions[i]);
-                    obj->_generate_move();
-                    gstate->players[i] = obj;
                 }
+                gstate->sm.resume();
+                return make_unique<PlayStage>(move(gstate));
             }
-            gstate->sm.resume();
-            return make_unique<PlayStage>(move(gstate));
+            else if (event.key.control && event.key.code == sf::Keyboard::Q) {
+                return make_unique<LoadStage>();
+            }
         }
     }
     for (auto& rm : gstate->rms) {
