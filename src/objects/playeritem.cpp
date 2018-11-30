@@ -25,7 +25,7 @@
 using namespace std;
 
 enum class PIRenderMessage : unsigned int {
-    UPDATE, DESTROY, START, END
+    UPDATE, DESTROY, START, END, FIRE
 };
 
 void PlayerItem::attach(std::shared_ptr<Player> pl) {
@@ -42,14 +42,36 @@ std::shared_ptr<Player> PlayerItem::player() {
 
 void PlayerItem::start() {
     active_ = true;
+    if (player()->server_map()) {
+        msgpackvar m;
+        m["itype"] = as_ui(PIRenderMessage::START);
+        player()->item_msg(std::move(m), type());
+    }
 }
 
 void PlayerItem::end() {
     active_ = false;
+    if (player()->server_map()) {
+        msgpackvar m;
+        m["itype"] = as_ui(PIRenderMessage::END);
+        player()->item_msg(std::move(m), type());
+    }
 }
 
 void PlayerItem::render_handle(msgpackvar&& m) {
-    cout << "Unhandled event " << m["itype"].as_uint64_t() << " for item " << type() << endl;
+    switch (static_cast<PIRenderMessage>(m["itype"].as_uint64_t())) {
+        case PIRenderMessage::START: {
+            start();
+            break;
+        }
+        case PIRenderMessage::END: {
+            end();
+            break;
+        }
+        default: {
+            cout << "Unhandled event " << m["itype"].as_uint64_t() << " for item " << type() << endl;
+        }
+    }
 }
 
 void PlayerItem::merge_with(std::shared_ptr<PlayerItem> /*item*/) {
@@ -81,6 +103,21 @@ void UsesPlayerItem::send_update() {
     player()->item_msg(std::move(m), type());
 }
 
+void UsesPlayerItem::start() {
+    if (auto sm = player()->server_map()) {
+        if (uses) {
+            PlayerItem::start();
+            --uses;
+            send_update();
+            start_with_uses(sm);
+        }
+    }
+    else {
+        PlayerItem::start();
+    }
+}
+
+
 BombItem::BombItem() : UsesPlayerItem(3) {
 }
 
@@ -93,23 +130,17 @@ void BombItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
     rt.draw(txt);
 }
 
-void BombItem::start() {
-    PlayerItem::start();
-    cout << "DROP_BOMB " << uses << endl;
-    if (uses) {
-        --uses;
-        send_update();
-        auto obj = player()->server_map()->add(TimedBomb::TYPE);
-        obj->set_nw_corner(player()->center().to_tile().from_tile());
-        obj->_generate_move();
-        weak_ptr<BombItem> weak_this = dynamic_pointer_cast<BombItem>(shared_from_this());
-        obj->destroyed.connect([weak_this] {
-            if (auto obj = weak_this.lock()) {
-                ++obj->uses;
-                obj->send_update();
-            }
-        });
-    }
+void BombItem::start_with_uses(ServerMap* sm) {
+    auto obj = sm->add(TimedBomb::TYPE);
+    obj->set_nw_corner(player()->center().to_tile().from_tile());
+    obj->_generate_move();
+    weak_ptr<BombItem> weak_this = dynamic_pointer_cast<BombItem>(shared_from_this());
+    obj->destroyed.connect([weak_this] {
+        if (auto obj = weak_this.lock()) {
+            ++obj->uses;
+            obj->send_update();
+        }
+    });
 }
 
 CrateItem::CrateItem() : UsesPlayerItem(8) {
@@ -124,23 +155,17 @@ void CrateItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
     rt.draw(txt);
 }
 
-void CrateItem::start() {
-    PlayerItem::start();
-    cout << "DROP_WALL " << uses << endl;
-    if (uses) {
-        --uses;
-        send_update();
-        auto obj = player()->server_map()->add(PlacedWall::TYPE);
-        obj->set_nw_corner(player()->center().to_tile().from_tile());
-        obj->_generate_move();
-        weak_ptr<CrateItem> weak_this = dynamic_pointer_cast<CrateItem>(shared_from_this());
-        obj->destroyed.connect([weak_this] {
-            if (auto obj = weak_this.lock()) {
-                ++obj->uses;
-                obj->send_update();
-            }
-        });
-    }
+void CrateItem::start_with_uses(ServerMap* sm) {
+    auto obj = sm->add(PlacedWall::TYPE);
+    obj->set_nw_corner(player()->center().to_tile().from_tile());
+    obj->_generate_move();
+    weak_ptr<CrateItem> weak_this = dynamic_pointer_cast<CrateItem>(shared_from_this());
+    obj->destroyed.connect([weak_this] {
+        if (auto obj = weak_this.lock()) {
+            ++obj->uses;
+            obj->send_update();
+        }
+    });
 }
 
 MineItem::MineItem() : UsesPlayerItem(2) {
@@ -155,17 +180,11 @@ void MineItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
     rt.draw(txt);
 }
 
-void MineItem::start() {
-    PlayerItem::start();
-    cout << "DROP_MINE " << uses << endl;
-    if (uses) {
-        --uses;
-        send_update();
-        auto obj = player()->server_map()->add(Mine::TYPE);
-        obj->set_nw_corner(player()->center().to_tile().from_tile());
-        obj->_generate_move();
-        obj->set_side(player()->side());
-    }
+void MineItem::start_with_uses(ServerMap* sm) {
+    auto obj = sm->add(Mine::TYPE);
+    obj->set_nw_corner(player()->center().to_tile().from_tile());
+    obj->_generate_move();
+    obj->set_side(player()->side());
 }
 
 ChargeItem::ChargeItem() : UsesPlayerItem(5) {
@@ -180,17 +199,11 @@ void ChargeItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
     rt.draw(txt);
 }
 
-void ChargeItem::start() {
-    PlayerItem::start();
-    cout << "DROP_CHARGE " << uses << endl;
-    if (uses) {
-        --uses;
-        send_update();
-        auto obj = player()->server_map()->add(StaticBomb::TYPE);
-        obj->set_nw_corner(player()->center().to_tile().from_tile());
-        obj->_generate_move();
-        obj->set_side(player()->side());
-    }
+void ChargeItem::start_with_uses(ServerMap* sm) {
+    auto obj = sm->add(StaticBomb::TYPE);
+    obj->set_nw_corner(player()->center().to_tile().from_tile());
+    obj->_generate_move();
+    obj->set_side(player()->side());
 }
 
 LaserItem::LaserItem() : UsesPlayerItem(50) {
@@ -205,24 +218,18 @@ void LaserItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
     rt.draw(txt);
 }
 
-void LaserItem::start() {
-    PlayerItem::start();
-    cout << "LASER " << uses << endl;
-    if (uses) {
-        --uses;
-        auto ori = player()->orientation();
-        auto pos = player()->dir_center(ori);
-        auto dist = progressive_kill_in_direction(player()->server_map(), pos, 4, STANDARD_OBJECT_SIZE * 10, ori, 10, DamageType::HEAT);
+void LaserItem::start_with_uses(ServerMap* sm) {
+    auto ori = player()->orientation();
+    auto pos = player()->dir_center(ori);
+    auto dist = progressive_kill_in_direction(sm, pos, 4, STANDARD_OBJECT_SIZE * 10, ori, 10, DamageType::HEAT);
 
-        msgpackvar m;
-        m["itype"] = as_ui(PIRenderMessage::START);
-        m["dist"] = dist;
-        m["ori"] = as_ui(ori);
-        m["x"] = pos.x;
-        m["y"] = pos.y;
-        m["uses"] = uses;
-        player()->item_msg(std::move(m), type());
-    }
+    msgpackvar m;
+    m["itype"] = as_ui(PIRenderMessage::FIRE);
+    m["dist"] = dist;
+    m["ori"] = as_ui(ori);
+    m["x"] = pos.x;
+    m["y"] = pos.y;
+    player()->item_msg(std::move(m), type());
 }
 
 class LaserEffect : public Effect {
@@ -263,10 +270,9 @@ private:
 
 void LaserItem::render_handle(msgpackvar&& m) {
     switch (static_cast<PIRenderMessage>(m["itype"].as_uint64_t())) {
-        case PIRenderMessage::START: {
+        case PIRenderMessage::FIRE: {
             player()->render_map()->add_effect<LaserEffect>(Point(extract_int(m["x"]), extract_int(m["y"])),
                                                             static_cast<Orientation::Orientation>(m["ori"].as_uint64_t()), m["dist"].as_uint64_t());
-            uses = m["uses"].as_uint64_t();
             break;
         }
         default: UsesPlayerItem::render_handle(std::move(m));

@@ -52,6 +52,8 @@ public:
     UsesPlayerItem(unsigned int uses_);
     void merge_with(std::shared_ptr<PlayerItem> item) override;
     void render_handle(msgpackvar&& m) override;
+    void start() override;
+    virtual void start_with_uses(ServerMap* sm) = 0;
 };
 
 class BombItem : public UsesPlayerItem {
@@ -62,7 +64,7 @@ public:
         return 0;
     }
     void render(sf::RenderTarget& rt, sf::Vector2f position) override;
-    void start() override;
+    void start_with_uses(ServerMap* sm) override;
 };
 
 class CrateItem : public UsesPlayerItem {
@@ -73,7 +75,7 @@ public:
         return 1;
     }
     void render(sf::RenderTarget& rt, sf::Vector2f position) override;
-    void start() override;
+    void start_with_uses(ServerMap* sm) override;
 };
 
 class MineItem : public UsesPlayerItem {
@@ -84,7 +86,7 @@ public:
         return 2;
     }
     void render(sf::RenderTarget& rt, sf::Vector2f position) override;
-    void start() override;
+    void start_with_uses(ServerMap* sm) override;
 };
 
 class ChargeItem : public UsesPlayerItem {
@@ -95,7 +97,7 @@ public:
         return 3;
     }
     void render(sf::RenderTarget& rt, sf::Vector2f position) override;
-    void start() override;
+    void start_with_uses(ServerMap* sm) override;
 };
 
 class LaserItem : public UsesPlayerItem {
@@ -106,7 +108,7 @@ public:
         return 4;
     }
     void render(sf::RenderTarget& rt, sf::Vector2f position) override;
-    void start() override;
+    void start_with_uses(ServerMap* sm) override;
     void render_handle(msgpackvar&& m) override;
 };
 

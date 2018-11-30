@@ -343,19 +343,15 @@ void Player::render_hud(sf::RenderTarget& rt) {
     for (auto& item : items) {
         auto pos = sf::Vector2f(x, lowerbg.getPosition().y + 3);
         if (item.first == primary_item) {
-            sf::RectangleShape bg(sf::Vector2f(STANDARD_OBJECT_SIZE + 2, STANDARD_OBJECT_SIZE + 2));
-            bg.setPosition(pos - sf::Vector2f(1, 1));
-            bg.setOutlineThickness(1);
-            bg.setOutlineColor(sf::Color::Red);
-            bg.setFillColor(sf::Color::Transparent);
+            sf::RectangleShape bg(sf::Vector2f(STANDARD_OBJECT_SIZE + 4, STANDARD_OBJECT_SIZE + 4));
+            bg.setPosition(pos - sf::Vector2f(2, 2));
+            bg.setFillColor(sf::Color(255, 0, 0, item.second->active() ? 255 : 128));
             rt.draw(bg);
         }
         else if (item.first == secondary_item) {
-            sf::RectangleShape bg(sf::Vector2f(STANDARD_OBJECT_SIZE + 2, STANDARD_OBJECT_SIZE + 2));
-            bg.setPosition(pos - sf::Vector2f(1, 1));
-            bg.setOutlineThickness(1);
-            bg.setOutlineColor(sf::Color::Green);
-            bg.setFillColor(sf::Color::Transparent);
+            sf::RectangleShape bg(sf::Vector2f(STANDARD_OBJECT_SIZE + 4, STANDARD_OBJECT_SIZE + 4));
+            bg.setPosition(pos - sf::Vector2f(2, 2));
+            bg.setFillColor(sf::Color(0, 255, 0, item.second->active() ? 255 : 128));
             rt.draw(bg);
         }
         item.second->render(rt, pos);
