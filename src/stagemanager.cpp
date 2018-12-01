@@ -140,7 +140,7 @@ void SelectPlayMapStage::load_maps(std::string dir) {
 
 void SelectPlayMapStage::render(sf::RenderWindow& window) {
     sf::View view;
-    view.reset(sf::FloatRect(sf::Vector2f(0, 0), sf::Vector2f(window.getSize() / 4u)));
+    view.reset(sf::FloatRect(sf::Vector2f(0, 0), Point(window.getSize()) / gstate->dpi_scaling_factor / SCALEUP));
     view.setViewport(sf::FloatRect(0, 0, 1.0, 1.0));
     window.setView(view);
 
