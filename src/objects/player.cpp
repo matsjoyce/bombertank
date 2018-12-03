@@ -93,6 +93,10 @@ void Player::render(sf::RenderTarget& rt) {
     position_sprite(sp2);
     sp2.setColor(player_settings[side()].color);
     rt.draw(sp2);
+
+    for (auto& item : items) {
+        item.second->render_overlay(rt);
+    }
 }
 
 void Player::handle_keypress(sf::Keyboard::Key key, bool is_down) {
@@ -276,6 +280,7 @@ void Player::post_constructor() {
         add_item(make_shared<MineItem>());
         add_item(make_shared<LaserItem>());
         add_item(make_shared<ChargeItem>());
+        add_item(make_shared<ShieldItem>());
         set_primary(BombItem::TYPE);
         set_secondary(CrateItem::TYPE);
     }
@@ -406,6 +411,16 @@ void Player::set_secondary(unsigned int sec) {
     m["type"] = as_ui(PlayerRenderMessage::SET_SECONDARY);
     m["secondary"] = sec;
     server_map()->event(shared_from_this(), std::move(m));
+}
+
+unsigned int Player::take_damage(unsigned int damage, DamageType dt) {
+    if (items.count(primary_item) && items[primary_item]->active()) {
+        damage = items[primary_item]->damage_intercept(damage, dt);
+    }
+    if (items.count(secondary_item) && items[secondary_item]->active()) {
+        damage = items[secondary_item]->damage_intercept(damage, dt);
+    }
+    return Object::take_damage(damage, dt);
 }
 
 void DeadPlayer::render(sf::RenderTarget& rt) {

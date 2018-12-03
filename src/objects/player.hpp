@@ -50,6 +50,7 @@ public:
     void handle(msgpackvar m) override;
     void render_handle(msgpackvar m) override;
     void update() override;
+    unsigned int take_damage(unsigned int damage, DamageType dt) override;
     unsigned int max_hp() override;
     void transfer(objptr obj);
     void add_item(std::shared_ptr<PlayerItem> item);

@@ -47,8 +47,10 @@ public:
     virtual void end();
     virtual void merge_with(std::shared_ptr<PlayerItem> item);
     virtual void update();
+    virtual unsigned int damage_intercept(unsigned int damage, DamageType dt);
 
     virtual void render(sf::RenderTarget& rt, sf::Vector2f position) = 0;
+    virtual void render_overlay(sf::RenderTarget& rt);
     virtual void render_handle(msgpackvar&& m);
 };
 
@@ -118,6 +120,20 @@ public:
     void render(sf::RenderTarget& rt, sf::Vector2f position) override;
     void update() override;
     void render_handle(msgpackvar&& m) override;
+};
+
+class ShieldItem : public UsesPlayerItem {
+    int glow = 0;
+public:
+    ShieldItem();
+    constexpr static const int TYPE = 5;
+    virtual unsigned int type() override {
+        return 5;
+    }
+    void render(sf::RenderTarget& rt, sf::Vector2f position) override;
+    unsigned int damage_intercept(unsigned int damage, DamageType dt);
+    void render_handle(msgpackvar&& m) override;
+    void render_overlay(sf::RenderTarget& rt) override;
 };
 
 std::map<unsigned int, std::function<std::shared_ptr<PlayerItem>()>> load_player_items();
