@@ -25,13 +25,14 @@
 class PopupText : public Effect {
 public:
     unsigned int layer() override;
-    PopupText(RenderMap* map_, unsigned int id_, unsigned int side_, std::string txt);
+    PopupText(RenderMap* map_, unsigned int id_, unsigned int side_, std::string txt, sf::Color color_=sf::Color::Black);
     void render(sf::RenderTarget& rt) override;
     void update() override;
 private:
-    int time_left = 60;
+    unsigned int time_left = 60;
     sf::Text text;
     unsigned int side;
+    sf::Color color;
 };
 
 #endif // EFFECTS_HPP

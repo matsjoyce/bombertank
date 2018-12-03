@@ -31,6 +31,7 @@ public:
     using Object::Object;
     void render(sf::RenderTarget& rt) override;
     unsigned int render_layer() override;
+    void render_handle(msgpackvar m) override;
     void collision(objptr obj, bool caused_by_self) override;
 };
 

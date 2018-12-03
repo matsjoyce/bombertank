@@ -22,7 +22,8 @@
 
 using namespace std;
 
-PopupText::PopupText(RenderMap* map_, unsigned int id_, unsigned int side_, std::string txt) : Effect(map_, id_, {}, {}), text(txt, map_->load_font("data/fonts/font.pcf"), 12), side(side_) {
+PopupText::PopupText(RenderMap* map_, unsigned int id_, unsigned int side_, std::string txt, sf::Color color_/*=sf::Color::Black*/)
+    : Effect(map_, id_, {}, {}), text(txt, map_->load_font("data/fonts/font.pcf"), 12), side(side_), color(color_) {
 }
 
 void PopupText::render(sf::RenderTarget& rt) {
@@ -34,7 +35,9 @@ void PopupText::render(sf::RenderTarget& rt) {
         sf::FloatRect textRect = text.getLocalBounds();
         text.setOrigin(textRect.left + textRect.width/2.0f,
                     textRect.top  + textRect.height/2.0f);
-        text.setFillColor(sf::Color(255, 0, 0, min(255, time_left * 20)));
+        auto col = color;
+        col.a = static_cast<unsigned int>(color.a) * min(255u, time_left * 20) / 255;
+        text.setFillColor(col);
         text.setPosition(0, time_left + new_view.getSize().y - 60);
         rt.draw(text);
         rt.setView(view);

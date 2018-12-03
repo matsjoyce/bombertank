@@ -40,6 +40,7 @@ public:
         return active_;
     }
     virtual unsigned int type() = 0;
+    virtual std::string name() = 0;
     virtual void make_empty();
 
     virtual bool can_activate();
@@ -84,8 +85,11 @@ public:
 class BombItem : public UsedPlayerItem {
 public:
     constexpr static const int TYPE = 0;
-    virtual unsigned int type() override {
+    unsigned int type() override {
         return 0;
+    }
+    std::string name() override {
+        return "Bombs";
     }
     void render(sf::RenderTarget& rt, sf::Vector2f position) override;
     void start() override;
@@ -95,8 +99,11 @@ public:
 class CrateItem : public UsedPlayerItem {
 public:
     constexpr static const int TYPE = 1;
-    virtual unsigned int type() override {
+    unsigned int type() override {
         return 1;
+    }
+    std::string name() override {
+        return "Crates";
     }
     void render(sf::RenderTarget& rt, sf::Vector2f position) override;
     void start() override;
@@ -106,8 +113,11 @@ public:
 class MineItem : public UsesPlayerItem {
 public:
     constexpr static const int TYPE = 2;
-    virtual unsigned int type() override {
+    unsigned int type() override {
         return 2;
+    }
+    std::string name() override {
+        return "Mines";
     }
     void render(sf::RenderTarget& rt, sf::Vector2f position) override;
     void start() override;
@@ -117,8 +127,11 @@ public:
 class ChargeItem : public UsesPlayerItem {
 public:
     constexpr static const int TYPE = 3;
-    virtual unsigned int type() override {
+    unsigned int type() override {
         return 3;
+    }
+    std::string name() override {
+        return "Charges";
     }
     void render(sf::RenderTarget& rt, sf::Vector2f position) override;
     void start() override;
@@ -129,8 +142,11 @@ class LaserItem : public UsesPlayerItem {
     unsigned int warmup = 0;
 public:
     constexpr static const int TYPE = 4;
-    virtual unsigned int type() override {
+    unsigned int type() override {
         return 4;
+    }
+    std::string name() override {
+        return "Laser";
     }
     void render(sf::RenderTarget& rt, sf::Vector2f position) override;
     void update() override;
@@ -142,8 +158,11 @@ class ShieldItem : public UsesPlayerItem {
     int glow = 0;
 public:
     constexpr static const int TYPE = 5;
-    virtual unsigned int type() override {
+    unsigned int type() override {
         return 5;
+    }
+    std::string name() override {
+        return "Shield";
     }
     void render(sf::RenderTarget& rt, sf::Vector2f position) override;
     unsigned int damage_intercept(unsigned int damage, DamageType dt);

@@ -272,7 +272,7 @@ void Player::render_handle(msgpackvar m) {
         }
         case PlayerRenderMessage::LEVEL_UP: {
             level_ = m["level"].as_uint64_t();
-            render_map()->add_effect<PopupText>(side(), level_messages[level_]);
+            render_map()->add_effect<PopupText>(side(), level_messages[level_], sf::Color::Red);
             break;
         }
         default: Object::render_handle(m);

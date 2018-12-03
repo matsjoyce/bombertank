@@ -19,6 +19,7 @@
 #include "chest.hpp"
 #include "player.hpp"
 #include "playeritem.hpp"
+#include "effects.hpp"
 #include <iterator>
 
 using namespace std;
@@ -57,11 +58,31 @@ void Chest::collision(objptr obj, bool /*caused_by_self*/) {
 
         if (options.size()) {
             uniform_int_distribution<int> distribution(0, options.size() - 1);
-            pl->add_item(load_player_items()[options[distribution(map->random_generator())]]());
+            auto item = load_player_items()[options[distribution(map->random_generator())]]();
+            pl->add_item(item);
+
+            msgpackvar m;
+            m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
+            m["type"] = as_ui(RenderObjectMessage::END);
+            m["id"] = id;
+            m["item"] = item->name();
+            m["side"] = pl->side();
+            server_map()->event(shared_from_this(), std::move(m));
         }
         destroy();
     }
 }
+
+void Chest::render_handle(msgpackvar m) {
+    switch (static_cast<RenderObjectMessage>(m["type"].as_uint64_t())) {
+        case RenderObjectMessage::END: {
+            render_map()->add_effect<PopupText>(m["side"].as_uint64_t(), m["item"].as_string());
+            break;
+        }
+        default: Object::render_handle(std::move(m));
+    }
+}
+
 
 void LevelUp::render(sf::RenderTarget& rt) {
     sf::Sprite sp(render_map()->load_texture("data/images/level_up.png"));
