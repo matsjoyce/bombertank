@@ -21,7 +21,9 @@
 
 #include <SFML/Graphics.hpp>
 #include <memory>
+#include <functional>
 #include "point.hpp"
+#include "signal.hpp"
 
 class Stage {
 public:
@@ -39,15 +41,16 @@ public:
     LoadStage(bool is_editor=false);
     std::unique_ptr<Stage> update(sf::RenderWindow& window) override;
     static std::unique_ptr<Stage> create(bool is_editor=false);
+    std::vector<std::string> load_maps(std::string dir);
 };
 
-class SelectPlayMapStage : public Stage {
+class SelectStage : public Stage {
     std::unique_ptr<GameState> gstate;
-    std::vector<std::string> maps;
+    std::vector<std::string> values;
     int current_index = 0;
 public:
-    SelectPlayMapStage(std::unique_ptr<GameState> gs);
-    void load_maps(std::string dir);
+    std::function<std::unique_ptr<Stage>(unsigned int, std::string, std::unique_ptr<GameState>&&)> on_selected;
+    SelectStage(std::unique_ptr<GameState> gs, std::vector<std::string> vals);
     std::unique_ptr<Stage> update(sf::RenderWindow& window) override;
     void render(sf::RenderWindow& window) override;
 };
@@ -76,8 +79,9 @@ class EditorStage : public Stage {
     std::unique_ptr<GameState> gstate;
     int placing = 1;
     Point last_pos;
+    std::string fname_;
 public:
-    EditorStage(std::unique_ptr<GameState> gs);
+    EditorStage(std::unique_ptr<GameState> gs, std::string fname);
     std::unique_ptr<Stage> update(sf::RenderWindow& window) override;
     void render(sf::RenderWindow& window) override;
 };

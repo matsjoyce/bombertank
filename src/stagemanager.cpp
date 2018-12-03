@@ -61,36 +61,81 @@ void Stage::render(sf::RenderWindow& /*window*/) {
 LoadStage::LoadStage(bool is_editor) : gstate(make_unique<GameState>()), load_editor(is_editor) {
 }
 
+vector<string> LoadStage::load_maps(std::string dir) {
+    vector<string> maps;
+    for (auto& item : fs::directory_iterator(dir)) {
+        if (item.is_directory()) {
+            auto subdir = load_maps(item.path());
+            maps.insert(maps.end(), subdir.begin(), subdir.end());
+        }
+        else if (item.is_regular_file() && item.path().extension() == ".btm") {
+            maps.push_back(item.path());
+        }
+    }
+    sort(maps.begin(), maps.end());
+    return maps;
+}
+
 unique_ptr<Stage> LoadStage::update(sf::RenderWindow& window) {
     if (window.getSize().x > 2000) {
         gstate->dpi_scaling_factor = 2;
     }
     if (load_editor) {
-        gstate->sm.pause(true);
-        auto f = ifstream("map_save.btm");
-        load_objects_from_file(f, gstate->sm);
-        auto es1 = make_unique<EventServer>(), es2 = make_unique<EventServer>();
-        es1->connect(es2.get());
-        es2->connect(es1.get());
-        gstate->rms.emplace_back(move(es1), -1);
-        gstate->sm.add_controller(0, move(es2));
-        gstate->sm.resume();
-        gstate->sm.pause(false);
-        return make_unique<EditorStage>(move(gstate));
+        auto maps = load_maps("maps");
+        maps.insert(maps.begin(), "<New>");
+        auto ss = make_unique<SelectStage>(move(gstate), maps);
+
+        ss->on_selected = [](unsigned int index, string value, unique_ptr<GameState>&& gstate){
+            gstate->sm.pause(true);
+            if (index) {
+                auto f = ifstream(value);
+                load_objects_from_file(f, gstate->sm);
+            }
+            auto es1 = make_unique<EventServer>(), es2 = make_unique<EventServer>();
+            es1->connect(es2.get());
+            es2->connect(es1.get());
+            gstate->rms.emplace_back(move(es1), -1);
+            gstate->sm.add_controller(0, move(es2));
+            gstate->sm.resume();
+            gstate->sm.pause(false);
+            return make_unique<EditorStage>(move(gstate), index ? value : "map_save.btm");
+        };
+        return move(ss);
     }
-    return make_unique<SelectPlayMapStage>(move(gstate));
+    else {
+        auto ss = make_unique<SelectStage>(move(gstate), load_maps("maps"));
+
+        ss->on_selected = [](unsigned int /*index*/, string value, unique_ptr<GameState>&& gstate){
+            gstate->sm.pause(true);
+            auto f = ifstream(value);
+            gstate->players = load_objects_from_file(f, gstate->sm);
+            int i = 0;
+            for (auto& player : gstate->players) {
+                gstate->starting_positions.emplace_back(player->nw_corner());
+                player->set_side(i);
+
+                auto es1 = make_unique<EventServer>(), es2 = make_unique<EventServer>();
+                es1->connect(es2.get());
+                es2->connect(es1.get());
+                gstate->rms.emplace_back(move(es1), i);
+                gstate->sm.add_controller(i, move(es2));
+                ++i;
+            };
+            gstate->sm.resume();
+            return make_unique<PlayStage>(move(gstate));
+        };
+        return move(ss);
+    }
 }
 
 std::unique_ptr<Stage> LoadStage::create(bool is_editor/*=false*/) {
     return make_unique<LoadStage>(is_editor);
 }
 
-SelectPlayMapStage::SelectPlayMapStage(std::unique_ptr<GameState> gs) : gstate(move(gs)) {
-    load_maps("maps");
-    sort(maps.begin(), maps.end());
+SelectStage::SelectStage(std::unique_ptr<GameState> gs, std::vector<std::string> vals) : gstate(move(gs)), values(vals) {
 }
 
-unique_ptr<Stage> SelectPlayMapStage::update(sf::RenderWindow& window) {
+unique_ptr<Stage> SelectStage::update(sf::RenderWindow& window) {
     sf::Event event;
     while (window.pollEvent(event)) {
         if (event.type == sf::Event::Closed) {
@@ -98,55 +143,28 @@ unique_ptr<Stage> SelectPlayMapStage::update(sf::RenderWindow& window) {
         }
         if (event.type == sf::Event::KeyPressed) {
             if (event.key.code == sf::Keyboard::Enter) {
-                gstate->sm.pause(true);
-                auto f = ifstream(maps[current_index]);
-                gstate->players = load_objects_from_file(f, gstate->sm);
-                int i = 0;
-                for (auto& player : gstate->players) {
-                    gstate->starting_positions.emplace_back(player->nw_corner());
-                    player->set_side(i);
-
-                    auto es1 = make_unique<EventServer>(), es2 = make_unique<EventServer>();
-                    es1->connect(es2.get());
-                    es2->connect(es1.get());
-                    gstate->rms.emplace_back(move(es1), i);
-                    gstate->sm.add_controller(i, move(es2));
-                    ++i;
-                };
-                gstate->sm.resume();
-                return make_unique<PlayStage>(move(gstate));
+                return on_selected(current_index, values[current_index], move(gstate));
             }
             else if (event.key.code == sf::Keyboard::Down) {
-                current_index = (current_index + 1) % maps.size();
+                current_index = (current_index + 1) % values.size();
             }
             else if (event.key.code == sf::Keyboard::Up) {
-                current_index = (current_index - 1 + maps.size()) % maps.size();
+                current_index = (current_index - 1 + values.size()) % values.size();
             }
         }
     }
     return {};
 }
 
-void SelectPlayMapStage::load_maps(std::string dir) {
-    for (auto& item : fs::directory_iterator(dir)) {
-        if (item.is_directory()) {
-            load_maps(item.path());
-        }
-        else if (item.is_regular_file() && item.path().extension() == ".btm") {
-            maps.push_back(item.path());
-        }
-    }
-}
-
-void SelectPlayMapStage::render(sf::RenderWindow& window) {
+void SelectStage::render(sf::RenderWindow& window) {
     sf::View view;
     view.reset(sf::FloatRect(sf::Vector2f(0, 0), Point(window.getSize()) / gstate->dpi_scaling_factor / SCALEUP));
     view.setViewport(sf::FloatRect(0, 0, 1.0, 1.0));
     window.setView(view);
 
     int y = 0;
-    for (auto& map : maps) {
-        sf::Text txt(map, gstate->font, 12);
+    for (auto& value : values) {
+        sf::Text txt(value, gstate->font, 12);
         txt.setPosition(sf::Vector2f(6, 6 + 14 * y));
         txt.setFillColor(y == current_index ? sf::Color::Red : sf::Color::Black);
         window.draw(txt);
@@ -309,7 +327,7 @@ unique_ptr<Stage> GameOverStage::update(sf::RenderWindow& window) {
     return {};
 }
 
-EditorStage::EditorStage(std::unique_ptr<GameState> gs) : gstate(move(gs)) {
+EditorStage::EditorStage(std::unique_ptr<GameState> gs, std::string fname) : gstate(move(gs)), fname_(fname) {
 }
 
 unique_ptr<Stage> EditorStage::update(sf::RenderWindow& window) {
@@ -333,10 +351,13 @@ unique_ptr<Stage> EditorStage::update(sf::RenderWindow& window) {
         }
         if (event.type == sf::Event::KeyPressed) {
             if (event.key.control && event.key.code == sf::Keyboard::S) {
-                cout << "Saving" << endl;
-                ofstream f("map_save.btm");
+                cout << "Saving to " << fname_ << endl;
+                ofstream f(fname_);
                 gstate->sm.save_objects_to_map(f);
                 f.close();
+            }
+            else if (event.key.control && event.key.code == sf::Keyboard::Q) {
+                return make_unique<LoadStage>(true);
             }
             else if (event.key.code == sf::Keyboard::Delete) {
                 auto pos = ((Point(sf::Mouse::getPosition(window)) - Point(window.getSize()) / 2) / SCALEUP / gstate->dpi_scaling_factor).to_tile() + gstate->rms[0].center().to_tile();
