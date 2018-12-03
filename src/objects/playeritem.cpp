@@ -40,32 +40,47 @@ std::shared_ptr<Player> PlayerItem::player() {
     return player_.lock();
 }
 
-void PlayerItem::start() {
-    active_ = true;
-    if (player()->server_map()) {
+bool PlayerItem::can_activate() {
+    return true;
+}
+
+void PlayerItem::update() {
+}
+
+void PlayerItem::try_start() {
+    if (active_) return;
+    if (can_activate()) {
+        active_ = true;
         msgpackvar m;
         m["itype"] = as_ui(PIRenderMessage::START);
         player()->item_msg(std::move(m), type());
+        start();
     }
 }
 
-void PlayerItem::end() {
+void PlayerItem::try_end() {
+    if (!active_) return;
     active_ = false;
-    if (player()->server_map()) {
-        msgpackvar m;
-        m["itype"] = as_ui(PIRenderMessage::END);
-        player()->item_msg(std::move(m), type());
-    }
+    msgpackvar m;
+    m["itype"] = as_ui(PIRenderMessage::END);
+    player()->item_msg(std::move(m), type());
+    end();
+}
+
+void PlayerItem::start() {
+}
+
+void PlayerItem::end() {
 }
 
 void PlayerItem::render_handle(msgpackvar&& m) {
     switch (static_cast<PIRenderMessage>(m["itype"].as_uint64_t())) {
         case PIRenderMessage::START: {
-            start();
+            active_ = true;
             break;
         }
         case PIRenderMessage::END: {
-            end();
+            active_ = false;
             break;
         }
         default: {
@@ -103,18 +118,8 @@ void UsesPlayerItem::send_update() {
     player()->item_msg(std::move(m), type());
 }
 
-void UsesPlayerItem::start() {
-    if (auto sm = player()->server_map()) {
-        if (uses) {
-            PlayerItem::start();
-            --uses;
-            send_update();
-            start_with_uses(sm);
-        }
-    }
-    else {
-        PlayerItem::start();
-    }
+bool UsesPlayerItem::can_activate() {
+    return uses;
 }
 
 
@@ -130,8 +135,10 @@ void BombItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
     rt.draw(txt);
 }
 
-void BombItem::start_with_uses(ServerMap* sm) {
-    auto obj = sm->add(TimedBomb::TYPE);
+void BombItem::start() {
+    --uses;
+    send_update();
+    auto obj = player()->server_map()->add(TimedBomb::TYPE);
     obj->set_nw_corner(player()->center().to_tile().from_tile());
     obj->_generate_move();
     weak_ptr<BombItem> weak_this = dynamic_pointer_cast<BombItem>(shared_from_this());
@@ -155,8 +162,10 @@ void CrateItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
     rt.draw(txt);
 }
 
-void CrateItem::start_with_uses(ServerMap* sm) {
-    auto obj = sm->add(PlacedWall::TYPE);
+void CrateItem::start() {
+    --uses;
+    send_update();
+    auto obj = player()->server_map()->add(PlacedWall::TYPE);
     obj->set_nw_corner(player()->center().to_tile().from_tile());
     obj->_generate_move();
     weak_ptr<CrateItem> weak_this = dynamic_pointer_cast<CrateItem>(shared_from_this());
@@ -168,7 +177,7 @@ void CrateItem::start_with_uses(ServerMap* sm) {
     });
 }
 
-MineItem::MineItem() : UsesPlayerItem(2) {
+MineItem::MineItem() : UsesPlayerItem(4) {
 }
 
 void MineItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
@@ -180,8 +189,10 @@ void MineItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
     rt.draw(txt);
 }
 
-void MineItem::start_with_uses(ServerMap* sm) {
-    auto obj = sm->add(Mine::TYPE);
+void MineItem::start() {
+    --uses;
+    send_update();
+    auto obj = player()->server_map()->add(Mine::TYPE);
     obj->set_nw_corner(player()->center().to_tile().from_tile());
     obj->_generate_move();
     obj->set_side(player()->side());
@@ -199,8 +210,10 @@ void ChargeItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
     rt.draw(txt);
 }
 
-void ChargeItem::start_with_uses(ServerMap* sm) {
-    auto obj = sm->add(StaticBomb::TYPE);
+void ChargeItem::start() {
+    --uses;
+    send_update();
+    auto obj = player()->server_map()->add(StaticBomb::TYPE);
     obj->set_nw_corner(player()->center().to_tile().from_tile());
     obj->_generate_move();
     obj->set_side(player()->side());
@@ -218,18 +231,30 @@ void LaserItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
     rt.draw(txt);
 }
 
-void LaserItem::start_with_uses(ServerMap* sm) {
-    auto ori = player()->orientation();
-    auto pos = player()->dir_center(ori);
-    auto dist = progressive_kill_in_direction(sm, pos, 4, STANDARD_OBJECT_SIZE * 10, ori, 10, DamageType::HEAT);
+void LaserItem::update() {
+    if (warmup) {
+        --warmup;
+    }
+    else if (active()) {
+        warmup = 3;
 
-    msgpackvar m;
-    m["itype"] = as_ui(PIRenderMessage::FIRE);
-    m["dist"] = dist;
-    m["ori"] = as_ui(ori);
-    m["x"] = pos.x;
-    m["y"] = pos.y;
-    player()->item_msg(std::move(m), type());
+        --uses;
+        auto ori = player()->orientation();
+        auto pos = player()->dir_center(ori);
+        auto dist = progressive_kill_in_direction(player()->server_map(), pos, 4, STANDARD_OBJECT_SIZE * 10, ori, 10, DamageType::HEAT);
+
+        msgpackvar m;
+        m["itype"] = as_ui(PIRenderMessage::FIRE);
+        m["dist"] = dist;
+        m["ori"] = as_ui(ori);
+        m["x"] = pos.x;
+        m["y"] = pos.y;
+        m["uses"] = uses;
+        player()->item_msg(std::move(m), type());
+        if (!uses) {
+            try_end();
+        }
+    }
 }
 
 class LaserEffect : public Effect {
@@ -273,6 +298,7 @@ void LaserItem::render_handle(msgpackvar&& m) {
         case PIRenderMessage::FIRE: {
             player()->render_map()->add_effect<LaserEffect>(Point(extract_int(m["x"]), extract_int(m["y"])),
                                                             static_cast<Orientation::Orientation>(m["ori"].as_uint64_t()), m["dist"].as_uint64_t());
+            uses = m["uses"].as_uint64_t();
             break;
         }
         default: UsesPlayerItem::render_handle(std::move(m));

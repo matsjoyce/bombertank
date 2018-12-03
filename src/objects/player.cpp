@@ -68,11 +68,11 @@ Player::Player(unsigned int id_, Map* map_) : Object(id_, map_) {
     }
     auto fid = map->paused.connect([this] {
         direction_stack.clear();
-        if (items.count(primary_item) && items[primary_item]->active()) {
-            items[primary_item]->end();
+        if (items.count(primary_item)) {
+            items[primary_item]->try_end();
         }
-        if (items.count(secondary_item) && items[secondary_item]->active()) {
-            items[secondary_item]->end();
+        if (items.count(secondary_item)) {
+            items[secondary_item]->try_end();
         }
     });
     destroyed.connect([this, fid] {
@@ -145,38 +145,26 @@ void Player::handle(msgpackvar m) {
             break;
         }
         case PlayerServerMessage::START_PRIMARY: {
-            if (items.count(primary_item) && !items[primary_item]->active()) {
-                items[primary_item]->start();
-                if (!items[primary_item]->active()) {
-                    cout << "Item " << primary_item << " was not active after start!" << endl;
-                }
+            if (items.count(primary_item)) {
+                items[primary_item]->try_start();
             }
             break;
         }
         case PlayerServerMessage::END_PRIMARY: {
-            if (items.count(primary_item) && items[primary_item]->active()) {
-                items[primary_item]->end();
-                if (items[primary_item]->active()) {
-                    cout << "Item " << primary_item << " was active after end!" << endl;
-                }
+            if (items.count(primary_item)) {
+                items[primary_item]->try_end();
             }
             break;
         }
         case PlayerServerMessage::START_SECONDARY: {
-            if (primary_item != secondary_item && items.count(secondary_item) && !items[secondary_item]->active()) {
-                items[secondary_item]->start();
-                if (!items[secondary_item]->active()) {
-                    cout << "Item " << secondary_item << " was not active after start!" << endl;
-                }
+            if (primary_item != secondary_item && items.count(secondary_item)) {
+                items[secondary_item]->try_start();
             }
             break;
         }
         case PlayerServerMessage::END_SECONDARY: {
-            if (primary_item != secondary_item && items.count(secondary_item) && items[secondary_item]->active()) {
-                items[secondary_item]->end();
-                if (items[secondary_item]->active()) {
-                    cout << "Item " << secondary_item << " was active after end!" << endl;
-                }
+            if (primary_item != secondary_item && items.count(secondary_item)) {
+                items[secondary_item]->try_end();
             }
             break;
         }
@@ -228,6 +216,8 @@ void Player::render_handle(msgpackvar m) {
     switch (static_cast<PlayerRenderMessage>(m["type"].as_uint64_t())) {
         case PlayerRenderMessage::TRANSFER: {
             lives_ = m["lives"].as_uint64_t();
+            primary_item = m["primary"].as_uint64_t();
+            secondary_item = m["secondary"].as_uint64_t();
             break;
         }
         case PlayerRenderMessage::ADD_ITEM: {
@@ -292,6 +282,9 @@ void Player::post_constructor() {
 }
 
 void Player::update() {
+    for (auto& item : items) {
+        item.second->update();
+    }
     if (direction_stack.size()) {
         if (direction() != direction_stack.back()) {
             set_direction(direction_stack.back());
@@ -313,11 +306,15 @@ void Player::transfer(objptr obj) {
     auto pl = dynamic_cast<Player*>(obj.get());
     pl->lives_ = lives_ - 1;
     pl->set_side(side());
+    pl->primary_item = primary_item;
+    pl->secondary_item = secondary_item;
     msgpackvar m;
     m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
     m["type"] = as_ui(PlayerRenderMessage::TRANSFER);
     m["id"] = pl->id;
     m["lives"] = pl->lives_;
+    m["primary"] = pl->primary_item;
+    m["secondary"] = pl->secondary_item;
     server_map()->event(obj, std::move(m));
 }
 

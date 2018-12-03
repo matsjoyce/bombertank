@@ -146,12 +146,12 @@ void Mine::update() {
 }
 
 void Mine::render(sf::RenderTarget& rt) {
-    auto rm = render_map();
-    if (rm->side() == side()) {
-        sf::Sprite sp(render_map()->load_texture("data/images/mine.png"));
-        position_sprite(sp);
-        rt.draw(sp);
-    }
+//     auto rm = render_map();
+//     if (rm->side() == side()) {
+//         sf::Sprite sp(render_map()->load_texture("data/images/mine.png"));
+//         position_sprite(sp);
+//         rt.draw(sp);
+//     }
 }
 
 unsigned int Mine::layer() {

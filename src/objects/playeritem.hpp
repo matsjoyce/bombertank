@@ -36,11 +36,19 @@ public:
     inline bool active() {
         return active_;
     }
-    virtual void render(sf::RenderTarget& rt, sf::Vector2f position) = 0;
     virtual unsigned int type() = 0;
+
+    virtual bool can_activate();
+
+    void try_start();
+    void try_end();
+
     virtual void start();
     virtual void end();
     virtual void merge_with(std::shared_ptr<PlayerItem> item);
+    virtual void update();
+
+    virtual void render(sf::RenderTarget& rt, sf::Vector2f position) = 0;
     virtual void render_handle(msgpackvar&& m);
 };
 
@@ -52,8 +60,7 @@ public:
     UsesPlayerItem(unsigned int uses_);
     void merge_with(std::shared_ptr<PlayerItem> item) override;
     void render_handle(msgpackvar&& m) override;
-    void start() override;
-    virtual void start_with_uses(ServerMap* sm) = 0;
+    bool can_activate() override;
 };
 
 class BombItem : public UsesPlayerItem {
@@ -64,7 +71,7 @@ public:
         return 0;
     }
     void render(sf::RenderTarget& rt, sf::Vector2f position) override;
-    void start_with_uses(ServerMap* sm) override;
+    void start() override;
 };
 
 class CrateItem : public UsesPlayerItem {
@@ -75,7 +82,7 @@ public:
         return 1;
     }
     void render(sf::RenderTarget& rt, sf::Vector2f position) override;
-    void start_with_uses(ServerMap* sm) override;
+    void start() override;
 };
 
 class MineItem : public UsesPlayerItem {
@@ -86,7 +93,7 @@ public:
         return 2;
     }
     void render(sf::RenderTarget& rt, sf::Vector2f position) override;
-    void start_with_uses(ServerMap* sm) override;
+    void start() override;
 };
 
 class ChargeItem : public UsesPlayerItem {
@@ -97,10 +104,11 @@ public:
         return 3;
     }
     void render(sf::RenderTarget& rt, sf::Vector2f position) override;
-    void start_with_uses(ServerMap* sm) override;
+    void start() override;
 };
 
 class LaserItem : public UsesPlayerItem {
+    unsigned int warmup = 0;
 public:
     LaserItem();
     constexpr static const int TYPE = 4;
@@ -108,7 +116,7 @@ public:
         return 4;
     }
     void render(sf::RenderTarget& rt, sf::Vector2f position) override;
-    void start_with_uses(ServerMap* sm) override;
+    void update() override;
     void render_handle(msgpackvar&& m) override;
 };
 
