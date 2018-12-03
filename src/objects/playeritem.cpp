@@ -243,7 +243,7 @@ void LaserItem::update() {
         --warmup;
     }
     else if (active()) {
-        warmup = 3;
+        warmup = 4;
 
         --uses;
         auto ori = player()->orientation();
