@@ -40,11 +40,14 @@ public:
     virtual unsigned int type() override {
         return 3;
     }
-    inline unsigned int lives() {
+    inline unsigned int lives() const {
         return lives_;
     }
-    inline unsigned int level() {
+    inline unsigned int level() const {
         return level_;
+    }
+    inline const std::map<unsigned int, std::shared_ptr<PlayerItem>>& items() const {
+        return items_;
     }
     unsigned int render_layer() override;
     Player(unsigned int id_, Map* map_);

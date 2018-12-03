@@ -23,6 +23,19 @@
 
 using namespace std;
 
+Chest::Chest(unsigned int id_, Map* map_) : Object(id_, map_) {
+    if (auto sm = server_map()) {
+        destroyed.connect([this, sm]{
+            auto pos = nw_corner();
+            sm->on_frame(sm->frame() + sm->frame_rate * 30, [pos, sm]{
+                auto obj = sm->add(Chest::TYPE);
+                obj->set_nw_corner(pos);
+                obj->_generate_move();
+            });
+        });
+    }
+}
+
 void Chest::render(sf::RenderTarget& rt) {
     sf::Sprite sp(render_map()->load_texture("data/images/chest.png"));
     position_sprite(sp);
@@ -35,12 +48,17 @@ unsigned int Chest::render_layer() {
 
 void Chest::collision(objptr obj, bool /*caused_by_self*/) {
     if (auto pl = dynamic_pointer_cast<Player>(obj)) {
-        auto pis = load_player_items();
-        if (!pis.size()) return;
-        uniform_int_distribution<int> distribution(0, pis.size() - 1);
-        auto iter = pis.begin();
-        advance(iter, distribution(pl->server_map()->random_generator()));
-        pl->add_item(iter->second());
+        vector<unsigned int> options;
+        for (auto& item : pl->items()) {
+            if (dynamic_pointer_cast<UsesPlayerItem>(item.second)) {
+                options.push_back(item.first);
+            }
+        }
+
+        if (options.size()) {
+            uniform_int_distribution<int> distribution(0, options.size() - 1);
+            pl->add_item(load_player_items()[options[distribution(map->random_generator())]]());
+        }
         destroy();
     }
 }

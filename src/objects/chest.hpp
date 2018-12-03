@@ -23,6 +23,7 @@
 
 class Chest : public Object {
 public:
+    Chest(unsigned int id_, Map* map_);
     constexpr static const int TYPE = 8;
     virtual unsigned int type() override {
         return 8;

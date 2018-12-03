@@ -109,7 +109,8 @@ UsesPlayerItem::UsesPlayerItem() : uses(-1) {
 
 void UsesPlayerItem::merge_with(std::shared_ptr<PlayerItem> item) {
     auto i = dynamic_cast<UsesPlayerItem*>(item.get());
-    uses += i->uses;
+    i->uses = min(i->uses, i->max_uses());
+    uses = uses > max_uses() - i->uses ? max_uses() : uses + i->uses;
     send_update();
 }
 

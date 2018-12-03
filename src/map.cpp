@@ -60,6 +60,12 @@ objptr ServerMap::add(unsigned int type) {
 
 void ServerMap::update() {
     in_update = true;
+    ++frame_;
+    auto [start, end] = frame_callbacks.equal_range(frame_);
+    for (; start != end; ++start) {
+        start->second();
+    }
+    frame_callbacks.erase(frame_callbacks.begin(), frame_callbacks.upper_bound(frame_));
     for (auto& obj : objects) {
         obj.second->start_update();
         obj.second->update();
@@ -216,6 +222,14 @@ void ServerMap::level_up_trigger(objptr obj) {
         ++level_ups_created;
     }
 }
+
+void ServerMap::on_frame(unsigned int frame, std::function<void()> f) {
+    if (frame >= frame_) {
+        cout << "Callback for frame " << frame << " while on frame " << frame_ << endl;
+    }
+    frame_callbacks.emplace(make_pair(frame, f));
+}
+
 
 
 std::vector<objptr> load_objects_from_file(std::istream& f, ServerMap& map) {
