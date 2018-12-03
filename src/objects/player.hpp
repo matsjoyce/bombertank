@@ -35,6 +35,7 @@ class Player : public Object {
     unsigned int primary_item = -1, secondary_item = -1;
     void set_primary(unsigned int pri);
     void set_secondary(unsigned int sec);
+    void add_items_for_level(bool empty);
 public:
     constexpr static const int TYPE = 3;
     virtual unsigned int type() override {

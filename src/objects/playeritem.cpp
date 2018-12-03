@@ -94,6 +94,9 @@ void PlayerItem::render_handle(msgpackvar&& m) {
 void PlayerItem::merge_with(std::shared_ptr<PlayerItem> /*item*/) {
 }
 
+void PlayerItem::make_empty() {
+}
+
 unsigned int PlayerItem::damage_intercept(unsigned int damage, DamageType /*dt*/) {
     return damage;
 }
@@ -133,6 +136,11 @@ void UsesPlayerItem::send_update() {
 
 bool UsesPlayerItem::can_activate() {
     return uses;
+}
+
+void UsesPlayerItem::make_empty() {
+    uses = 0;
+    send_update();
 }
 
 void UsedPlayerItem::render_handle(msgpackvar&& m) {

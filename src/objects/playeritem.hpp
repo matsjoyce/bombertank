@@ -40,6 +40,7 @@ public:
         return active_;
     }
     virtual unsigned int type() = 0;
+    virtual void make_empty();
 
     virtual bool can_activate();
 
@@ -67,6 +68,7 @@ public:
     void render_handle(msgpackvar&& m) override;
     bool can_activate() override;
     virtual unsigned int max_uses() = 0;
+    void make_empty() override;
 };
 
 class UsedPlayerItem : public PlayerItem {

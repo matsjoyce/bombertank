@@ -56,6 +56,15 @@ map<int, PlayerSettings> player_settings = {
     }},
 };
 
+multimap<unsigned int, unsigned int> items_for_level = {
+    {1, BombItem::TYPE},
+    {1, CrateItem::TYPE},
+    {3, ChargeItem::TYPE},
+    {5, MineItem::TYPE},
+    {8, ShieldItem::TYPE},
+    {9, LaserItem::TYPE},
+};
+
 Player::Player(unsigned int id_, Map* map_) : Object(id_, map_) {
     if (render_map()) {
         destroyed.connect([this] {
@@ -280,10 +289,21 @@ void Player::setup_keys() {
 void Player::post_constructor() {
     Object::post_constructor();
     if (server_map()) {
-        add_item(make_shared<BombItem>());
-        add_item(make_shared<CrateItem>());
+        add_items_for_level(true);
         set_primary(BombItem::TYPE);
         set_secondary(CrateItem::TYPE);
+    }
+}
+
+void Player::add_items_for_level(bool empty) {
+    for (auto iter = items_for_level.begin(); iter != items_for_level.upper_bound(level_); ++iter) {
+        if (!items_.count(iter->second)) {
+            auto item = load_player_items()[iter->second]();
+            add_item(item);
+            if (empty) {
+                item->make_empty();
+            }
+        }
     }
 }
 
@@ -315,6 +335,7 @@ void Player::transfer(objptr obj) {
     pl->primary_item = primary_item;
     pl->secondary_item = secondary_item;
     pl->level_ = level_;
+    pl->add_items_for_level(true);
     msgpackvar m;
     m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
     m["type"] = as_ui(PlayerRenderMessage::TRANSFER);
@@ -432,26 +453,7 @@ unsigned int Player::take_damage(unsigned int damage, DamageType dt) {
 
 void Player::level_up() {
     ++level_;
-
-    switch (level_) {
-        case 2: {
-            add_item(make_shared<ChargeItem>());
-            break;
-        }
-        case 5: {
-            add_item(make_shared<MineItem>());
-            break;
-        }
-        case 8: {
-            add_item(make_shared<ShieldItem>());
-            break;
-        }
-        case 9: {
-            add_item(make_shared<LaserItem>());
-            break;
-        }
-        default: /*no new items for you!*/;
-    }
+    add_items_for_level(false);
 
     msgpackvar m;
     m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
