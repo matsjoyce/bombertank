@@ -19,6 +19,7 @@
 #include "player.hpp"
 #include "bomb.hpp"
 #include "walls.hpp"
+#include "effects.hpp"
 #include <iostream>
 #include "playeritem.hpp"
 
@@ -31,7 +32,7 @@ enum class PlayerServerMessage : unsigned int {
 
 enum class PlayerRenderMessage : unsigned int {
     TRANSFER = static_cast<unsigned int>(RenderObjectMessage::END),
-    ADD_ITEM, FOR_ITEM, SET_PRIMARY, SET_SECONDARY, SET_LEVEL
+    ADD_ITEM, FOR_ITEM, SET_PRIMARY, SET_SECONDARY, LEVEL_UP
 };
 
 struct PlayerSettings {
@@ -63,6 +64,17 @@ multimap<unsigned int, unsigned int> items_for_level = {
     {5, MineItem::TYPE},
     {8, ShieldItem::TYPE},
     {9, LaserItem::TYPE},
+};
+
+map<unsigned int, string> level_messages = {
+    {2, "+1 bomb range"},
+    {3, "Charges"},
+    {4, "+1 charge range"},
+    {5, "Mines"},
+    {6, "+1 mine range"},
+    {7, "+1 bombs"},
+    {8, "Shield"},
+    {9, "Laser"},
 };
 
 Player::Player(unsigned int id_, Map* map_) : Object(id_, map_) {
@@ -258,8 +270,9 @@ void Player::render_handle(msgpackvar m) {
             secondary_item = m["secondary"].as_uint64_t();
             break;
         }
-        case PlayerRenderMessage::SET_LEVEL: {
+        case PlayerRenderMessage::LEVEL_UP: {
             level_ = m["level"].as_uint64_t();
+            render_map()->add_effect<PopupText>(side(), level_messages[level_]);
             break;
         }
         default: Object::render_handle(m);
@@ -458,7 +471,7 @@ void Player::level_up() {
     msgpackvar m;
     m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
     m["id"] = id;
-    m["type"] = as_ui(PlayerRenderMessage::SET_LEVEL);
+    m["type"] = as_ui(PlayerRenderMessage::LEVEL_UP);
     m["level"] = level_;
     server_map()->event(shared_from_this(), std::move(m));
 }
