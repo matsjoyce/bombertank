@@ -26,11 +26,12 @@ class PlayerItem;
 class Player : public Object {
     std::vector<Orientation::Orientation> direction_stack;
     int max_speed = 4;
+    unsigned int level_ = 1;
     unsigned int lives_ = 3;
     sf::Clock anim_clock;
     std::string tex_name = "data/images/tank1.png";
     void setup_keys();
-    std::map<unsigned int, std::shared_ptr<PlayerItem>> items;
+    std::map<unsigned int, std::shared_ptr<PlayerItem>> items_;
     unsigned int primary_item = -1, secondary_item = -1;
     void set_primary(unsigned int pri);
     void set_secondary(unsigned int sec);
@@ -41,6 +42,9 @@ public:
     }
     inline unsigned int lives() {
         return lives_;
+    }
+    inline unsigned int level() {
+        return level_;
     }
     unsigned int render_layer() override;
     Player(unsigned int id_, Map* map_);
@@ -56,6 +60,7 @@ public:
     void add_item(std::shared_ptr<PlayerItem> item);
     void render_hud(sf::RenderTarget & rt) override;
     void item_msg(msgpackvar&& m, unsigned int type);
+    void level_up();
 };
 
 class DeadPlayer : public Effect {

@@ -26,12 +26,12 @@ using namespace std;
 
 enum class PlayerServerMessage : unsigned int {
     START_MOVE = static_cast<unsigned int>(RenderObjectMessage::END),
-    END_MOVE, START_PRIMARY, START_SECONDARY, END_PRIMARY, END_SECONDARY, SECONDARY_L, SECONDARY_R, PRIMARY_SET, TRANSFER, USE_ITEM
+    END_MOVE, START_PRIMARY, START_SECONDARY, END_PRIMARY, END_SECONDARY, SECONDARY_L, SECONDARY_R, PRIMARY_SET, USE_ITEM
 };
 
 enum class PlayerRenderMessage : unsigned int {
     TRANSFER = static_cast<unsigned int>(RenderObjectMessage::END),
-    ADD_ITEM, FOR_ITEM, SET_PRIMARY, SET_SECONDARY
+    ADD_ITEM, FOR_ITEM, SET_PRIMARY, SET_SECONDARY, SET_LEVEL
 };
 
 struct PlayerSettings {
@@ -68,11 +68,11 @@ Player::Player(unsigned int id_, Map* map_) : Object(id_, map_) {
     }
     auto fid = map->paused.connect([this] {
         direction_stack.clear();
-        if (items.count(primary_item)) {
-            items[primary_item]->try_end();
+        if (items_.count(primary_item)) {
+            items_[primary_item]->try_end();
         }
-        if (items.count(secondary_item)) {
-            items[secondary_item]->try_end();
+        if (items_.count(secondary_item)) {
+            items_[secondary_item]->try_end();
         }
     });
     destroyed.connect([this, fid] {
@@ -94,7 +94,7 @@ void Player::render(sf::RenderTarget& rt) {
     sp2.setColor(player_settings[side()].color);
     rt.draw(sp2);
 
-    for (auto& item : items) {
+    for (auto& item : items_) {
         item.second->render_overlay(rt);
     }
 }
@@ -149,40 +149,40 @@ void Player::handle(msgpackvar m) {
             break;
         }
         case PlayerServerMessage::START_PRIMARY: {
-            if (items.count(primary_item)) {
-                items[primary_item]->try_start();
+            if (items_.count(primary_item)) {
+                items_[primary_item]->try_start();
             }
             break;
         }
         case PlayerServerMessage::END_PRIMARY: {
-            if (items.count(primary_item)) {
-                items[primary_item]->try_end();
+            if (items_.count(primary_item)) {
+                items_[primary_item]->try_end();
             }
             break;
         }
         case PlayerServerMessage::START_SECONDARY: {
-            if (primary_item != secondary_item && items.count(secondary_item)) {
-                items[secondary_item]->try_start();
+            if (primary_item != secondary_item && items_.count(secondary_item)) {
+                items_[secondary_item]->try_start();
             }
             break;
         }
         case PlayerServerMessage::END_SECONDARY: {
-            if (primary_item != secondary_item && items.count(secondary_item)) {
-                items[secondary_item]->try_end();
+            if (primary_item != secondary_item && items_.count(secondary_item)) {
+                items_[secondary_item]->try_end();
             }
             break;
         }
         case PlayerServerMessage::SECONDARY_L: {
-            auto prev = lower_bound(items.begin(), items.end(), secondary_item, [](auto& a, auto& b){return a.first < b;});
+            auto prev = lower_bound(items_.begin(), items_.end(), secondary_item, [](auto& a, auto& b){return a.first < b;});
             unsigned int val = -1;
-            if (prev == items.end()) {
-                if (items.size()) {
-                    val = (--items.end())->first;
+            if (prev == items_.end()) {
+                if (items_.size()) {
+                    val = (--items_.end())->first;
                 }
             }
             else if (prev->first == secondary_item) {
-                if (prev == items.begin()) {
-                    val = (--items.end())->first;
+                if (prev == items_.begin()) {
+                    val = (--items_.end())->first;
                 }
                 else {
                     val = (--prev)->first;
@@ -195,11 +195,11 @@ void Player::handle(msgpackvar m) {
             break;
         }
         case PlayerServerMessage::SECONDARY_R: {
-            auto next = upper_bound(items.begin(), items.end(), secondary_item, [](auto& a, auto& b){return a < b.first;});
+            auto next = upper_bound(items_.begin(), items_.end(), secondary_item, [](auto& a, auto& b){return a < b.first;});
             unsigned int val = -1;
-            if (next == items.end()) {
-                if (items.size()) {
-                    val = items.begin()->first;
+            if (next == items_.end()) {
+                if (items_.size()) {
+                    val = items_.begin()->first;
                 }
             }
             else {
@@ -222,18 +222,19 @@ void Player::render_handle(msgpackvar m) {
             lives_ = m["lives"].as_uint64_t();
             primary_item = m["primary"].as_uint64_t();
             secondary_item = m["secondary"].as_uint64_t();
+            level_ = m["level"].as_uint64_t();
             break;
         }
         case PlayerRenderMessage::ADD_ITEM: {
             auto type = m["item"].as_uint64_t();
-            auto item = items[type] = load_player_items()[type]();
+            auto item = items_[type] = load_player_items()[type]();
             item->attach(dynamic_pointer_cast<Player>(shared_from_this()));
             break;
         }
         case PlayerRenderMessage::FOR_ITEM: {
             auto type = m["item"].as_uint64_t();
-            if (items.count(type)) {
-                items[type]->render_handle(std::move(m));
+            if (items_.count(type)) {
+                items_[type]->render_handle(std::move(m));
             }
             else {
                 cout << "Event for non-existent item " << type << endl;
@@ -246,6 +247,10 @@ void Player::render_handle(msgpackvar m) {
         }
         case PlayerRenderMessage::SET_SECONDARY: {
             secondary_item = m["secondary"].as_uint64_t();
+            break;
+        }
+        case PlayerRenderMessage::SET_LEVEL: {
+            level_ = m["level"].as_uint64_t();
             break;
         }
         default: Object::render_handle(m);
@@ -274,20 +279,16 @@ void Player::setup_keys() {
 
 void Player::post_constructor() {
     Object::post_constructor();
-    if (auto sm = server_map()) {
+    if (server_map()) {
         add_item(make_shared<BombItem>());
         add_item(make_shared<CrateItem>());
-        add_item(make_shared<MineItem>());
-        add_item(make_shared<LaserItem>());
-        add_item(make_shared<ChargeItem>());
-        add_item(make_shared<ShieldItem>());
         set_primary(BombItem::TYPE);
         set_secondary(CrateItem::TYPE);
     }
 }
 
 void Player::update() {
-    for (auto& item : items) {
+    for (auto& item : items_) {
         item.second->update();
     }
     if (direction_stack.size()) {
@@ -313,6 +314,7 @@ void Player::transfer(objptr obj) {
     pl->set_side(side());
     pl->primary_item = primary_item;
     pl->secondary_item = secondary_item;
+    pl->level_ = level_;
     msgpackvar m;
     m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
     m["type"] = as_ui(PlayerRenderMessage::TRANSFER);
@@ -320,6 +322,7 @@ void Player::transfer(objptr obj) {
     m["lives"] = pl->lives_;
     m["primary"] = pl->primary_item;
     m["secondary"] = pl->secondary_item;
+    m["level"] = pl->level_;
     server_map()->event(obj, std::move(m));
 }
 
@@ -341,6 +344,10 @@ void Player::render_hud(sf::RenderTarget& rt) {
     sp_fg.setPosition(204, 0);
     rt.draw(sp_fg);
 
+    sf::Text txt("Lvl " + to_string(level_), rm->load_font("data/fonts/font.pcf"), 12);
+    txt.setPosition(238, -3);
+    rt.draw(txt);
+
     sf::RectangleShape lowerbg(sf::Vector2f(rt.getView().getSize().x, STANDARD_OBJECT_SIZE + 6));
     lowerbg.setFillColor(sf::Color(0, 0, 0, 128));
     lowerbg.setPosition(0, rt.getView().getSize().y - lowerbg.getSize().y);
@@ -348,7 +355,7 @@ void Player::render_hud(sf::RenderTarget& rt) {
 
     int x = 3;
 
-    for (auto& item : items) {
+    for (auto& item : items_) {
         auto pos = sf::Vector2f(x, lowerbg.getPosition().y + 3);
         if (item.first == primary_item) {
             sf::RectangleShape bg(sf::Vector2f(STANDARD_OBJECT_SIZE + 4, STANDARD_OBJECT_SIZE + 4));
@@ -369,12 +376,12 @@ void Player::render_hud(sf::RenderTarget& rt) {
 
 void Player::add_item(shared_ptr<PlayerItem> item) {
     if (auto sm = server_map()) {
-        if (items.count(item->type())) {
-            items[item->type()]->merge_with(item);
+        if (items_.count(item->type())) {
+            items_[item->type()]->merge_with(item);
         }
         else {
             item->attach(dynamic_pointer_cast<Player>(shared_from_this()));
-            items.emplace(item->type(), item);
+            items_.emplace(item->type(), item);
             msgpackvar m;
             m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
             m["id"] = id;
@@ -414,13 +421,44 @@ void Player::set_secondary(unsigned int sec) {
 }
 
 unsigned int Player::take_damage(unsigned int damage, DamageType dt) {
-    if (items.count(primary_item) && items[primary_item]->active()) {
-        damage = items[primary_item]->damage_intercept(damage, dt);
+    if (items_.count(primary_item) && items_[primary_item]->active()) {
+        damage = items_[primary_item]->damage_intercept(damage, dt);
     }
-    if (items.count(secondary_item) && items[secondary_item]->active()) {
-        damage = items[secondary_item]->damage_intercept(damage, dt);
+    if (items_.count(secondary_item) && items_[secondary_item]->active()) {
+        damage = items_[secondary_item]->damage_intercept(damage, dt);
     }
     return Object::take_damage(damage, dt);
+}
+
+void Player::level_up() {
+    ++level_;
+
+    switch (level_) {
+        case 2: {
+            add_item(make_shared<ChargeItem>());
+            break;
+        }
+        case 5: {
+            add_item(make_shared<MineItem>());
+            break;
+        }
+        case 8: {
+            add_item(make_shared<ShieldItem>());
+            break;
+        }
+        case 9: {
+            add_item(make_shared<LaserItem>());
+            break;
+        }
+        default: /*no new items for you!*/;
+    }
+
+    msgpackvar m;
+    m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
+    m["id"] = id;
+    m["type"] = as_ui(PlayerRenderMessage::SET_LEVEL);
+    m["level"] = level_;
+    server_map()->event(shared_from_this(), std::move(m));
 }
 
 void DeadPlayer::render(sf::RenderTarget& rt) {

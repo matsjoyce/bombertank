@@ -30,10 +30,12 @@ enum class PIRenderMessage : unsigned int {
 
 void PlayerItem::attach(std::shared_ptr<Player> pl) {
     player_ = pl;
+    on_attach.emit();
 }
 
 void PlayerItem::drop() {
     player_ = {};
+    on_detatch.emit();
 }
 
 std::shared_ptr<Player> PlayerItem::player() {
@@ -92,14 +94,17 @@ void PlayerItem::render_handle(msgpackvar&& m) {
 void PlayerItem::merge_with(std::shared_ptr<PlayerItem> /*item*/) {
 }
 
-unsigned int PlayerItem::damage_intercept(unsigned int damage, DamageType dt) {
+unsigned int PlayerItem::damage_intercept(unsigned int damage, DamageType /*dt*/) {
     return damage;
 }
 
-void PlayerItem::render_overlay(sf::RenderTarget& rt) {
+void PlayerItem::render_overlay(sf::RenderTarget& /*rt*/) {
 }
 
-UsesPlayerItem::UsesPlayerItem(unsigned int uses_) : uses(uses_) {
+UsesPlayerItem::UsesPlayerItem() : uses(-1) {
+    on_attach.connect([this]{
+        uses = min(uses, max_uses());
+    });
 }
 
 void UsesPlayerItem::merge_with(std::shared_ptr<PlayerItem> item) {
@@ -129,62 +134,89 @@ bool UsesPlayerItem::can_activate() {
     return uses;
 }
 
-
-BombItem::BombItem() : UsesPlayerItem(3) {
+void UsedPlayerItem::render_handle(msgpackvar&& m) {
+    switch (static_cast<PIRenderMessage>(m["itype"].as_uint64_t())) {
+        case PIRenderMessage::UPDATE: {
+            used = m["used"].as_uint64_t();
+            break;
+        }
+        default: PlayerItem::render_handle(std::move(m));
+    }
 }
+
+void UsedPlayerItem::send_update() {
+    msgpackvar m;
+    m["itype"] = as_ui(PIRenderMessage::UPDATE);
+    m["used"] = used;
+    player()->item_msg(std::move(m), type());
+}
+
+bool UsedPlayerItem::can_activate() {
+    return used < max_uses();
+}
+
+unsigned int BombItem::max_uses() {
+    return player()->level() >= 7 ? 2 : 1;
+}
+
 
 void BombItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
     sf::Sprite spr(player()->render_map()->load_texture("data/images/bomb.png"));
     spr.setPosition(position);
     rt.draw(spr);
-    sf::Text txt(to_string(uses), player()->render_map()->load_font("data/fonts/font.pcf"), 12);
+    sf::Text txt(to_string(max_uses() - used), player()->render_map()->load_font("data/fonts/font.pcf"), 12);
     txt.setPosition(position);
     rt.draw(txt);
 }
 
 void BombItem::start() {
-    --uses;
+    ++used;
     send_update();
-    auto obj = player()->server_map()->add(TimedBomb::TYPE);
-    obj->set_nw_corner(player()->center().to_tile().from_tile());
+    auto pl = player();
+    auto obj = pl->server_map()->add(TimedBomb::TYPE);
+    obj->set_nw_corner(pl->center().to_tile().from_tile());
     obj->_generate_move();
+    dynamic_pointer_cast<StaticBomb>(obj)->set_power(pl->level() >= 2 ? 2 : 1);
     weak_ptr<BombItem> weak_this = dynamic_pointer_cast<BombItem>(shared_from_this());
     obj->destroyed.connect([weak_this] {
         if (auto obj = weak_this.lock()) {
-            ++obj->uses;
+            --obj->used;
             obj->send_update();
         }
     });
 }
 
-CrateItem::CrateItem() : UsesPlayerItem(8) {
+unsigned int CrateItem::max_uses() {
+    return 8;
 }
 
 void CrateItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
     sf::Sprite spr(player()->render_map()->load_texture("data/images/pwall.png"));
     spr.setPosition(position);
     rt.draw(spr);
-    sf::Text txt(to_string(uses), player()->render_map()->load_font("data/fonts/font.pcf"), 12);
+    sf::Text txt(to_string(max_uses() - used), player()->render_map()->load_font("data/fonts/font.pcf"), 12);
     txt.setPosition(position);
     rt.draw(txt);
 }
 
 void CrateItem::start() {
-    --uses;
+    ++used;
     send_update();
-    auto obj = player()->server_map()->add(PlacedWall::TYPE);
-    obj->set_nw_corner(player()->center().to_tile().from_tile());
+    auto pl = player();
+    auto obj = pl->server_map()->add(PlacedWall::TYPE);
+    obj->set_nw_corner(pl->center().to_tile().from_tile());
     obj->_generate_move();
     weak_ptr<CrateItem> weak_this = dynamic_pointer_cast<CrateItem>(shared_from_this());
     obj->destroyed.connect([weak_this] {
         if (auto obj = weak_this.lock()) {
-            ++obj->uses;
+            --obj->used;
             obj->send_update();
         }
     });
 }
 
-MineItem::MineItem() : UsesPlayerItem(4) {
+unsigned int MineItem::max_uses() {
+    return 4;
 }
 
 void MineItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
@@ -199,13 +231,16 @@ void MineItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
 void MineItem::start() {
     --uses;
     send_update();
-    auto obj = player()->server_map()->add(Mine::TYPE);
-    obj->set_nw_corner(player()->center().to_tile().from_tile());
+    auto pl = player();
+    auto obj = pl->server_map()->add(Mine::TYPE);
+    obj->set_nw_corner(pl->center().to_tile().from_tile());
     obj->_generate_move();
-    obj->set_side(player()->side());
+    obj->set_side(pl->side());
+    dynamic_pointer_cast<StaticBomb>(obj)->set_power(pl->level() >= 6 ? 2 : 1);
 }
 
-ChargeItem::ChargeItem() : UsesPlayerItem(5) {
+unsigned int ChargeItem::max_uses() {
+    return 5;
 }
 
 void ChargeItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
@@ -220,13 +255,15 @@ void ChargeItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
 void ChargeItem::start() {
     --uses;
     send_update();
-    auto obj = player()->server_map()->add(StaticBomb::TYPE);
-    obj->set_nw_corner(player()->center().to_tile().from_tile());
+    auto pl = player();
+    auto obj = pl->server_map()->add(StaticBomb::TYPE);
+    obj->set_nw_corner(pl->center().to_tile().from_tile());
     obj->_generate_move();
-    obj->set_side(player()->side());
+    dynamic_pointer_cast<StaticBomb>(obj)->set_power(pl->level() >= 4 ? 2 : 1);
 }
 
-LaserItem::LaserItem() : UsesPlayerItem(50) {
+unsigned int LaserItem::max_uses() {
+    return 10;
 }
 
 void LaserItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
@@ -312,7 +349,8 @@ void LaserItem::render_handle(msgpackvar&& m) {
     }
 }
 
-ShieldItem::ShieldItem() : UsesPlayerItem(200) {
+unsigned int ShieldItem::max_uses() {
+    return 100;
 }
 
 void ShieldItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
@@ -335,10 +373,9 @@ void ShieldItem::render_handle(msgpackvar&& m) {
     }
 }
 
-unsigned int ShieldItem::damage_intercept(unsigned int damage, DamageType dt) {
+unsigned int ShieldItem::damage_intercept(unsigned int damage, DamageType /*dt*/) {
     auto amount = min(uses, damage);
     uses -= amount;
-
 
     msgpackvar m;
     m["itype"] = as_ui(PIRenderMessage::FIRE);

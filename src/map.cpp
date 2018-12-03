@@ -21,11 +21,12 @@
 #include "object.hpp"
 #include "objects/loader.hpp"
 #include "objects/player.hpp"
+#include "objects/chest.hpp"
 #include <iostream>
 
 using namespace std;
 
-Map::Map() : object_creators(load_objects()) {
+Map::Map() : object_creators(load_objects()), generator(random_device()()) {
 }
 
 objptr Map::add(unsigned int type, unsigned int id) {
@@ -36,6 +37,9 @@ void Map::remove(objptr obj) {
     objects.erase(obj->id);
 }
 
+mt19937& Map::random_generator() {
+    return generator;
+}
 
 void ServerMap::add_controller(unsigned int side, std::unique_ptr<EventServer> es) {
     side_controllers.emplace(make_pair(side, move(es)));
@@ -199,6 +203,18 @@ void ServerMap::resume() {
     msgpackvar m;
     m["mtype"] = as_ui(ToRenderMessage::RESUMED);
     ServerMap::event({}, std::move(m));
+}
+
+void ServerMap::level_up_trigger(objptr obj) {
+    geometric_distribution<unsigned int> distribution(0.09);
+    auto score = distribution(random_generator());
+    cout << score << " " << level_ups_created << endl;
+    if (score > level_ups_created) {
+        auto lu = add(LevelUp::TYPE);
+        lu->set_center(obj->center());
+        lu->_generate_move();
+        ++level_ups_created;
+    }
 }
 
 

@@ -110,6 +110,7 @@ public:
             case Orientation::S: return se_corner();
             case Orientation::W: return sw_corner();
         }
+        return {};
     }
     inline void set_left_corner(Orientation::Orientation ori, int x, int y) {
         switch (ori) {
@@ -130,6 +131,7 @@ public:
             case Orientation::S: return sw_corner();
             case Orientation::W: return ne_corner();
         }
+        return {};
     }
     inline void set_right_corner(Orientation::Orientation ori, int x, int y) {
         switch (ori) {
@@ -200,6 +202,7 @@ public:
             case Orientation::S: return s_center();
             case Orientation::W: return w_center();
         }
+        return {};
     }
     inline void set_dir_center(Orientation::Orientation ori, int x, int y) {
         switch (ori) {
@@ -248,6 +251,7 @@ public:
             case Orientation::S: return width_;
             case Orientation::W: return height_;
         }
+        return {};
     }
     inline void set_dimension_in_dir(Orientation::Orientation ori, unsigned int dim) {
         switch (ori) {
@@ -281,6 +285,7 @@ public:
             case Orientation::S: return {x_, y_, width_, height_ + dist};
             case Orientation::E: return {x_, y_, width_ + dist, height_};
         }
+        return {0, 0};
     }
     inline Rect movement_rect(Orientation::Orientation ori, unsigned int dist) const {
         switch (ori) {
@@ -289,6 +294,7 @@ public:
             case Orientation::S: return {x_, y_ + static_cast<int>(height_), width_, dist};
             case Orientation::E: return {x_ + static_cast<int>(width_), y_, dist, height_};
         }
+        return {0, 0};
     }
 
     // Collisions

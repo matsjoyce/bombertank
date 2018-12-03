@@ -27,7 +27,7 @@ public:
     virtual unsigned int type() override {
         return 0;
     }
-    using Object::Object;
+    Wall(unsigned int id_, Map* map_);
     unsigned int render_layer() override;
     void render(sf::RenderTarget& rt) override;
     unsigned int max_hp() override;

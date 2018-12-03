@@ -22,6 +22,7 @@
 #include <map>
 #include <memory>
 #include <set>
+#include <random>
 #include "eventqueue.hpp"
 #include "object.hpp"
 #include "signal.hpp"
@@ -43,11 +44,13 @@ class Map {
 protected:
     Map();
     virtual ~Map() = default;
+    Map(Map&&) = default;
     std::map<unsigned int, std::function<objptr(unsigned int, Map*)>> object_creators;
     std::map<unsigned int, objptr> objects;
     objptr add(unsigned int type, unsigned int id);
     virtual void remove(objptr obj);
     bool is_paused_ = false;
+    std::mt19937 generator;
 public:
     Signal<> paused;
     Signal<> resumed;
@@ -55,6 +58,7 @@ public:
         return is_paused_;
     }
     friend class Object;
+    std::mt19937& random_generator();
 };
 
 class ServerMap : public Map {
@@ -67,6 +71,7 @@ class ServerMap : public Map {
     std::deque<std::pair<objptr, msgpackvar>> pending_events;
     std::recursive_mutex mutex;
     bool events_paused = false;
+    unsigned int level_ups_created = 0;
 public:
     void add_controller(unsigned int side, std::unique_ptr<EventServer> es);
     void update();
@@ -80,6 +85,7 @@ public:
     std::vector<std::pair<int, objptr>> collides(const Rect& r, std::function<int(objptr)> sortfunc);
     std::vector<std::pair<int, objptr>> collides_by_moving(const Rect& r, Orientation::Orientation dir, int movement);
     void save_objects_to_map(std::ostream& f);
+    void level_up_trigger(objptr obj);
 };
 
 std::vector<objptr> load_objects_from_file(std::istream& f, ServerMap& map);

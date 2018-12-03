@@ -33,4 +33,17 @@ public:
     void collision(objptr obj, bool caused_by_self) override;
 };
 
+class LevelUp : public Object {
+public:
+    constexpr static const int TYPE = 4;
+    virtual unsigned int type() override {
+        return 4;
+    }
+    using Object::Object;
+    void render(sf::RenderTarget& rt) override;
+    unsigned int render_layer() override;
+    void update() override;
+    unsigned int layer() override;
+};
+
 #endif // CHEST_HPP

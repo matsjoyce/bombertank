@@ -174,6 +174,7 @@ public:
             case Orientation::E:
             case Orientation::W: return {y, x};
         }
+        return {};
     }
 };
 
@@ -202,6 +203,7 @@ public:
             case Orientation::S: return {-x, -y};
             case Orientation::E: return {y, -x};
         }
+        return {};
     }
 };
 

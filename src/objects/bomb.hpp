@@ -23,7 +23,7 @@
 #include "../effect.hpp"
 
 class StaticBomb : public Object {
-    int power = 3;
+    unsigned int power = 1;
 public:
     constexpr static const int TYPE = 5;
     virtual unsigned int type() override {
@@ -34,6 +34,7 @@ public:
     void render(sf::RenderTarget& rt) override;
     void destroy(bool send=true) override;
     void render_handle(msgpackvar m) override;
+    void set_power(unsigned int pwr);
 };
 
 class TimedBomb : public StaticBomb {
