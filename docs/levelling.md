@@ -4,8 +4,14 @@ Level Upgrade
 2     Bomb range +1
 3     Get charges
 4     Charge range +1
-5     Get mine
-6     Mine range +1
-7     Bomb planting +1
-8     Get Shield
+5     Bomb planting +1
+6     Get Shield
+7     x2 Crates
+8     x2 Charges
 9     Get Laser
+10    Bomb range +1
+11    Charge range +1
+12    Bomb planting +1
+13    x2 Shield strength
+14    x2 Crates
+15    x2 laser

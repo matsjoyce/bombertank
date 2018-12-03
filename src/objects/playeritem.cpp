@@ -165,7 +165,11 @@ bool UsedPlayerItem::can_activate() {
 }
 
 unsigned int BombItem::max_uses() {
-    return player()->level() >= 7 ? 2 : 1;
+    auto pl = player();
+    if (pl) {
+        return pl->level() >= 5 ? (pl->level() >= 12 ? 3 : 2) : 1;
+    }
+    return 1;
 }
 
 
@@ -185,7 +189,7 @@ void BombItem::start() {
     auto obj = pl->server_map()->add(TimedBomb::TYPE);
     obj->set_nw_corner(pl->center().to_tile().from_tile());
     obj->_generate_move();
-    dynamic_pointer_cast<StaticBomb>(obj)->set_power(pl->level() >= 2 ? 2 : 1);
+    dynamic_pointer_cast<StaticBomb>(obj)->set_power(pl->level() >= 2 ? (pl->level() >= 10 ? 3 : 2) : 1);
     weak_ptr<BombItem> weak_this = dynamic_pointer_cast<BombItem>(shared_from_this());
     obj->destroyed.connect([weak_this] {
         if (auto obj = weak_this.lock()) {
@@ -196,7 +200,13 @@ void BombItem::start() {
 }
 
 unsigned int CrateItem::max_uses() {
-    return 8;
+    auto pl = player();
+    auto num = 2;
+    if (pl) {
+        if (pl->level() >= 7) num *= 2;
+        if (pl->level() >= 14) num *= 2;
+    }
+    return num;
 }
 
 void CrateItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
@@ -245,11 +255,16 @@ void MineItem::start() {
     obj->set_nw_corner(pl->center().to_tile().from_tile());
     obj->_generate_move();
     obj->set_side(pl->side());
-    dynamic_pointer_cast<StaticBomb>(obj)->set_power(pl->level() >= 6 ? 2 : 1);
+    dynamic_pointer_cast<StaticBomb>(obj)->set_power(pl->level() >= 6 ? (pl->level() >= 11 ? 3 : 2) : 1);
 }
 
 unsigned int ChargeItem::max_uses() {
-    return 5;
+    auto pl = player();
+    auto num = 3;
+    if (pl) {
+        if (pl->level() >= 8) num *= 2;
+    }
+    return num;
 }
 
 void ChargeItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
@@ -272,7 +287,12 @@ void ChargeItem::start() {
 }
 
 unsigned int LaserItem::max_uses() {
-    return 10;
+    auto pl = player();
+    auto num = 10;
+    if (pl) {
+        if (pl->level() >= 15) num *= 2;
+    }
+    return num;
 }
 
 void LaserItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
@@ -359,7 +379,12 @@ void LaserItem::render_handle(msgpackvar&& m) {
 }
 
 unsigned int ShieldItem::max_uses() {
-    return 100;
+    auto pl = player();
+    auto num = 75;
+    if (pl) {
+        if (pl->level() >= 13) num *= 2;
+    }
+    return num;
 }
 
 void ShieldItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
