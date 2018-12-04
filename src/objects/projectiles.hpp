@@ -16,35 +16,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CHEST_HPP
-#define CHEST_HPP
+#ifndef PROJECTILES_HPP
+#define PROJECTILES_HPP
 
 #include "loader.hpp"
+#include "bomb.hpp"
 
-class Chest : public Object {
+class Rocket : public StaticBomb {
+    unsigned int time_left = 20;
 public:
-    Chest(unsigned int id_, Map* map_);
-    constexpr static const int TYPE = 8;
+    constexpr static const int TYPE = 10;
     virtual unsigned int type() override {
-        return 8;
+        return 10;
     }
+    Rocket(unsigned int id_, Map* map_);
+    void update() override;
     void render(sf::RenderTarget& rt) override;
     unsigned int render_layer() override;
-    void render_handle(msgpackvar m) override;
     void collision(objptr obj, bool caused_by_self) override;
 };
 
-class LevelUp : public Object {
-public:
-    constexpr static const int TYPE = 4;
-    virtual unsigned int type() override {
-        return 4;
-    }
-    using Object::Object;
-    void render(sf::RenderTarget& rt) override;
-    unsigned int render_layer() override;
-    void update() override;
-    unsigned int layer() override;
-};
-
-#endif // CHEST_HPP
+#endif // PROJECTILES_HPP

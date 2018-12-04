@@ -72,6 +72,7 @@ public:
     inline int speed() const {
         return speed_;
     }
+    void set_speed(int speed);
 
     inline auto direction() const {
         return direction_;

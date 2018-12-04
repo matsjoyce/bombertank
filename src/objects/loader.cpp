@@ -22,6 +22,7 @@
 #include "player.hpp"
 #include "bomb.hpp"
 #include "chest.hpp"
+#include "projectiles.hpp"
 
 using namespace std;
 
@@ -54,6 +55,7 @@ map<unsigned int, function<objptr(unsigned int, Map*)>> load_objects() {
         load<Mine>();
         load<Chest>();
         load<LevelUp>();
+        load<Rocket>();
         loaded = true;
     }
     return object_creators;

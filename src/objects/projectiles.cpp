@@ -16,35 +16,36 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CHEST_HPP
-#define CHEST_HPP
+#include "projectiles.hpp"
 
-#include "loader.hpp"
+using namespace std;
 
-class Chest : public Object {
-public:
-    Chest(unsigned int id_, Map* map_);
-    constexpr static const int TYPE = 8;
-    virtual unsigned int type() override {
-        return 8;
+Rocket::Rocket(unsigned int id_, Map* map_) : StaticBomb(id_, map_) {
+    set_size(2, 4);
+}
+
+void Rocket::update() {
+    accelerate(1);
+    --time_left;
+    if (!time_left) {
+        destroy();
     }
-    void render(sf::RenderTarget& rt) override;
-    unsigned int render_layer() override;
-    void render_handle(msgpackvar m) override;
-    void collision(objptr obj, bool caused_by_self) override;
-};
+}
 
-class LevelUp : public Object {
-public:
-    constexpr static const int TYPE = 4;
-    virtual unsigned int type() override {
-        return 4;
+void Rocket::render(sf::RenderTarget& rt) {
+    sf::Sprite sp(render_map()->load_texture("data/images/rocket.png"));
+    position_sprite(sp);
+    sp.setOrigin(2, 2);
+    rt.draw(sp);
+}
+
+unsigned int Rocket::render_layer() {
+    return 4;
+}
+
+void Rocket::collision(objptr obj, bool caused_by_self) {
+    if (obj->side() != side()) {
+        _generate_move();
+        destroy();
     }
-    using Object::Object;
-    void render(sf::RenderTarget& rt) override;
-    unsigned int render_layer() override;
-    void update() override;
-    unsigned int layer() override;
-};
-
-#endif // CHEST_HPP
+}

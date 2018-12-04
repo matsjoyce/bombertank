@@ -100,6 +100,7 @@ void Object::end_update() {
     speed_ += accel_;
     bool edge_help = false;
     if (speed_) {
+        unsigned int already_moved = 0;
         int go_left = 0, go_right = 0, go_total = 0;
         for (auto& obj : server_map()->collides_by_moving(*this, direction(), speed())) {
             if (obj.second->layer() != layer()) {
@@ -107,6 +108,9 @@ void Object::end_update() {
             }
             if (obj.first < speed_) {
                 speed_ = max(0, obj.first);
+                auto to_move = obj.first - already_moved;
+                already_moved += to_move;
+                move(dx(direction_) * to_move, dy(direction_) * to_move);
             }
             if (obj.first > speed_) {
                 break;
@@ -120,10 +124,10 @@ void Object::end_update() {
             }
         }
 
-        if (speed_) {
-            move(dx(direction_) * speed_, dy(direction_) * speed_);
-        }
-        else if (go_total) {
+        auto to_move = speed_ - already_moved;
+        move(dx(direction_) * to_move, dy(direction_) * to_move);
+
+        if (!speed_ && go_total) {
             auto dir = direction_;
             if (go_left == go_total) {
                 dir = left(direction_);
@@ -258,6 +262,10 @@ void Object::set_hp(unsigned int hp) {
 }
 
 void Object::collision(objptr /*obj*/, bool /*caused_by_self*/) {
+}
+
+void Object::set_speed(int speed) {
+    speed_ = speed;
 }
 
 void Object::position_sprite(sf::Sprite& spr) {

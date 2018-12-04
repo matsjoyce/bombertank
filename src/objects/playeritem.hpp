@@ -171,6 +171,21 @@ public:
     unsigned int max_uses() override;
 };
 
+class RocketItem : public UsesPlayerItem {
+public:
+    constexpr static const int TYPE = 6;
+    unsigned int type() override {
+        return 6;
+    }
+    std::string name() override {
+        return "Rockets";
+    }
+    void render(sf::RenderTarget& rt, sf::Vector2f position) override;
+    void start() override;
+    unsigned int max_uses() override;
+};
+
+
 std::map<unsigned int, std::function<std::shared_ptr<PlayerItem>()>> load_player_items();
 
 #endif // PLAYERITEM_HPP

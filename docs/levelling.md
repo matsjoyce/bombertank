@@ -10,8 +10,8 @@ Level Upgrade
 8     x2 Charges
 9     Get Laser
 10    Bomb range +1
-11    Charge range +1
-12    Bomb planting +1
-13    x2 Shield strength
-14    x2 Crates
+11    Get rockets
+12    Charge range +1
+13    Bomb planting +1
+14    x2 Shield strength
 15    x2 laser

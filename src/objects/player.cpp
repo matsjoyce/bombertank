@@ -64,6 +64,7 @@ multimap<unsigned int, unsigned int> items_for_level = {
 //     {5, MineItem::TYPE},
     {6, ShieldItem::TYPE},
     {9, LaserItem::TYPE},
+    {11, RocketItem::TYPE},
 };
 
 map<unsigned int, string> level_messages = {
@@ -76,10 +77,10 @@ map<unsigned int, string> level_messages = {
     {8, "x2 charges"},
     {9, "Laser"},
     {10, "+1 bomb range"},
-    {11, "+1 charge range"},
-    {12, "+1 bombs"},
-    {13, "x2 shield strength"},
-    {14, "x2 crates"},
+    {11, "Rockets"},
+    {12, "+1 charge range"},
+    {13, "+1 bombs"},
+    {14, "x2 shield strength"},
     {15, "x2 laser"},
 };
 
@@ -416,11 +417,11 @@ void Player::render_hud(sf::RenderTarget& rt) {
 
 void Player::add_item(shared_ptr<PlayerItem> item) {
     if (auto sm = server_map()) {
+        item->attach(dynamic_pointer_cast<Player>(shared_from_this()));
         if (items_.count(item->type())) {
             items_[item->type()]->merge_with(item);
         }
         else {
-            item->attach(dynamic_pointer_cast<Player>(shared_from_this()));
             items_.emplace(item->type(), item);
             msgpackvar m;
             m["mtype"] = as_ui(ToRenderMessage::FOROBJ);

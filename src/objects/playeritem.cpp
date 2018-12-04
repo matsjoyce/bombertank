@@ -21,6 +21,7 @@
 #include "bomb.hpp"
 #include "walls.hpp"
 #include "attackutils.hpp"
+#include "projectiles.hpp"
 
 using namespace std;
 
@@ -167,7 +168,7 @@ bool UsedPlayerItem::can_activate() {
 unsigned int BombItem::max_uses() {
     auto pl = player();
     if (pl) {
-        return pl->level() >= 5 ? (pl->level() >= 12 ? 3 : 2) : 1;
+        return pl->level() >= 5 ? (pl->level() >= 13 ? 3 : 2) : 1;
     }
     return 1;
 }
@@ -255,7 +256,7 @@ void MineItem::start() {
     obj->set_nw_corner(pl->center().to_tile().from_tile());
     obj->_generate_move();
     obj->set_side(pl->side());
-    dynamic_pointer_cast<StaticBomb>(obj)->set_power(pl->level() >= 6 ? (pl->level() >= 11 ? 3 : 2) : 1);
+    dynamic_pointer_cast<StaticBomb>(obj)->set_power(pl->level() >= 6 ? (pl->level() >= 12 ? 3 : 2) : 1);
 }
 
 unsigned int ChargeItem::max_uses() {
@@ -382,7 +383,7 @@ unsigned int ShieldItem::max_uses() {
     auto pl = player();
     auto num = 75;
     if (pl) {
-        if (pl->level() >= 13) num *= 2;
+        if (pl->level() >= 14) num *= 2;
     }
     return num;
 }
@@ -432,6 +433,34 @@ void ShieldItem::render_overlay(sf::RenderTarget& rt) {
     }
 }
 
+void RocketItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
+    sf::Sprite spr(player()->render_map()->load_texture("data/images/rocket_icon.png"));
+    spr.setPosition(position);
+    rt.draw(spr);
+    sf::Text txt(to_string(uses), player()->render_map()->load_font("data/fonts/font.pcf"), 12);
+    txt.setPosition(position);
+    rt.draw(txt);
+}
+
+unsigned int RocketItem::max_uses() {
+    return 2;
+}
+
+void RocketItem::start() {
+    --uses;
+    send_update();
+    auto pl = player();
+    auto obj = pl->server_map()->add(Rocket::TYPE);
+    obj->set_dir_center(pl->orientation(), pl->dir_center(pl->orientation()));
+    obj->set_direction(pl->orientation());
+    obj->set_orientation(pl->orientation());
+    obj->set_speed(10);
+    obj->set_side(pl->side());
+    obj->_generate_move();
+//     dynamic_pointer_cast<StaticBomb>(obj)->set_power(pl->level() >= 4 ? 2 : 1);
+}
+
+
 map<unsigned int, function<shared_ptr<PlayerItem>()>> load_player_items() {
     decltype(load_player_items()) ret;
     ret[BombItem::TYPE] = make_shared<BombItem>;
@@ -440,5 +469,6 @@ map<unsigned int, function<shared_ptr<PlayerItem>()>> load_player_items() {
     ret[ChargeItem::TYPE] = make_shared<ChargeItem>;
     ret[LaserItem::TYPE] = make_shared<LaserItem>;
     ret[ShieldItem::TYPE] = make_shared<ShieldItem>;
+    ret[RocketItem::TYPE] = make_shared<RocketItem>;
     return ret;
 }
