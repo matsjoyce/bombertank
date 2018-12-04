@@ -29,22 +29,19 @@ void StaticBomb::render(sf::RenderTarget& rt) {
     rt.draw(sp);
 }
 
-void StaticBomb::destroy(bool send /*= true*/) {
-    if (!alive()) return;
+StaticBomb::StaticBomb(unsigned int id_, Map* map_) : Object(id_, map_) {
     if (auto sm = server_map()) {
-        Object::destroy(false);
-        msgpackvar m;
-        m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
-        m["type"] = as_ui(RenderObjectMessage::DESTROY);
-        m["id"] = id;
-        m["n"] = progressive_kill_in_direction(sm, center(), 14, STANDARD_OBJECT_SIZE * power, Orientation::N, 100, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
-        m["e"] = progressive_kill_in_direction(sm, center(), 14, STANDARD_OBJECT_SIZE * power, Orientation::E, 100, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
-        m["s"] = progressive_kill_in_direction(sm, center(), 14, STANDARD_OBJECT_SIZE * power, Orientation::S, 100, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
-        m["w"] = progressive_kill_in_direction(sm, center(), 14, STANDARD_OBJECT_SIZE * power, Orientation::W, 100, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
-        sm->event(shared_from_this(), std::move(m));
-    }
-    else {
-        Object::destroy(send);
+        destroyed.connect([sm, this]{
+            msgpackvar m;
+            m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
+            m["type"] = as_ui(RenderObjectMessage::END);
+            m["id"] = id;
+            m["n"] = progressive_kill_in_direction(sm, center(), 14, STANDARD_OBJECT_SIZE * power, Orientation::N, 100, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
+            m["e"] = progressive_kill_in_direction(sm, center(), 14, STANDARD_OBJECT_SIZE * power, Orientation::E, 100, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
+            m["s"] = progressive_kill_in_direction(sm, center(), 14, STANDARD_OBJECT_SIZE * power, Orientation::S, 100, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
+            m["w"] = progressive_kill_in_direction(sm, center(), 14, STANDARD_OBJECT_SIZE * power, Orientation::W, 100, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
+            sm->event(shared_from_this(), std::move(m));
+        });
     }
 }
 
@@ -56,7 +53,7 @@ void add_sides(RenderMap* rm, Orientation::Orientation ori, int num, Point p) {
 
 void StaticBomb::render_handle(msgpackvar m) {
     switch(static_cast<RenderObjectMessage>(m["type"].as_uint64_t())) {
-        case RenderObjectMessage::DESTROY: {
+        case RenderObjectMessage::END: {
             if (auto rm = render_map()) {
                 rm->add_effect<Explosion>(center());
                 add_sides(rm, Orientation::N, m["n"].as_uint64_t(), center());
@@ -96,6 +93,10 @@ RoboBomb::RoboBomb(unsigned int id_, Map* map_) : StaticBomb(id_, map_) {
     if (server_map()) {
         uniform_int_distribution<int> distribution(0, 3);
         set_direction(Orientation::Orientation(distribution(map->random_generator())));
+
+        destroyed.connect([this]{
+            server_map()->level_up_trigger(shared_from_this());
+        });
     }
 }
 

@@ -96,7 +96,7 @@ public:
 
     virtual unsigned int take_damage(unsigned int damage, DamageType dt);
     inline bool alive() {
-        return is_alive;
+        return hp_;
     }
 
     virtual unsigned int layer();
@@ -104,7 +104,7 @@ public:
     virtual void update();
     void end_update();
     virtual void handle(msgpackvar m);
-    virtual void destroy(bool send=true);
+    void destroy();
     virtual void collision(objptr obj, bool caused_by_self);
     using Rect::separation_distance;
     int separation_distance(objptr obj);
@@ -130,7 +130,6 @@ private:
     int last_speed = 0;
     Orientation::Orientation last_orientation = Orientation::N;
     unsigned int hp_ = -1, side_ = -1;
-    bool is_alive = true;
 };
 
 #endif // OBJECT_HPP

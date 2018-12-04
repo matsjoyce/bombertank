@@ -95,7 +95,7 @@ constexpr const int GET_ROUND_MARGIN = STANDARD_OBJECT_SIZE / 3;
 
 
 void Object::end_update() {
-    if (!is_alive) return; // May have been destroyed in update
+    if (!alive()) return; // May have been destroyed in update
 
     speed_ += accel_;
     bool edge_help = false;
@@ -188,6 +188,7 @@ void Object::render_update() {
 }
 
 unsigned int Object::take_damage(unsigned int damage, DamageType /*dt*/) {
+    if (!alive()) return damage; // Prevent recursion in destroy
     cout << id << "[" << type() << "]" << " taking " << damage << " dmg with " << hp_ << " hp" << endl;
     if (damage >= hp_) {
         damage -= hp_;
@@ -210,18 +211,15 @@ unsigned int Object::take_damage(unsigned int damage, DamageType /*dt*/) {
     }
 }
 
-void Object::destroy(bool send /*= true*/) {
-    if (!is_alive) return; // Already destroyed;
-    is_alive = false;
+void Object::destroy() {
+    hp_ = 0;
     destroyed.emit();
-    if (send) {
-        if (auto sm = server_map()) {
-            msgpackvar m;
-            m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
-            m["type"] = as_ui(RenderObjectMessage::DESTROY);
-            m["id"] = id;
-            sm->event(shared_from_this(), std::move(m));
-        }
+    if (auto sm = server_map()) {
+        msgpackvar m;
+        m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
+        m["type"] = as_ui(RenderObjectMessage::DESTROY);
+        m["id"] = id;
+        sm->event(shared_from_this(), std::move(m));
     }
     map->remove(shared_from_this()); // WARNING: DO NOT PUT ANYTHING BELOW THIS LINE! WE MIGHT NOT EXIST ANY MORE.
 }

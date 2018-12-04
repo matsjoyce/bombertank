@@ -224,7 +224,7 @@ void ServerMap::level_up_trigger(objptr obj) {
 }
 
 void ServerMap::on_frame(unsigned int frame, std::function<void()> f) {
-    if (frame >= frame_) {
+    if (frame <= frame_) {
         cout << "Callback for frame " << frame << " while on frame " << frame_ << endl;
     }
     frame_callbacks.emplace(make_pair(frame, f));

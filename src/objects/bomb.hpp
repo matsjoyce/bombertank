@@ -29,10 +29,9 @@ public:
     virtual unsigned int type() override {
         return 5;
     }
-    using Object::Object;
+    StaticBomb(unsigned int id_, Map* map_);
     unsigned int render_layer() override;
     void render(sf::RenderTarget& rt) override;
-    void destroy(bool send=true) override;
     void render_handle(msgpackvar m) override;
     void set_power(unsigned int pwr);
 };
