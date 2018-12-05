@@ -61,10 +61,11 @@ multimap<unsigned int, unsigned int> items_for_level = {
     {1, BombItem::TYPE},
     {1, CrateItem::TYPE},
     {3, ChargeItem::TYPE},
-//     {5, MineItem::TYPE},
     {6, ShieldItem::TYPE},
-    {9, LaserItem::TYPE},
-    {11, RocketItem::TYPE},
+    {8, MineDetectorItem::TYPE},
+    {10, MineItem::TYPE},
+    {11, LaserItem::TYPE},
+    {14, RocketItem::TYPE},
 };
 
 map<unsigned int, string> level_messages = {
@@ -74,14 +75,19 @@ map<unsigned int, string> level_messages = {
     {5, "+1 bombs"},
     {6, "Shield"},
     {7, "x2 crates"},
-    {8, "x2 charges"},
-    {9, "Laser"},
-    {10, "+1 bomb range"},
-    {11, "Rockets"},
-    {12, "+1 charge range"},
-    {13, "+1 bombs"},
-    {14, "x2 shield strength"},
-    {15, "x2 laser"},
+    {8, "Mine detector"},
+    {9, "x2 charges"},
+    {10, "Mines"},
+    {11, "Laser"},
+    {12, "+1 bomb range"},
+    {13, "+1 mine range"},
+    {14, "Rockets"},
+    {15, "x2 shield strength"},
+    {16, "+1 charge range"},
+    {17, "x2 mines"},
+    {18, "+1 bombs"},
+    {19, "x2 laser"},
+    {20, "x2 rockets"},
 };
 
 Player::Player(unsigned int id_, Map* map_) : Object(id_, map_) {

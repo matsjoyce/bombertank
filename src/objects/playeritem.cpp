@@ -168,7 +168,7 @@ bool UsedPlayerItem::can_activate() {
 unsigned int BombItem::max_uses() {
     auto pl = player();
     if (pl) {
-        return pl->level() >= 5 ? (pl->level() >= 13 ? 3 : 2) : 1;
+        return pl->level() >= 5 ? (pl->level() >= 18 ? 3 : 2) : 1;
     }
     return 1;
 }
@@ -190,7 +190,7 @@ void BombItem::start() {
     auto obj = pl->server_map()->add(TimedBomb::TYPE);
     obj->set_nw_corner(pl->center().to_tile().from_tile());
     obj->_generate_move();
-    dynamic_pointer_cast<StaticBomb>(obj)->set_power(pl->level() >= 2 ? (pl->level() >= 10 ? 3 : 2) : 1);
+    dynamic_pointer_cast<StaticBomb>(obj)->set_power(pl->level() >= 2 ? (pl->level() >= 12 ? 3 : 2) : 1);
     weak_ptr<BombItem> weak_this = dynamic_pointer_cast<BombItem>(shared_from_this());
     obj->destroyed.connect([weak_this] {
         if (auto obj = weak_this.lock()) {
@@ -236,7 +236,12 @@ void CrateItem::start() {
 }
 
 unsigned int MineItem::max_uses() {
-    return 4;
+    auto pl = player();
+    auto num = 2;
+    if (pl) {
+        if (pl->level() >= 17) num *= 2;
+    }
+    return num;
 }
 
 void MineItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
@@ -256,14 +261,14 @@ void MineItem::start() {
     obj->set_nw_corner(pl->center().to_tile().from_tile());
     obj->_generate_move();
     obj->set_side(pl->side());
-    dynamic_pointer_cast<StaticBomb>(obj)->set_power(pl->level() >= 6 ? (pl->level() >= 12 ? 3 : 2) : 1);
+    dynamic_pointer_cast<StaticBomb>(obj)->set_power(pl->level() >= 13 ? 2 : 1);
 }
 
 unsigned int ChargeItem::max_uses() {
     auto pl = player();
     auto num = 3;
     if (pl) {
-        if (pl->level() >= 8) num *= 2;
+        if (pl->level() >= 9) num *= 2;
     }
     return num;
 }
@@ -284,14 +289,14 @@ void ChargeItem::start() {
     auto obj = pl->server_map()->add(StaticBomb::TYPE);
     obj->set_nw_corner(pl->center().to_tile().from_tile());
     obj->_generate_move();
-    dynamic_pointer_cast<StaticBomb>(obj)->set_power(pl->level() >= 4 ? 2 : 1);
+    dynamic_pointer_cast<StaticBomb>(obj)->set_power(pl->level() >= 4 ? (pl->level() >= 16 ? 3 : 2) : 1);
 }
 
 unsigned int LaserItem::max_uses() {
     auto pl = player();
     auto num = 10;
     if (pl) {
-        if (pl->level() >= 15) num *= 2;
+        if (pl->level() >= 19) num *= 2;
     }
     return num;
 }
@@ -383,7 +388,7 @@ unsigned int ShieldItem::max_uses() {
     auto pl = player();
     auto num = 75;
     if (pl) {
-        if (pl->level() >= 14) num *= 2;
+        if (pl->level() >= 15) num *= 2;
     }
     return num;
 }
@@ -443,7 +448,12 @@ void RocketItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
 }
 
 unsigned int RocketItem::max_uses() {
-    return 2;
+    auto pl = player();
+    auto num = 2;
+    if (pl) {
+        if (pl->level() >= 20) num *= 2;
+    }
+    return num;
 }
 
 void RocketItem::start() {
