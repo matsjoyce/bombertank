@@ -24,6 +24,7 @@
 
 class Rocket : public StaticBomb {
     unsigned int time_left = 20;
+    sf::Sound sound;
 public:
     constexpr static const int TYPE = 10;
     virtual unsigned int type() override {

@@ -24,6 +24,7 @@
 
 class StaticBomb : public Object {
     unsigned int power = 1;
+    unsigned int damage = 100;
 public:
     constexpr static const int TYPE = 5;
     virtual unsigned int type() override {
@@ -34,6 +35,7 @@ public:
     void render(sf::RenderTarget& rt) override;
     void render_handle(msgpackvar m) override;
     void set_power(unsigned int pwr);
+    void set_damage(unsigned int dmg);
 };
 
 class TimedBomb : public StaticBomb {

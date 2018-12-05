@@ -36,13 +36,17 @@ StaticBomb::StaticBomb(unsigned int id_, Map* map_) : Object(id_, map_) {
             m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
             m["type"] = as_ui(RenderObjectMessage::END);
             m["id"] = id;
-            m["n"] = progressive_kill_in_direction(sm, center(), 14, STANDARD_OBJECT_SIZE * power, Orientation::N, 100, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
-            m["e"] = progressive_kill_in_direction(sm, center(), 14, STANDARD_OBJECT_SIZE * power, Orientation::E, 100, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
-            m["s"] = progressive_kill_in_direction(sm, center(), 14, STANDARD_OBJECT_SIZE * power, Orientation::S, 100, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
-            m["w"] = progressive_kill_in_direction(sm, center(), 14, STANDARD_OBJECT_SIZE * power, Orientation::W, 100, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
+            m["n"] = progressive_kill_in_direction(sm, center(), 14, STANDARD_OBJECT_SIZE * power, Orientation::N, damage, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
+            m["e"] = progressive_kill_in_direction(sm, center(), 14, STANDARD_OBJECT_SIZE * power, Orientation::E, damage, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
+            m["s"] = progressive_kill_in_direction(sm, center(), 14, STANDARD_OBJECT_SIZE * power, Orientation::S, damage, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
+            m["w"] = progressive_kill_in_direction(sm, center(), 14, STANDARD_OBJECT_SIZE * power, Orientation::W, damage, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
             sm->event(shared_from_this(), std::move(m));
         });
     }
+}
+
+void StaticBomb::set_damage(unsigned int dmg) {
+    damage = dmg;
 }
 
 void add_sides(RenderMap* rm, Orientation::Orientation ori, int num, Point p) {

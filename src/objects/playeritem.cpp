@@ -457,7 +457,7 @@ void RocketItem::start() {
     obj->set_speed(10);
     obj->set_side(pl->side());
     obj->_generate_move();
-//     dynamic_pointer_cast<StaticBomb>(obj)->set_power(pl->level() >= 4 ? 2 : 1);
+    dynamic_pointer_cast<StaticBomb>(obj)->set_damage(25);
 }
 
 void MineDetectorItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
