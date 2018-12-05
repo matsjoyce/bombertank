@@ -185,6 +185,21 @@ public:
     unsigned int max_uses() override;
 };
 
+class MineDetectorItem : public UsesPlayerItem {
+public:
+    constexpr static const int TYPE = 7;
+    unsigned int type() override {
+        return 7;
+    }
+    std::string name() override {
+        return "Mine Detector";
+    }
+    void render(sf::RenderTarget& rt, sf::Vector2f position) override;
+    void render_handle(msgpackvar&& m) override;
+    void start() override;
+    unsigned int max_uses() override;
+};
+
 
 std::map<unsigned int, std::function<std::shared_ptr<PlayerItem>()>> load_player_items();
 

@@ -141,21 +141,21 @@ public:
 
     // Comparison
 
-    inline bool operator==(const Q& p) {
+    inline bool operator==(const Q& p) const {
         return x == p.x && y == p.y;
     }
 
-    inline bool operator!=(const Q& p) {
+    inline bool operator!=(const Q& p) const {
         return x != p.x || y != p.y;
     }
 
     // Conversion
 
-    operator sf::Vector2i() {
+    operator sf::Vector2i() const {
         return {x, y};
     }
 
-    operator sf::Vector2f() {
+    operator sf::Vector2f() const {
         return {static_cast<float>(x), static_cast<float>(y)};
     }
 };
@@ -167,7 +167,7 @@ public:
 
     // Rotation
 
-    inline Size rotate(Orientation::Orientation ori) {
+    inline Size rotate(Orientation::Orientation ori) const {
         switch (ori) {
             case Orientation::N:
             case Orientation::S: return {x, y};
@@ -184,19 +184,22 @@ public:
     Point(const sf::Vector2u& p) : Vec<int, Point>(p.x, p.y) {}
     Point(const sf::Vector2i& p) : Vec<int, Point>(p.x, p.y) {}
 
-    inline Point to_tile() {
+    inline Point to_tile() const {
         return (*this) / STANDARD_OBJECT_SIZE;
     }
-    inline Point from_tile() {
+    inline Point from_tile() const {
         return (*this) * STANDARD_OBJECT_SIZE;
     }
-    inline Size to_size() {
+    inline Size to_size() const {
         return {static_cast<unsigned int>(std::abs(x)), static_cast<unsigned int>(std::abs(y))};
+    }
+    inline unsigned int distance() const {
+        return std::hypot(x, y);
     }
 
     // Rotation
 
-    inline Point rotate(Orientation::Orientation ori) {
+    inline Point rotate(Orientation::Orientation ori) const {
         switch (ori) {
             case Orientation::N: return {x, y};
             case Orientation::W: return {-y, x};

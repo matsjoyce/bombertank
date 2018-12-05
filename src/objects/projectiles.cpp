@@ -43,7 +43,7 @@ unsigned int Rocket::render_layer() {
     return 4;
 }
 
-void Rocket::collision(objptr obj, bool caused_by_self) {
+void Rocket::collision(objptr obj, bool /*caused_by_self*/) {
     if (obj->side() != side()) {
         _generate_move();
         destroy();

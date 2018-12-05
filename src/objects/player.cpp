@@ -312,6 +312,7 @@ void Player::post_constructor() {
         add_items_for_level(true);
         set_primary(BombItem::TYPE);
         set_secondary(CrateItem::TYPE);
+        add_item(make_shared<MineDetectorItem>());
     }
 }
 

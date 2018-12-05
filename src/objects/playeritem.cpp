@@ -460,6 +460,112 @@ void RocketItem::start() {
 //     dynamic_pointer_cast<StaticBomb>(obj)->set_power(pl->level() >= 4 ? 2 : 1);
 }
 
+void MineDetectorItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
+    sf::Sprite spr(player()->render_map()->load_texture("data/images/blank.png"));
+    spr.setPosition(position);
+    rt.draw(spr);
+    sf::Text txt(to_string(uses), player()->render_map()->load_font("data/fonts/font.pcf"), 12);
+    txt.setPosition(position);
+    rt.draw(txt);
+}
+
+unsigned int MineDetectorItem::max_uses() {
+    return 20;
+}
+
+void MineDetectorItem::start() {
+    --uses;
+    send_update();
+    auto pl = player();
+
+    auto radius = STANDARD_OBJECT_SIZE * 5 / 2;
+    Rect r(radius * 2, radius * 2);
+    r.set_center(pl->center());
+
+    msgpackvar m;
+    m["itype"] = as_ui(PIRenderMessage::FIRE);
+    m["uses"] = uses;
+    m["x"] = r.center().x;
+    m["y"] = r.center().y;
+    vector<msgpack::type::variant> mines_x, mines_y;
+    for (auto& obj : pl->server_map()->collides(r)) {
+        if (obj.second->type() == Mine::TYPE && (obj.second->center() - r.center()).distance() <= r.width() / 2) {
+            mines_x.emplace_back(obj.second->center().x);
+            mines_y.emplace_back(obj.second->center().y);
+        }
+    }
+    m["mines_x"] = mines_x;
+    m["mines_y"] = mines_y;
+    m["radius"] = r.width() / 2;
+    player()->item_msg(std::move(m), type());
+}
+
+
+class MDEffect : public Effect {
+public:
+    unsigned int layer() override {
+        return 5;
+    }
+    MDEffect(RenderMap* map_, unsigned int id_, Point pos_, unsigned int rad, vector<Point> mines_)
+        : Effect(map_, id_, pos_, {}), radius(rad), mines(mines_) {
+        circ.create(radius * 2, radius * 2);
+        circ.clear(sf::Color::Transparent);
+        circ.setSmooth(false);
+
+        sf::CircleShape actual_circ(radius);
+        actual_circ.setPosition(0, 0);
+        actual_circ.setFillColor(sf::Color(0, 200, 255));
+        circ.draw(actual_circ);
+    }
+    void render(sf::RenderTarget& rt) override {
+        if (time_left) {
+            if (time_left > main_time_delta) {
+                sf::CircleShape spr(radius, 60);
+                spr.setOrigin(radius, radius);
+                spr.setPosition(pos);
+                spr.setFillColor(sf::Color(0, 200, 255, min(255u, 10 * (time_left - main_time_delta))));
+                rt.draw(spr);
+            }
+            sf::Sprite dmine(map->load_texture("data/images/mine_detected.png"));
+            dmine.setOrigin(sf::Vector2f(dmine.getTextureRect().width / 2, dmine.getTextureRect().height / 2));
+            dmine.setColor(sf::Color(255, 255, 255, min(255u, 2 * time_left)));
+            for (auto& p : mines) {
+                dmine.setPosition(p);
+                rt.draw(dmine);
+            }
+        }
+    }
+    void update() override {
+        if (time_left) {
+            --time_left;
+        }
+        if (!time_left) {
+            destroy();
+        }
+    }
+private:
+    const unsigned int main_time_delta = 100;
+    unsigned int radius, time_left = 120;
+    sf::RenderTexture circ;
+    vector<Point> mines;
+};
+
+void MineDetectorItem::render_handle(msgpackvar&& m) {
+    switch (static_cast<PIRenderMessage>(m["itype"].as_uint64_t())) {
+        case PIRenderMessage::FIRE: {
+            auto xs = m["mines_x"].as_vector(), ys = m["mines_y"].as_vector();
+            vector<Point> mines;
+            for (unsigned int i = 0; i != xs.size(); ++i) {
+                mines.emplace_back(extract_int(xs[i]), extract_int(ys[i]));
+            }
+            player()->render_map()->add_effect<MDEffect>(Point(extract_int(m["x"]), extract_int(m["y"])),
+                                                         m["radius"].as_uint64_t(), mines);
+            break;
+        }
+        default: UsesPlayerItem::render_handle(std::move(m));
+    }
+}
+
 
 map<unsigned int, function<shared_ptr<PlayerItem>()>> load_player_items() {
     decltype(load_player_items()) ret;
@@ -470,5 +576,6 @@ map<unsigned int, function<shared_ptr<PlayerItem>()>> load_player_items() {
     ret[LaserItem::TYPE] = make_shared<LaserItem>;
     ret[ShieldItem::TYPE] = make_shared<ShieldItem>;
     ret[RocketItem::TYPE] = make_shared<RocketItem>;
+    ret[MineDetectorItem::TYPE] = make_shared<MineDetectorItem>;
     return ret;
 }
