@@ -50,9 +50,9 @@ map<int, PlayerSettings> player_settings = {
             sf::Color(128, 0, 0)
     }},
     {1, {
-            sf::Keyboard::Up, sf::Keyboard::Down, sf::Keyboard::Left, sf::Keyboard::Right,
+            sf::Keyboard::I, sf::Keyboard::K, sf::Keyboard::J, sf::Keyboard::L,
             sf::Keyboard::Enter, sf::Keyboard::RBracket,
-            sf::Keyboard::Comma, sf::Keyboard::Slash, sf::Keyboard::Period,
+            sf::Keyboard::O, sf::Keyboard::LBracket, sf::Keyboard::P,
             sf::Color(0, 128, 0)
     }},
 };

@@ -182,7 +182,7 @@ unique_ptr<Stage> PlayStage::update(sf::RenderWindow& window) {
             window.close();
         }
         if (event.type == sf::Event::KeyPressed) {
-            if (event.key.code == sf::Keyboard::P) {
+            if (event.key.code == sf::Keyboard::Space) {
                 cout << "PAUSE/RESUME" << endl;
                 if (!gstate->sm.is_paused()) {
                     gstate->sm.pause();
