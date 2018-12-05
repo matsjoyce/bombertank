@@ -507,7 +507,8 @@ void MineDetectorItem::start() {
     m["mines_x"] = mines_x;
     m["mines_y"] = mines_y;
     m["radius"] = r.width() / 2;
-    player()->item_msg(std::move(m), type());
+    m["side"] = pl->side();
+    pl->item_msg(std::move(m), type());
 }
 
 
@@ -563,6 +564,7 @@ private:
 void MineDetectorItem::render_handle(msgpackvar&& m) {
     switch (static_cast<PIRenderMessage>(m["itype"].as_uint64_t())) {
         case PIRenderMessage::FIRE: {
+            if (m["side"].as_uint64_t() != player()->render_map()->side()) return;
             auto xs = m["mines_x"].as_vector(), ys = m["mines_y"].as_vector();
             vector<Point> mines;
             for (unsigned int i = 0; i != xs.size(); ++i) {
