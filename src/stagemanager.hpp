@@ -57,20 +57,8 @@ public:
 
 class PlayStage : public Stage {
     std::unique_ptr<GameState> gstate;
-    sf::Text text;
-    int darkness = 0;
 public:
     PlayStage(std::unique_ptr<GameState> gs);
-    std::unique_ptr<Stage> update(sf::RenderWindow& window) override;
-    void render(sf::RenderWindow& window) override;
-};
-
-class GameOverStage : public Stage {
-    std::unique_ptr<GameState> gstate;
-    sf::Text text;
-    int darkness = 0;
-public:
-    GameOverStage(std::unique_ptr<GameState> gs);
     std::unique_ptr<Stage> update(sf::RenderWindow& window) override;
     void render(sf::RenderWindow& window) override;
 };

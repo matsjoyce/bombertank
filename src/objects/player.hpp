@@ -23,6 +23,8 @@
 
 class PlayerItem;
 
+enum PlayerKlass : unsigned int;
+
 class Player : public Object {
     std::vector<Orientation::Orientation> direction_stack;
     int max_speed = 4;
@@ -36,6 +38,7 @@ class Player : public Object {
     void set_primary(unsigned int pri);
     void set_secondary(unsigned int sec);
     void add_items_for_level(bool empty);
+    PlayerKlass klass_;
 public:
     constexpr static const int TYPE = 3;
     virtual unsigned int type() override {
@@ -65,6 +68,7 @@ public:
     void render_hud(sf::RenderTarget & rt) override;
     void item_msg(msgpackvar&& m, unsigned int type);
     void level_up();
+    bool ready();
 };
 
 class DeadPlayer : public Effect {

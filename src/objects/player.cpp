@@ -395,6 +395,10 @@ void Player::render_hud(sf::RenderTarget& rt) {
     txt.setPosition(238, -3);
     rt.draw(txt);
 
+    if (map->is_paused()) {
+        return;
+    }
+
     sf::RectangleShape lowerbg(sf::Vector2f(rt.getView().getSize().x, STANDARD_OBJECT_SIZE + 6));
     lowerbg.setFillColor(sf::Color(0, 0, 0, 128));
     lowerbg.setPosition(0, rt.getView().getSize().y - lowerbg.getSize().y);

@@ -17,8 +17,9 @@
  */
 
 #include "stagemanager.hpp"
-#include "map.hpp"
+#include "servermap.hpp"
 #include "rendermap.hpp"
+#include "gamemanager.hpp"
 #include "objects/player.hpp"
 #include <fstream>
 #include <thread>
@@ -34,20 +35,15 @@ constexpr unsigned int SCALEUP = 2;
 // TODO WARNING: The below code interacts with the ServerMap directly which is NOT threadsafe! Must be migrated to use rendermaps!
 
 struct GameState {
-    ServerMap sm;
+    unique_ptr<GameManager> gm;
     vector<Point> starting_positions;
-    vector<objptr> players;
+    vector<shared_ptr<Player>> players;
     vector<RenderMap> rms;
-    thread thr;
     sf::Font font;
     int dpi_scaling_factor = 1;
-    GameState() : sm(), thr([this] {return sm.run();}) {
+    GameState() {
         font.loadFromFile("data/fonts/font.pcf");
         const_cast<sf::Texture&>(font.getTexture(12)).setSmooth(false);
-    }
-    ~GameState() {
-        sm.halt();
-        thr.join();
     }
 };
 
@@ -86,18 +82,18 @@ unique_ptr<Stage> LoadStage::update(sf::RenderWindow& window) {
         auto ss = make_unique<SelectStage>(move(gstate), maps);
 
         ss->on_selected = [](unsigned int index, string value, unique_ptr<GameState>&& gstate){
-            gstate->sm.pause(true);
-            if (index) {
-                auto f = ifstream(value);
-                load_objects_from_file(f, gstate->sm);
-            }
-            auto es1 = make_unique<EventServer>(), es2 = make_unique<EventServer>();
-            es1->connect(es2.get());
-            es2->connect(es1.get());
-            gstate->rms.emplace_back(move(es1), -1);
-            gstate->sm.add_controller(0, move(es2));
-            gstate->sm.resume();
-            gstate->sm.pause(false);
+//             gstate->sm.pause(true);
+//             if (index) {
+//                 auto f = ifstream(value);
+//                 load_objects_from_file(f, gstate->sm);
+//             }
+//             auto es1 = make_unique<EventServer>(), es2 = make_unique<EventServer>();
+//             es1->connect(es2.get());
+//             es2->connect(es1.get());
+//             gstate->rms.emplace_back(move(es1), -1);
+//             gstate->sm.add_controller(0, move(es2));
+//             gstate->sm.resume();
+//             gstate->sm.pause(false);
             return make_unique<EditorStage>(move(gstate), index ? value : "map_save.btm");
         };
         return move(ss);
@@ -106,22 +102,16 @@ unique_ptr<Stage> LoadStage::update(sf::RenderWindow& window) {
         auto ss = make_unique<SelectStage>(move(gstate), load_maps("maps"));
 
         ss->on_selected = [](unsigned int /*index*/, string value, unique_ptr<GameState>&& gstate){
-            gstate->sm.pause(true);
-            auto f = ifstream(value);
-            gstate->players = load_objects_from_file(f, gstate->sm);
-            int i = 0;
-            for (auto& player : gstate->players) {
-                gstate->starting_positions.emplace_back(player->nw_corner());
-                player->set_side(i);
-
+            gstate->gm = make_unique<PVPGameManager>(value);
+            auto gm = dynamic_cast<PVPGameManager*>(gstate->gm.get());
+            for (auto i = 0u; i < gm->sides(); ++i) {
                 auto es1 = make_unique<EventServer>(), es2 = make_unique<EventServer>();
                 es1->connect(es2.get());
                 es2->connect(es1.get());
                 gstate->rms.emplace_back(move(es1), i);
-                gstate->sm.add_controller(i, move(es2));
-                ++i;
+                gm->add_controller(i, move(es2));
             };
-            gstate->sm.resume();
+            gm->start();
             return make_unique<PlayStage>(move(gstate));
         };
         return move(ss);
@@ -172,7 +162,7 @@ void SelectStage::render(sf::RenderWindow& window) {
     }
 }
 
-PlayStage::PlayStage(std::unique_ptr<GameState> gs) : gstate(move(gs)), text("Paused", gstate->font, 12) {
+PlayStage::PlayStage(std::unique_ptr<GameState> gs) : gstate(move(gs)) {
 }
 
 unique_ptr<Stage> PlayStage::update(sf::RenderWindow& window) {
@@ -184,11 +174,14 @@ unique_ptr<Stage> PlayStage::update(sf::RenderWindow& window) {
         if (event.type == sf::Event::KeyPressed) {
             if (event.key.code == sf::Keyboard::Space) {
                 cout << "PAUSE/RESUME" << endl;
-                if (!gstate->sm.is_paused()) {
-                    gstate->sm.pause();
+                if (!gstate->rms[0].is_paused()) {
+                    gstate->rms[0].pause();
+                }
+                else if (dynamic_cast<PVPGameManager*>(gstate->gm.get())->done()) {
+                    return make_unique<LoadStage>();
                 }
                 else {
-                    gstate->sm.resume();
+                    gstate->rms[0].resume();
                 }
             }
             else if (event.key.control && event.key.code == sf::Keyboard::Q) {
@@ -209,34 +202,7 @@ unique_ptr<Stage> PlayStage::update(sf::RenderWindow& window) {
     for (auto& rm : gstate->rms) {
         rm.update();
     }
-    int num_alive = 0;
-    for (auto& player : gstate->players) {
-        num_alive += player->alive();
-    }
-    if (num_alive <= 1) {
-        gstate->sm.pause();
-        return make_unique<GameOverStage>(move(gstate));
-    }
     return {};
-}
-
-void draw_darkbg_text(sf::View& view, sf::RenderTarget& window, unique_ptr<GameState>& gstate, int darkness, sf::Text& text) {
-    const unsigned int scaleup = 6 * SCALEUP * gstate->dpi_scaling_factor;
-
-    view.reset(sf::FloatRect(sf::Vector2f(0, 0), sf::Vector2f(window.getSize() / scaleup)));
-    view.setViewport(sf::FloatRect(0, 0, 1.0, 1.0));
-    window.setView(view);
-
-    sf::RectangleShape drect(sf::Vector2f(window.getSize() / scaleup));
-    drect.setFillColor(sf::Color(0, 0, 0, min(200, darkness)));
-    window.draw(drect);
-
-    sf::FloatRect textRect = text.getLocalBounds();
-    text.setOrigin(textRect.left + textRect.width/2.0f,
-                   textRect.top  + textRect.height/2.0f);
-    text.setPosition(sf::Vector2f(window.getSize() / 2u / scaleup));
-    text.setFillColor(sf::Color(255, 0, 0, darkness));
-    window.draw(text);
 }
 
 void PlayStage::render(sf::RenderWindow& window) {
@@ -250,81 +216,6 @@ void PlayStage::render(sf::RenderWindow& window) {
     view.setViewport(sf::FloatRect(0, 0.5, 1.0, 0.5));
     window.setView(view);
     gstate->rms[1].render(window);
-
-    if (gstate->sm.is_paused()) {
-        if (darkness < 255) {
-            ++darkness;
-        }
-
-        draw_darkbg_text(view, window, gstate, darkness, text);
-    }
-    else {
-        darkness = 0;
-    }
-}
-
-bool all_have_lives(unique_ptr<GameState>& gs) {
-    for (auto& player : gs->players) {
-        if (!player->alive() && !dynamic_cast<Player*>(player.get())->lives()) return false;
-    }
-    return true;
-}
-
-GameOverStage::GameOverStage(unique_ptr<GameState> gs) : gstate(move(gs)), text(all_have_lives(gstate) ? "You Died!" : "Game Over!", gstate->font, 12) {
-}
-
-void GameOverStage::render(sf::RenderWindow& window) {
-    sf::View view;
-    view.reset(sf::FloatRect(0, 0, window.getSize().x / SCALEUP / gstate->dpi_scaling_factor, window.getSize().y / SCALEUP / 2 / gstate->dpi_scaling_factor));
-
-    view.setViewport(sf::FloatRect(0, 0, 1.0, 0.5));
-    window.setView(view);
-    gstate->rms[0].render(window);
-
-    view.setViewport(sf::FloatRect(0, 0.5, 1.0, 0.5));
-    window.setView(view);
-    gstate->rms[1].render(window);
-
-    if (darkness < 255) {
-        ++darkness;
-    }
-
-    draw_darkbg_text(view, window, gstate, darkness, text);
-}
-
-unique_ptr<Stage> GameOverStage::update(sf::RenderWindow& window) {
-    sf::Event event;
-    while (window.pollEvent(event)) {
-        if (event.type == sf::Event::Closed) {
-            window.close();
-        }
-        if (event.type == sf::Event::KeyPressed) {
-            if (event.key.code == sf::Keyboard::Space) {
-                for (unsigned int i = 0; i < gstate->players.size(); ++i) {
-                    if (!gstate->players[i]->alive()) {
-                        auto pl = dynamic_cast<Player*>(gstate->players[i].get());
-                        if (!pl->lives()) {
-                            return make_unique<LoadStage>();
-                        }
-                        auto obj = gstate->sm.add(Player::TYPE);
-                        pl->transfer(obj);
-                        obj->set_nw_corner(gstate->starting_positions[i]);
-                        obj->_generate_move();
-                        gstate->players[i] = obj;
-                    }
-                }
-                gstate->sm.resume();
-                return make_unique<PlayStage>(move(gstate));
-            }
-            else if (event.key.control && event.key.code == sf::Keyboard::Q) {
-                return make_unique<LoadStage>();
-            }
-        }
-    }
-    for (auto& rm : gstate->rms) {
-        rm.update();
-    }
-    return {};
 }
 
 EditorStage::EditorStage(std::unique_ptr<GameState> gs, std::string fname) : gstate(move(gs)), fname_(fname) {
@@ -336,57 +227,57 @@ unique_ptr<Stage> EditorStage::update(sf::RenderWindow& window) {
         if (event.type == sf::Event::Closed) {
             window.close();
         }
-        if (event.type == sf::Event::MouseButtonPressed) {
-            auto pos = ((Point(event.mouseButton.x, event.mouseButton.y) - Point(window.getSize()) / 2) / SCALEUP / gstate->dpi_scaling_factor).to_tile() + gstate->rms[0].center().to_tile();
-            auto r = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift) ? Rect(pos, last_pos) : Rect(pos, pos);
-            r.set_size(r.width() + 1, r.height() + 1);
-            for (auto point : RectangularIterator(r)) {
-                if (point != last_pos) {
-                    auto obj = gstate->sm.add(placing);
-                    obj->set_nw_corner(point.from_tile());
-                    obj->_generate_move();
-                }
-            }
-            last_pos = pos;
-        }
-        if (event.type == sf::Event::KeyPressed) {
-            if (event.key.control && event.key.code == sf::Keyboard::S) {
-                cout << "Saving to " << fname_ << endl;
-                ofstream f(fname_);
-                gstate->sm.save_objects_to_map(f);
-                f.close();
-            }
-            else if (event.key.control && event.key.code == sf::Keyboard::Q) {
-                return make_unique<LoadStage>(true);
-            }
-            else if (event.key.code == sf::Keyboard::Delete) {
-                auto pos = ((Point(sf::Mouse::getPosition(window)) - Point(window.getSize()) / 2) / SCALEUP / gstate->dpi_scaling_factor).to_tile() + gstate->rms[0].center().to_tile();
-                auto r = event.key.shift ? Rect(pos.from_tile(), last_pos.from_tile()) : Rect(pos.from_tile(), pos.from_tile());
-                r.set_size(r.width() + STANDARD_OBJECT_SIZE, r.height() + STANDARD_OBJECT_SIZE);
-                for (auto& obj : gstate->sm.collides(r)) {
-                    obj.second->destroy();
-                }
-                last_pos = pos;
-            }
-            else if (event.key.code == sf::Keyboard::W) {
-                gstate->rms[0].center_on(gstate->rms[0].center() - Point(0, STANDARD_OBJECT_SIZE));
-            }
-            else if (event.key.code == sf::Keyboard::A) {
-                gstate->rms[0].center_on(gstate->rms[0].center() - Point(STANDARD_OBJECT_SIZE, 0));
-            }
-            else if (event.key.code == sf::Keyboard::S) {
-                gstate->rms[0].center_on(gstate->rms[0].center() + Point(0, STANDARD_OBJECT_SIZE));
-            }
-            else if (event.key.code == sf::Keyboard::D) {
-                gstate->rms[0].center_on(gstate->rms[0].center() + Point(STANDARD_OBJECT_SIZE, 0));
-            }
-        }
-        if (event.type == sf::Event::TextEntered) {
-            if (isdigit(event.text.unicode)) {
-                placing = event.text.unicode - '0';
-                cout << "Placing " << placing << endl;
-            }
-        }
+//         if (event.type == sf::Event::MouseButtonPressed) {
+//             auto pos = ((Point(event.mouseButton.x, event.mouseButton.y) - Point(window.getSize()) / 2) / SCALEUP / gstate->dpi_scaling_factor).to_tile() + gstate->rms[0].center().to_tile();
+//             auto r = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift) ? Rect(pos, last_pos) : Rect(pos, pos);
+//             r.set_size(r.width() + 1, r.height() + 1);
+//             for (auto point : RectangularIterator(r)) {
+//                 if (point != last_pos) {
+//                     auto obj = gstate->sm.add(placing);
+//                     obj->set_nw_corner(point.from_tile());
+//                     obj->_generate_move();
+//                 }
+//             }
+//             last_pos = pos;
+//         }
+//         if (event.type == sf::Event::KeyPressed) {
+//             if (event.key.control && event.key.code == sf::Keyboard::S) {
+//                 cout << "Saving to " << fname_ << endl;
+//                 ofstream f(fname_);
+//                 gstate->sm.save_objects_to_map(f);
+//                 f.close();
+//             }
+//             else if (event.key.control && event.key.code == sf::Keyboard::Q) {
+//                 return make_unique<LoadStage>(true);
+//             }
+//             else if (event.key.code == sf::Keyboard::Delete) {
+//                 auto pos = ((Point(sf::Mouse::getPosition(window)) - Point(window.getSize()) / 2) / SCALEUP / gstate->dpi_scaling_factor).to_tile() + gstate->rms[0].center().to_tile();
+//                 auto r = event.key.shift ? Rect(pos.from_tile(), last_pos.from_tile()) : Rect(pos.from_tile(), pos.from_tile());
+//                 r.set_size(r.width() + STANDARD_OBJECT_SIZE, r.height() + STANDARD_OBJECT_SIZE);
+//                 for (auto& obj : gstate->sm.collides(r)) {
+//                     obj.second->destroy();
+//                 }
+//                 last_pos = pos;
+//             }
+//             else if (event.key.code == sf::Keyboard::W) {
+//                 gstate->rms[0].center_on(gstate->rms[0].center() - Point(0, STANDARD_OBJECT_SIZE));
+//             }
+//             else if (event.key.code == sf::Keyboard::A) {
+//                 gstate->rms[0].center_on(gstate->rms[0].center() - Point(STANDARD_OBJECT_SIZE, 0));
+//             }
+//             else if (event.key.code == sf::Keyboard::S) {
+//                 gstate->rms[0].center_on(gstate->rms[0].center() + Point(0, STANDARD_OBJECT_SIZE));
+//             }
+//             else if (event.key.code == sf::Keyboard::D) {
+//                 gstate->rms[0].center_on(gstate->rms[0].center() + Point(STANDARD_OBJECT_SIZE, 0));
+//             }
+//         }
+//         if (event.type == sf::Event::TextEntered) {
+//             if (isdigit(event.text.unicode)) {
+//                 placing = event.text.unicode - '0';
+//                 cout << "Placing " << placing << endl;
+//             }
+//         }
     }
     for (auto& rm : gstate->rms) {
         rm.update();

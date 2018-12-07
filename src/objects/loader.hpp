@@ -21,6 +21,7 @@
 
 #include "../object.hpp"
 #include "../rendermap.hpp"
+#include "../servermap.hpp"
 #include <SFML/Graphics.hpp>
 
 std::map<unsigned int, std::function<objptr(unsigned int, Map*)>> load_objects();

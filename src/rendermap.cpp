@@ -42,6 +42,8 @@ void RenderMap::update() {
             }
             case ToRenderMessage::PAUSED: {
                 is_paused_ = true;
+                pause_reason = event["reason"].as_string();
+                pause_darkness = 0;
                 paused.emit();
                 break;
             }
@@ -98,8 +100,28 @@ void RenderMap::render(sf::RenderTarget& rt) {
             get<1>(obj.second)->render(rt);
         }
     }
+    view.reset(sf::FloatRect({}, view.getSize()));
+    if (is_paused()) {
+        auto sc_view = view;
+        sc_view.reset(sf::FloatRect({}, view.getSize() / 6.0f));
+        rt.setView(sc_view);
+        sf::RectangleShape drect(sf::Vector2f(sc_view.getSize()));
+        drect.setFillColor(sf::Color(0, 0, 0, pause_darkness));
+        rt.draw(drect);
+
+        sf::Text text(pause_reason, load_font("data/fonts/font.pcf"), 12);
+
+        sf::FloatRect textRect = text.getLocalBounds();
+        text.setOrigin(textRect.left + textRect.width/2.0f,
+                       textRect.top  + textRect.height/2.0f);
+        text.setPosition(sc_view.getSize() / 2.0f);
+        text.setFillColor(sf::Color(255, 0, 0, pause_darkness));
+        rt.draw(text);
+        if (pause_darkness < 200) {
+            ++pause_darkness;
+        }
+    }
     if (following) {
-        view.reset(sf::FloatRect({}, view.getSize()));
         rt.setView(view);
         following->render_hud(rt);
     }

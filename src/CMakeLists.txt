@@ -8,6 +8,8 @@ set(SOURCE
     effect.cpp
     signal.cpp
     stagemanager.cpp
+    servermap.cpp
+    gamemanager.cpp
     objects/loader.cpp
     objects/walls.cpp
     objects/player.cpp

@@ -17,7 +17,7 @@
  */
 
 #include "object.hpp"
-#include "map.hpp"
+#include "servermap.hpp"
 #include "rendermap.hpp"
 #include <cmath>
 #include <iostream>

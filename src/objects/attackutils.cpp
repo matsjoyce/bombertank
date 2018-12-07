@@ -17,7 +17,7 @@
  */
 
 #include "attackutils.hpp"
-#include "../map.hpp"
+#include "../servermap.hpp"
 #include <iostream>
 
 using namespace std;

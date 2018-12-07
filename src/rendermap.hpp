@@ -40,6 +40,8 @@ class RenderMap : public Map {
     unsigned int side_;
     objptr following;
     Point center_;
+    unsigned int pause_darkness = 0;
+    std::string pause_reason;
 public:
     RenderMap(std::unique_ptr<EventServer> evs, unsigned int side);
     void update();
