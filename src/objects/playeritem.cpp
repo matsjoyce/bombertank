@@ -105,16 +105,11 @@ unsigned int PlayerItem::damage_intercept(unsigned int damage, DamageType /*dt*/
 void PlayerItem::render_overlay(sf::RenderTarget& /*rt*/) {
 }
 
-UsesPlayerItem::UsesPlayerItem() : uses(-1) {
-    on_attach.connect([this]{
-        uses = min(uses, max_uses());
-    });
+UsesPlayerItem::UsesPlayerItem(unsigned int max_uses/*=1*/) : uses(max_uses), max_uses_(max_uses) {
 }
 
 void UsesPlayerItem::merge_with(std::shared_ptr<PlayerItem> item) {
-    auto i = dynamic_cast<UsesPlayerItem*>(item.get());
-    i->uses = min(i->uses, i->max_uses());
-    uses = uses > max_uses() - i->uses ? max_uses() : uses + i->uses;
+    uses = max_uses_;
     send_update();
 }
 
@@ -144,10 +139,14 @@ void UsesPlayerItem::make_empty() {
     send_update();
 }
 
+UsedPlayerItem::UsedPlayerItem(unsigned int max_uses/*=1*/) : max_uses_(max_uses) {
+}
+
 void UsedPlayerItem::render_handle(msgpackvar&& m) {
     switch (static_cast<PIRenderMessage>(m["itype"].as_uint64_t())) {
         case PIRenderMessage::UPDATE: {
             used = m["used"].as_uint64_t();
+            max_uses_ = m["max_uses"].as_uint64_t();
             break;
         }
         default: PlayerItem::render_handle(std::move(m));
@@ -158,21 +157,13 @@ void UsedPlayerItem::send_update() {
     msgpackvar m;
     m["itype"] = as_ui(PIRenderMessage::UPDATE);
     m["used"] = used;
+    m["max_uses"] = max_uses_;
     player()->item_msg(std::move(m), type());
 }
 
 bool UsedPlayerItem::can_activate() {
-    return used < max_uses();
+    return used < max_uses_;
 }
-
-unsigned int BombItem::max_uses() {
-    auto pl = player();
-    if (pl) {
-        return pl->level() >= 5 ? (pl->level() >= 18 ? 3 : 2) : 1;
-    }
-    return 1;
-}
-
 
 void BombItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
     sf::Sprite spr(player()->render_map()->load_texture("data/images/bomb.png"));
@@ -190,7 +181,7 @@ void BombItem::start() {
     auto obj = pl->server_map()->add(TimedBomb::TYPE);
     obj->set_nw_corner(pl->center().to_tile().from_tile());
     obj->_generate_move();
-    dynamic_pointer_cast<StaticBomb>(obj)->set_power(pl->level() >= 2 ? (pl->level() >= 12 ? 3 : 2) : 1);
+    dynamic_pointer_cast<StaticBomb>(obj)->set_power(size_);
     weak_ptr<BombItem> weak_this = dynamic_pointer_cast<BombItem>(shared_from_this());
     obj->destroyed.connect([weak_this] {
         if (auto obj = weak_this.lock()) {
@@ -198,16 +189,6 @@ void BombItem::start() {
             obj->send_update();
         }
     });
-}
-
-unsigned int CrateItem::max_uses() {
-    auto pl = player();
-    auto num = 2;
-    if (pl) {
-        if (pl->level() >= 7) num *= 2;
-        if (pl->level() >= 14) num *= 2;
-    }
-    return num;
 }
 
 void CrateItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
@@ -235,15 +216,6 @@ void CrateItem::start() {
     });
 }
 
-unsigned int MineItem::max_uses() {
-    auto pl = player();
-    auto num = 2;
-    if (pl) {
-        if (pl->level() >= 17) num *= 2;
-    }
-    return num;
-}
-
 void MineItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
     sf::Sprite spr(player()->render_map()->load_texture("data/images/mine.png"));
     spr.setPosition(position);
@@ -261,16 +233,7 @@ void MineItem::start() {
     obj->set_nw_corner(pl->center().to_tile().from_tile());
     obj->_generate_move();
     obj->set_side(pl->side());
-    dynamic_pointer_cast<StaticBomb>(obj)->set_power(pl->level() >= 13 ? 2 : 1);
-}
-
-unsigned int ChargeItem::max_uses() {
-    auto pl = player();
-    auto num = 3;
-    if (pl) {
-        if (pl->level() >= 9) num *= 2;
-    }
-    return num;
+    dynamic_pointer_cast<StaticBomb>(obj)->set_power(size_);
 }
 
 void ChargeItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
@@ -289,16 +252,7 @@ void ChargeItem::start() {
     auto obj = pl->server_map()->add(StaticBomb::TYPE);
     obj->set_nw_corner(pl->center().to_tile().from_tile());
     obj->_generate_move();
-    dynamic_pointer_cast<StaticBomb>(obj)->set_power(pl->level() >= 4 ? (pl->level() >= 16 ? 3 : 2) : 1);
-}
-
-unsigned int LaserItem::max_uses() {
-    auto pl = player();
-    auto num = 10;
-    if (pl) {
-        if (pl->level() >= 19) num *= 2;
-    }
-    return num;
+    dynamic_pointer_cast<StaticBomb>(obj)->set_power(size_);
 }
 
 void LaserItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
@@ -320,7 +274,7 @@ void LaserItem::update() {
         --uses;
         auto ori = player()->orientation();
         auto pos = player()->dir_center(ori);
-        auto dist = progressive_kill_in_direction(player()->server_map(), pos, 4, STANDARD_OBJECT_SIZE * 10, ori, 10, DamageType::HEAT);
+        auto dist = progressive_kill_in_direction(player()->server_map(), pos, 4, range_, ori, damage_, DamageType::HEAT);
 
         msgpackvar m;
         m["itype"] = as_ui(PIRenderMessage::FIRE);
@@ -384,15 +338,6 @@ void LaserItem::render_handle(msgpackvar&& m) {
     }
 }
 
-unsigned int ShieldItem::max_uses() {
-    auto pl = player();
-    auto num = 75;
-    if (pl) {
-        if (pl->level() >= 15) num *= 2;
-    }
-    return num;
-}
-
 void ShieldItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
     sf::Sprite spr(player()->render_map()->load_texture("data/images/shield_icon.png"));
     spr.setPosition(position);
@@ -432,7 +377,7 @@ void ShieldItem::render_overlay(sf::RenderTarget& rt) {
     if (glow) {
         sf::Sprite spr(player()->render_map()->load_texture("data/images/shield.png"));
         player()->position_sprite(spr);
-        spr.setColor(sf::Color(255, 255, 255, min(255, glow)));
+        spr.setColor(sf::Color(255, 255, 255, min(255u, glow)));
         rt.draw(spr);
         glow -= 10;
     }
@@ -447,15 +392,6 @@ void RocketItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
     rt.draw(txt);
 }
 
-unsigned int RocketItem::max_uses() {
-    auto pl = player();
-    auto num = 2;
-    if (pl) {
-        if (pl->level() >= 20) num *= 2;
-    }
-    return num;
-}
-
 void RocketItem::start() {
     --uses;
     send_update();
@@ -467,7 +403,7 @@ void RocketItem::start() {
     obj->set_speed(10);
     obj->set_side(pl->side());
     obj->_generate_move();
-    dynamic_pointer_cast<StaticBomb>(obj)->set_damage(25);
+    dynamic_pointer_cast<StaticBomb>(obj)->set_damage(damage_);
 }
 
 void MineDetectorItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
@@ -479,17 +415,12 @@ void MineDetectorItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
     rt.draw(txt);
 }
 
-unsigned int MineDetectorItem::max_uses() {
-    return 20;
-}
-
 void MineDetectorItem::start() {
     --uses;
     send_update();
     auto pl = player();
 
-    auto radius = STANDARD_OBJECT_SIZE * 5 / 2;
-    Rect r(radius * 2, radius * 2);
+    Rect r(range_ * 2, range_ * 2);
     r.set_center(pl->center());
 
     msgpackvar m;
@@ -499,14 +430,14 @@ void MineDetectorItem::start() {
     m["y"] = r.center().y;
     vector<msgpack::type::variant> mines_x, mines_y;
     for (auto& obj : pl->server_map()->collides(r)) {
-        if (obj.second->type() == Mine::TYPE && (obj.second->center() - r.center()).distance() <= r.width() / 2) {
+        if (obj.second->type() == Mine::TYPE && (obj.second->center() - r.center()).distance() <= range_) {
             mines_x.emplace_back(obj.second->center().x);
             mines_y.emplace_back(obj.second->center().y);
         }
     }
     m["mines_x"] = mines_x;
     m["mines_y"] = mines_y;
-    m["radius"] = r.width() / 2;
+    m["radius"] = range_;
     m["side"] = pl->side();
     pl->item_msg(std::move(m), type());
 }

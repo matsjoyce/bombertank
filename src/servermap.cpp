@@ -161,10 +161,7 @@ void ServerMap::handle(msgpackvar&& event) {
     switch (static_cast<ToServerMessage>(event["mtype"].as_uint64_t())) {
         case ToServerMessage::FOROBJ: {
             auto id = event["id"].as_uint64_t();
-            if (is_paused_) {
-                cout << "Event for obj " << id << " while paused!" << endl;
-            }
-            else if (objects.count(id)) {
+            if (objects.count(id)) {
                 objects[id]->handle(event);
             }
             else {

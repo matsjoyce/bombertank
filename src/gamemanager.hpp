@@ -22,12 +22,15 @@
 #include "servermap.hpp"
 #include <atomic>
 
+enum class GMState : unsigned int;
+
 class GameManager {
 protected:
     ServerMap sm;
     std::thread thr;
     std::atomic<bool> is_running = false;
     std::map<unsigned int, std::unique_ptr<EventServer>> side_controllers;
+    GMState state;
 public:
     GameManager(std::string fname);
     virtual ~GameManager();
@@ -42,15 +45,14 @@ public:
 };
 
 class Player;
-enum PVPState : unsigned int;
 
 class PVPGameManager : public GameManager {
     std::vector<Point> player_start_pos;
     std::vector<std::shared_ptr<Player>> players;
-    PVPState state;
 public:
     PVPGameManager(std::string fname);
     void player_dead();
+    void player_ready();
     unsigned int sides() {
         return player_start_pos.size();
     }

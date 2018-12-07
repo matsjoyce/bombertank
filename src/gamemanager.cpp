@@ -23,7 +23,13 @@
 
 using namespace std;
 
-GameManager::GameManager(std::string fname) {
+enum class GMState : unsigned int {
+    PLAYING,
+    WAITING_FOR_PLAYER,
+    GAME_OVER
+};
+
+GameManager::GameManager(std::string fname) : state(GMState::WAITING_FOR_PLAYER) {
     sm.set_event_sender(std::bind(&GameManager::broadcast_msg, this, placeholders::_1));
 }
 
@@ -63,11 +69,15 @@ void GameManager::run() {
             for (auto event : sc.second->events()) {
                 switch (static_cast<ToServerMessage>(event["mtype"].as_uint64_t())) {
                     case ToServerMessage::PAUSE: {
-                        sm.pause("Paused");
+                        if (state == GMState::PLAYING) {
+                            sm.pause("Paused");
+                        }
                         break;
                     }
                     case ToServerMessage::RESUME: {
-                        sm.resume();
+                        if (state == GMState::PLAYING) {
+                            sm.resume();
+                        }
                         break;
                     }
                     default: {
@@ -98,12 +108,6 @@ std::vector<Point> load_objects_from_file(std::istream& f, ServerMap& map) {
     return ret;
 }
 
-enum PVPState : unsigned int {
-    PLAYING,
-    WAITING_FOR_PLAYER,
-    GAME_OVER
-};
-
 PVPGameManager::PVPGameManager(std::string fname) : GameManager(fname) {
     sm.pause("Starting");
     auto f = ifstream(fname);
@@ -116,6 +120,7 @@ PVPGameManager::PVPGameManager(std::string fname) : GameManager(fname) {
         player->_generate_move();
         player->set_side(i);
         player->destroyed.connect([this]{player_dead();});
+        player->on_ready.connect([this]{player_ready();});
         ++i;
     };
 }
@@ -125,7 +130,7 @@ void PVPGameManager::player_dead() {
         auto player = players[i];
         if (!player->alive()) {
             if (!player->lives()) {
-                state = GAME_OVER;
+                state = GMState::GAME_OVER;
                 sm.pause("Game Over!");
                 return;
             }
@@ -135,12 +140,24 @@ void PVPGameManager::player_dead() {
             new_player->_generate_move();
             new_player->set_side(i);
             new_player->destroyed.connect([this]{player_dead();});
+            new_player->on_ready.connect([this]{player_ready();});
         }
     }
-    state = WAITING_FOR_PLAYER;
+    state = GMState::WAITING_FOR_PLAYER;
     sm.pause("Someone Died!");
 }
 
+void PVPGameManager::player_ready() {
+    for (auto& player : players) {
+        if (!player->ready()) {
+            cout << "Still waiting..., for " << player->side() << endl;
+            return;
+        }
+    }
+    state = GMState::PLAYING;
+    sm.resume();
+}
+
 bool PVPGameManager::done() {
-    return state == GAME_OVER;
+    return state == GMState::GAME_OVER;
 }

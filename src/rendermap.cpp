@@ -132,7 +132,7 @@ void RenderMap::register_keypress(sf::Keyboard::Key key, unsigned int id) {
 }
 
 void RenderMap::handle_keypress(sf::Keyboard::Key key, bool is_down) {
-    if (!is_paused() && keypress_register.count(key) && objects.count(keypress_register[key]) && objects[keypress_register[key]]) {
+    if (keypress_register.count(key) && objects.count(keypress_register[key]) && objects[keypress_register[key]]) {
         objects[keypress_register[key]]->handle_keypress(key, is_down);
     }
     else {

@@ -23,7 +23,7 @@
 
 class PlayerItem;
 
-enum PlayerKlass : unsigned int;
+enum class PlayerKlass : unsigned int;
 
 class Player : public Object {
     std::vector<Orientation::Orientation> direction_stack;
@@ -37,9 +37,10 @@ class Player : public Object {
     unsigned int primary_item = -1, secondary_item = -1;
     void set_primary(unsigned int pri);
     void set_secondary(unsigned int sec);
-    void add_items_for_level(bool empty);
-    PlayerKlass klass_;
+    void add_upgrades_for_level(unsigned int start, bool initial);
+    PlayerKlass klass_, current_selected_klass;
 public:
+    Signal<> on_ready;
     constexpr static const int TYPE = 3;
     virtual unsigned int type() override {
         return 3;
@@ -55,7 +56,6 @@ public:
     }
     unsigned int render_layer() override;
     Player(unsigned int id_, Map* map_);
-    void post_constructor() override;
     void render(sf::RenderTarget& rt) override;
     void handle_keypress(sf::Keyboard::Key key, bool is_down) override;
     void handle(msgpackvar m) override;
@@ -69,6 +69,9 @@ public:
     void item_msg(msgpackvar&& m, unsigned int type);
     void level_up();
     bool ready();
+    template<class T> std::shared_ptr<T> item() {
+        return std::dynamic_pointer_cast<T>(items_[T::TYPE]);
+    }
 };
 
 class DeadPlayer : public Effect {

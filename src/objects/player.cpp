@@ -27,7 +27,7 @@ using namespace std;
 
 enum class PlayerServerMessage : unsigned int {
     START_MOVE = static_cast<unsigned int>(RenderObjectMessage::END),
-    END_MOVE, START_PRIMARY, START_SECONDARY, END_PRIMARY, END_SECONDARY, SECONDARY_L, SECONDARY_R, PRIMARY_SET, USE_ITEM
+    END_MOVE, START_PRIMARY, START_SECONDARY, END_PRIMARY, END_SECONDARY, SECONDARY_L, SECONDARY_R, PRIMARY_SET, USE_ITEM, SELECT_KLASS
 };
 
 enum class PlayerRenderMessage : unsigned int {
@@ -57,45 +57,76 @@ map<int, PlayerSettings> player_settings = {
     }},
 };
 
-multimap<unsigned int, unsigned int> items_for_level = {
-    {1, BombItem::TYPE},
-    {1, CrateItem::TYPE},
-    {3, ChargeItem::TYPE},
-    {6, ShieldItem::TYPE},
-    {8, MineDetectorItem::TYPE},
-    {10, MineItem::TYPE},
-    {11, LaserItem::TYPE},
-    {14, RocketItem::TYPE},
+enum class PlayerKlass : unsigned int {
+    UNDECIDED, BEGIN,
+    BOMBER=BEGIN, ROCKETEER, RADIANT, FLAMER, HEAVY,
+    END
 };
 
-map<unsigned int, string> level_messages = {
-    {2, "+1 bomb range"},
-    {3, "Charges"},
-    {4, "+1 charge range"},
-    {5, "+1 bombs"},
-    {6, "Shield"},
-    {7, "x2 crates"},
-    {8, "Mine detector"},
-    {9, "x2 charges"},
-    {10, "Mines"},
-    {11, "Laser"},
-    {12, "+1 bomb range"},
-    {13, "+1 mine range"},
-    {14, "Rockets"},
-    {15, "x2 shield strength"},
-    {16, "+1 charge range"},
-    {17, "x2 mines"},
-    {18, "+1 bombs"},
-    {19, "x2 laser"},
-    {20, "x2 rockets"},
+constexpr unsigned int NUM_KLASSES = static_cast<unsigned int>(PlayerKlass::END) - static_cast<unsigned int>(PlayerKlass::BEGIN);
+
+struct KlassInfo {
+    string name, icon;
+    multimap<unsigned int, tuple<function<void(shared_ptr<Player>)>, string>> upgrades;
 };
 
-Player::Player(unsigned int id_, Map* map_) : Object(id_, map_) {
+map<PlayerKlass, KlassInfo> klass_info = {
+    {PlayerKlass::BOMBER, {"Bomber", "data/images/bomber_icon.png", {
+        {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<BombItem>());}, "Basics"}},
+        {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<CrateItem>());}, "Basics"}},
+        {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<MineDetectorItem>());}, "Basics"}},
+        {2, {[](shared_ptr<Player> pl){pl->add_item(make_shared<ShieldItem>());}, "Shield"}},
+        {3, {[](shared_ptr<Player> pl){pl->add_item(make_shared<MineItem>());}, "Mines"}},
+        {4, {[](shared_ptr<Player> pl){auto i = pl->item<MineDetectorItem>(); i->set_range(i->range() + STANDARD_OBJECT_SIZE);}, "+1 mine detector range"}},
+        {5, {[](shared_ptr<Player> pl){auto i = pl->item<BombItem>(); i->set_max_uses(i->max_uses() + 1);}, "+1 bombs"}},
+        {6, {[](shared_ptr<Player> pl){auto i = pl->item<CrateItem>(); i->set_hp(i->hp() * 2);}, "x2 crate hp"}},
+        {7, {[](shared_ptr<Player> pl){auto i = pl->item<BombItem>(); i->set_size(i->size() * 2);}, "+1 bomb size"}},
+        {8, {[](shared_ptr<Player> pl){auto i = pl->item<MineItem>(); i->set_size(i->size() * 2);}, "+1 mine size"}},
+        {9, {[](shared_ptr<Player> pl){auto i = pl->item<ShieldItem>(); i->set_max_uses(i->max_uses() * 2);}, "x2 shield strength"}},
+        {10, {[](shared_ptr<Player> pl){auto i = pl->item<MineItem>(); i->set_max_uses(i->max_uses() * 2);}, "x2 mines"}},
+    }}},
+    {PlayerKlass::ROCKETEER, {"Rocketeer", "data/images/rocketeer_icon.png", {
+        {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<BombItem>());}, "Basics"}},
+        {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<CrateItem>());}, "Basics"}},
+        {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<MineDetectorItem>());}, "Basics"}},
+        {2, {[](shared_ptr<Player> pl){pl->add_item(make_shared<ShieldItem>());}, "Shield"}},
+        {3, {[](shared_ptr<Player> pl){pl->add_item(make_shared<RocketItem>());}, "Rockets"}},
+        {5, {[](shared_ptr<Player> pl){auto i = pl->item<RocketItem>(); i->set_max_uses(i->max_uses() + 1);}, "+1 rockets"}},
+        {7, {[](shared_ptr<Player> pl){auto i = pl->item<RocketItem>(); i->set_max_uses(i->max_uses() + 1);}, "+1 rockets"}},
+        {8, {[](shared_ptr<Player> pl){auto i = pl->item<RocketItem>(); i->set_range(i->range() + 1);}, "+1 rocket range"}},
+        {9, {[](shared_ptr<Player> pl){auto i = pl->item<RocketItem>(); i->set_max_uses(i->max_uses() + 1);}, "+1 rockets"}},
+    }}},
+    {PlayerKlass::RADIANT, {"Radiant", "data/images/radiant_icon.png", {
+        {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<BombItem>());}, "Basics"}},
+        {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<CrateItem>());}, "Basics"}},
+        {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<MineDetectorItem>());}, "Basics"}},
+        {2, {[](shared_ptr<Player> pl){pl->add_item(make_shared<ShieldItem>());}, "Shield"}},
+        {3, {[](shared_ptr<Player> pl){pl->add_item(make_shared<LaserItem>());}, "Laser"}},
+        {5, {[](shared_ptr<Player> pl){auto i = pl->item<LaserItem>(); i->set_max_uses(i->max_uses() * 2);}, "x2 laser"}},
+        {7, {[](shared_ptr<Player> pl){auto i = pl->item<LaserItem>(); i->set_max_uses(i->max_uses() * 2);}, "x2 laser"}},
+        {8, {[](shared_ptr<Player> pl){auto i = pl->item<LaserItem>(); i->set_range(i->range() * 2);}, "x2 laser range"}},
+        {9, {[](shared_ptr<Player> pl){auto i = pl->item<LaserItem>(); i->set_max_uses(i->max_uses() * 2);}, "x2 laser"}},
+        {10, {[](shared_ptr<Player> pl){auto i = pl->item<LaserItem>(); i->set_damage(i->damage() * 2);}, "x2 laser damage"}},
+    }}},
+    {PlayerKlass::FLAMER, {"Flamer", "data/images/flamer_icon.png", {
+        {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<BombItem>());}, "Basics"}},
+        {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<CrateItem>());}, "Basics"}},
+        {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<MineDetectorItem>());}, "Basics"}},
+        {2, {[](shared_ptr<Player> pl){pl->add_item(make_shared<ShieldItem>());}, "Shield"}},
+    }}},
+    {PlayerKlass::HEAVY, {"Heavy", "data/images/heavy_icon.png", {
+        {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<BombItem>());}, "Basics"}},
+        {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<CrateItem>());}, "Basics"}},
+        {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<MineDetectorItem>());}, "Basics"}},
+        {2, {[](shared_ptr<Player> pl){pl->add_item(make_shared<ShieldItem>());}, "Shield"}},
+    }}},
+};
+
+Player::Player(unsigned int id_, Map* map_) : Object(id_, map_), klass_(PlayerKlass::UNDECIDED), current_selected_klass(PlayerKlass::BOMBER) {
     if (render_map()) {
         destroyed.connect([this] {
             render_map()->add_effect<DeadPlayer>(center(), orientation());
         });
-        setup_keys();
         side_changed.connect([this] {
             setup_keys();
         });
@@ -146,15 +177,38 @@ void Player::handle_keypress(sf::Keyboard::Key key, bool is_down) {
     }
     else if (key == settings.sec_l) {
         if (!is_down) return;
-        m["type"] = as_ui(PlayerServerMessage::SECONDARY_L);
+        if (ready()) {
+            m["type"] = as_ui(PlayerServerMessage::SECONDARY_L);
+        }
+        else {
+            unsigned int c = static_cast<unsigned int>(current_selected_klass) - static_cast<unsigned int>(PlayerKlass::BEGIN);
+            unsigned int n = (c + NUM_KLASSES - 1) % NUM_KLASSES;
+            current_selected_klass = static_cast<PlayerKlass>(n + static_cast<unsigned int>(PlayerKlass::BEGIN));
+            return;
+        }
     }
     else if (key == settings.sec_r) {
         if (!is_down) return;
-        m["type"] = as_ui(PlayerServerMessage::SECONDARY_R);
+        if (ready()) {
+            m["type"] = as_ui(PlayerServerMessage::SECONDARY_R);
+        }
+        else {
+            unsigned int c = static_cast<unsigned int>(current_selected_klass) - static_cast<unsigned int>(PlayerKlass::BEGIN);
+            unsigned int n = (c + 1) % NUM_KLASSES;
+            current_selected_klass = static_cast<PlayerKlass>(n + static_cast<unsigned int>(PlayerKlass::BEGIN));
+            return;
+        }
     }
     else if (key == settings.pri_set) {
         if (!is_down) return;
-        m["type"] = as_ui(PlayerServerMessage::PRIMARY_SET);
+        if (ready()) {
+            m["type"] = as_ui(PlayerServerMessage::PRIMARY_SET);
+        }
+        else {
+            m["type"] = as_ui(PlayerServerMessage::SELECT_KLASS);
+            m["klass"] = as_ui(current_selected_klass);
+            klass_ = current_selected_klass;
+        }
     }
     else {
         m["type"] = is_down ? as_ui(PlayerServerMessage::START_MOVE) : as_ui(PlayerServerMessage::END_MOVE);
@@ -246,6 +300,14 @@ void Player::handle(msgpackvar m) {
             set_primary(secondary_item);
             break;
         }
+        case PlayerServerMessage::SELECT_KLASS: {
+            klass_ = static_cast<PlayerKlass>(m["klass"].as_uint64_t());
+            add_upgrades_for_level(0, true);
+            set_primary(BombItem::TYPE);
+            set_secondary(CrateItem::TYPE);
+            on_ready.emit();
+            break;
+        }
         default: Object::handle(m);
     }
 }
@@ -257,6 +319,7 @@ void Player::render_handle(msgpackvar m) {
             primary_item = m["primary"].as_uint64_t();
             secondary_item = m["secondary"].as_uint64_t();
             level_ = m["level"].as_uint64_t();
+            current_selected_klass = static_cast<PlayerKlass>(m["current_selected_klass"].as_uint64_t());
             break;
         }
         case PlayerRenderMessage::ADD_ITEM: {
@@ -285,13 +348,14 @@ void Player::render_handle(msgpackvar m) {
         }
         case PlayerRenderMessage::LEVEL_UP: {
             level_ = m["level"].as_uint64_t();
-            render_map()->add_effect<PopupText>(side(), level_messages[level_], sf::Color::Red);
+            for (auto iter = klass_info[klass_].upgrades.upper_bound(level_ - 1); iter != klass_info[klass_].upgrades.upper_bound(level_); ++iter) {
+                render_map()->add_effect<PopupText>(side(), get<1>(iter->second), sf::Color::Red);
+            }
             break;
         }
         default: Object::render_handle(m);
     }
 }
-
 
 void Player::setup_keys() {
     if (side() != static_cast<unsigned int>(-1)) {
@@ -312,24 +376,9 @@ void Player::setup_keys() {
     }
 }
 
-void Player::post_constructor() {
-    Object::post_constructor();
-    if (server_map()) {
-        add_items_for_level(true);
-        set_primary(BombItem::TYPE);
-        set_secondary(CrateItem::TYPE);
-    }
-}
-
-void Player::add_items_for_level(bool empty) {
-    for (auto iter = items_for_level.begin(); iter != items_for_level.upper_bound(level_); ++iter) {
-        if (!items_.count(iter->second)) {
-            auto item = load_player_items()[iter->second]();
-            add_item(item);
-            if (empty) {
-                item->make_empty();
-            }
-        }
+void Player::add_upgrades_for_level(unsigned int start, bool initial) {
+    for (auto iter = klass_info[klass_].upgrades.upper_bound(start); iter != klass_info[klass_].upgrades.upper_bound(level_); ++iter) {
+        get<0>(iter->second)(dynamic_pointer_cast<Player>(shared_from_this()));
     }
 }
 
@@ -361,7 +410,7 @@ void Player::transfer(objptr obj) {
     pl->primary_item = primary_item;
     pl->secondary_item = secondary_item;
     pl->level_ = level_;
-    pl->add_items_for_level(true);
+    pl->add_upgrades_for_level(0, true);
     msgpackvar m;
     m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
     m["type"] = as_ui(PlayerRenderMessage::TRANSFER);
@@ -370,6 +419,7 @@ void Player::transfer(objptr obj) {
     m["primary"] = pl->primary_item;
     m["secondary"] = pl->secondary_item;
     m["level"] = pl->level_;
+    m["current_selected_klass"] = as_ui(klass_);
     server_map()->event(obj, std::move(m));
 }
 
@@ -391,9 +441,42 @@ void Player::render_hud(sf::RenderTarget& rt) {
     sp_fg.setPosition(204, 0);
     rt.draw(sp_fg);
 
-    sf::Text txt("Lvl " + to_string(level_), rm->load_font("data/fonts/font.pcf"), 12);
+    sf::Text txt("Lvl " + to_string(level_) + " " + klass_info[klass_].name, rm->load_font("data/fonts/font.pcf"), 12);
     txt.setPosition(238, -3);
     rt.draw(txt);
+
+    if (klass_ == PlayerKlass::UNDECIDED) {
+        unsigned int h = STANDARD_OBJECT_SIZE + 20;
+        unsigned int w = STANDARD_OBJECT_SIZE + 30;
+        int x = rt.getView().getSize().x / 2 - w * (static_cast<unsigned int>(PlayerKlass::END) - static_cast<unsigned int>(PlayerKlass::BEGIN)) / 2;
+        int y = rt.getView().getSize().y - static_cast<int>(h) - 10;
+
+        for (PlayerKlass k = PlayerKlass::BEGIN; k != PlayerKlass::END; k = static_cast<PlayerKlass>(static_cast<unsigned int>(k) + 1)) {
+            sf::Vector2f pos(x + w / 2, y + 3);
+            if (k == current_selected_klass) {
+                sf::RectangleShape bg(sf::Vector2f(STANDARD_OBJECT_SIZE + 4, STANDARD_OBJECT_SIZE + 4));
+                bg.setOrigin((STANDARD_OBJECT_SIZE + 4) / 2, 0);
+                bg.setPosition(pos - sf::Vector2f(0, 2));
+                bg.setFillColor(sf::Color(255, 255, 255, 128));
+                rt.draw(bg);
+            }
+
+            sf::Sprite spr(render_map()->load_texture(klass_info[k].icon));
+            spr.setOrigin(spr.getTextureRect().width / 2.0f, 0.0f);
+            spr.setPosition(pos);
+            rt.draw(spr);
+
+            sf::Text text(klass_info[k].name, render_map()->load_font("data/fonts/font.pcf"), 12);
+            sf::FloatRect textRect = text.getLocalBounds();
+            text.setOrigin(textRect.left + textRect.width/2.0f,
+                           textRect.top  + textRect.height/2.0f);
+            text.setPosition(pos + sf::Vector2f(0, (h + STANDARD_OBJECT_SIZE) / 2));
+            text.setFillColor(sf::Color(255, 0, 0));
+            rt.draw(text);
+
+            x += w;
+        }
+    }
 
     if (map->is_paused()) {
         return;
@@ -483,7 +566,7 @@ unsigned int Player::take_damage(unsigned int damage, DamageType dt) {
 
 void Player::level_up() {
     ++level_;
-    add_items_for_level(false);
+    add_upgrades_for_level(level_ - 1, false);
 
     msgpackvar m;
     m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
@@ -491,6 +574,10 @@ void Player::level_up() {
     m["type"] = as_ui(PlayerRenderMessage::LEVEL_UP);
     m["level"] = level_;
     server_map()->event(shared_from_this(), std::move(m));
+}
+
+bool Player::ready() {
+    return klass_ != PlayerKlass::UNDECIDED;
 }
 
 void DeadPlayer::render(sf::RenderTarget& rt) {

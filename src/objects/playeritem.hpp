@@ -61,28 +61,41 @@ public:
 
 class UsesPlayerItem : public PlayerItem {
 protected:
-    unsigned int uses = 0;
+    unsigned int uses = 0, max_uses_ = 1;
     void send_update();
 public:
-    UsesPlayerItem();
+    UsesPlayerItem(unsigned int max_uses=1);
     void merge_with(std::shared_ptr<PlayerItem> item) override;
     void render_handle(msgpackvar&& m) override;
     bool can_activate() override;
-    virtual unsigned int max_uses() = 0;
+    unsigned int max_uses() const {
+        return max_uses_;
+    }
+    void set_max_uses(unsigned int max_uses) {
+        max_uses_ = max_uses;
+    }
     void make_empty() override;
 };
 
 class UsedPlayerItem : public PlayerItem {
 protected:
-    unsigned int used = 0;
+    unsigned int used = 0, max_uses_ = 1;
     void send_update();
 public:
+    UsedPlayerItem(unsigned int max_uses=1);
     void render_handle(msgpackvar&& m) override;
     bool can_activate() override;
-    virtual unsigned int max_uses() = 0;
+    unsigned int max_uses() const {
+        return max_uses_;
+    }
+    void set_max_uses(unsigned int max_uses) {
+        max_uses_ = max_uses;
+        send_update();
+    }
 };
 
 class BombItem : public UsedPlayerItem {
+    unsigned int damage_ = 100, size_ = 1;
 public:
     constexpr static const int TYPE = 0;
     unsigned int type() override {
@@ -93,11 +106,24 @@ public:
     }
     void render(sf::RenderTarget& rt, sf::Vector2f position) override;
     void start() override;
-    unsigned int max_uses() override;
+    unsigned int damage() const {
+        return damage_;
+    }
+    void set_damage(unsigned int damage) {
+        damage_ = damage;
+    }
+    unsigned int size() const {
+        return size_;
+    }
+    void set_size(unsigned int size) {
+        size_ = size;
+    }
 };
 
 class CrateItem : public UsedPlayerItem {
+    unsigned int hp_ = 50;
 public:
+    CrateItem() : UsedPlayerItem(2) {}
     constexpr static const int TYPE = 1;
     unsigned int type() override {
         return 1;
@@ -107,11 +133,18 @@ public:
     }
     void render(sf::RenderTarget& rt, sf::Vector2f position) override;
     void start() override;
-    unsigned int max_uses() override;
+    unsigned int hp() const {
+        return hp_;
+    }
+    void set_hp(unsigned int hp) {
+        hp_ = hp;
+    }
 };
 
 class MineItem : public UsesPlayerItem {
+    unsigned int damage_ = 100, size_ = 1;
 public:
+    MineItem() : UsesPlayerItem(2) {}
     constexpr static const int TYPE = 2;
     unsigned int type() override {
         return 2;
@@ -121,11 +154,24 @@ public:
     }
     void render(sf::RenderTarget& rt, sf::Vector2f position) override;
     void start() override;
-    unsigned int max_uses() override;
+    unsigned int damage() const {
+        return damage_;
+    }
+    void set_damage(unsigned int damage) {
+        damage_ = damage;
+    }
+    unsigned int size() const {
+        return size_;
+    }
+    void set_size(unsigned int size) {
+        size_ = size;
+    }
 };
 
 class ChargeItem : public UsesPlayerItem {
+    unsigned int damage_ = 100, size_ = 1;
 public:
+    ChargeItem() : UsesPlayerItem(2) {}
     constexpr static const int TYPE = 3;
     unsigned int type() override {
         return 3;
@@ -135,12 +181,24 @@ public:
     }
     void render(sf::RenderTarget& rt, sf::Vector2f position) override;
     void start() override;
-    unsigned int max_uses() override;
+    unsigned int damage() const {
+        return damage_;
+    }
+    void set_damage(unsigned int damage) {
+        damage_ = damage;
+    }
+    unsigned int size() const {
+        return size_;
+    }
+    void set_size(unsigned int size) {
+        size_ = size;
+    }
 };
 
 class LaserItem : public UsesPlayerItem {
-    unsigned int warmup = 0;
+    unsigned int warmup = 0, range_ = STANDARD_OBJECT_SIZE * 10, damage_ = 10;
 public:
+    LaserItem() : UsesPlayerItem(5) {}
     constexpr static const int TYPE = 4;
     unsigned int type() override {
         return 4;
@@ -151,12 +209,24 @@ public:
     void render(sf::RenderTarget& rt, sf::Vector2f position) override;
     void update() override;
     void render_handle(msgpackvar&& m) override;
-    unsigned int max_uses() override;
+    unsigned int range() const {
+        return range_;
+    }
+    void set_range(unsigned int range) {
+        range_ = range;
+    }
+    unsigned int damage() const {
+        return damage_;
+    }
+    void set_damage(unsigned int damage) {
+        damage_ = damage;
+    }
 };
 
 class ShieldItem : public UsesPlayerItem {
-    int glow = 0;
+    unsigned int glow = 0;
 public:
+    ShieldItem() : UsesPlayerItem(25) {}
     constexpr static const int TYPE = 5;
     unsigned int type() override {
         return 5;
@@ -168,10 +238,10 @@ public:
     unsigned int damage_intercept(unsigned int damage, DamageType dt);
     void render_handle(msgpackvar&& m) override;
     void render_overlay(sf::RenderTarget& rt) override;
-    unsigned int max_uses() override;
 };
 
 class RocketItem : public UsesPlayerItem {
+    unsigned int range_ = 20, damage_ = 25;
 public:
     constexpr static const int TYPE = 6;
     unsigned int type() override {
@@ -182,11 +252,24 @@ public:
     }
     void render(sf::RenderTarget& rt, sf::Vector2f position) override;
     void start() override;
-    unsigned int max_uses() override;
+    unsigned int range() const {
+        return range_;
+    }
+    void set_range(unsigned int range) {
+        range_ = range;
+    }
+    unsigned int damage() const {
+        return damage_;
+    }
+    void set_damage(unsigned int damage) {
+        damage_ = damage;
+    }
 };
 
 class MineDetectorItem : public UsesPlayerItem {
+    unsigned int range_ = STANDARD_OBJECT_SIZE * 5 / 2;
 public:
+    MineDetectorItem() : UsesPlayerItem(10) {}
     constexpr static const int TYPE = 7;
     unsigned int type() override {
         return 7;
@@ -197,7 +280,12 @@ public:
     void render(sf::RenderTarget& rt, sf::Vector2f position) override;
     void render_handle(msgpackvar&& m) override;
     void start() override;
-    unsigned int max_uses() override;
+    unsigned int range() const {
+        return range_;
+    }
+    void set_range(unsigned int range) {
+        range_ = range;
+    }
 };
 
 
