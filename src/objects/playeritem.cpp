@@ -181,7 +181,9 @@ void BombItem::start() {
     auto obj = pl->server_map()->add(TimedBomb::TYPE);
     obj->set_nw_corner(pl->center().to_tile().from_tile());
     obj->_generate_move();
-    dynamic_pointer_cast<StaticBomb>(obj)->set_power(size_);
+    auto sb = dynamic_pointer_cast<StaticBomb>(obj);
+    sb->set_power(size_);
+    sb->set_damage(damage_);
     weak_ptr<BombItem> weak_this = dynamic_pointer_cast<BombItem>(shared_from_this());
     obj->destroyed.connect([weak_this] {
         if (auto obj = weak_this.lock()) {
@@ -207,6 +209,7 @@ void CrateItem::start() {
     auto obj = pl->server_map()->add(PlacedWall::TYPE);
     obj->set_nw_corner(pl->center().to_tile().from_tile());
     obj->_generate_move();
+    obj->set_hp(hp_);
     weak_ptr<CrateItem> weak_this = dynamic_pointer_cast<CrateItem>(shared_from_this());
     obj->destroyed.connect([weak_this] {
         if (auto obj = weak_this.lock()) {
@@ -233,7 +236,9 @@ void MineItem::start() {
     obj->set_nw_corner(pl->center().to_tile().from_tile());
     obj->_generate_move();
     obj->set_side(pl->side());
-    dynamic_pointer_cast<StaticBomb>(obj)->set_power(size_);
+    auto sb = dynamic_pointer_cast<StaticBomb>(obj);
+    sb->set_power(size_);
+    sb->set_damage(damage_);
 }
 
 void ChargeItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
@@ -252,7 +257,9 @@ void ChargeItem::start() {
     auto obj = pl->server_map()->add(StaticBomb::TYPE);
     obj->set_nw_corner(pl->center().to_tile().from_tile());
     obj->_generate_move();
-    dynamic_pointer_cast<StaticBomb>(obj)->set_power(size_);
+    auto sb = dynamic_pointer_cast<StaticBomb>(obj);
+    sb->set_power(size_);
+    sb->set_damage(damage_);
 }
 
 void LaserItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
@@ -403,7 +410,46 @@ void RocketItem::start() {
     obj->set_speed(10);
     obj->set_side(pl->side());
     obj->_generate_move();
-    dynamic_pointer_cast<StaticBomb>(obj)->set_damage(damage_);
+    auto r = dynamic_pointer_cast<Rocket>(obj);
+    r->set_damage(damage_);
+    r->set_range(range_);
+}
+
+void BurstRocketItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
+    sf::Sprite spr(player()->render_map()->load_texture("data/images/burst_rocket_icon.png"));
+    spr.setPosition(position);
+    rt.draw(spr);
+    sf::Text txt(to_string(uses), player()->render_map()->load_font("data/fonts/font.pcf"), 12);
+    txt.setPosition(position);
+    rt.draw(txt);
+}
+
+void BurstRocketItem::update() {
+    if (warmup) {
+        --warmup;
+    }
+    else if (active()) {
+        warmup = 3;
+
+        --uses;
+        send_update();
+        auto pl = player();
+        auto obj = pl->server_map()->add(MiniRocket::TYPE);
+        auto pos = pl->dir_center(pl->orientation()) + Point(left_side ? left(pl->orientation()) : right(pl->orientation())) * 6;
+        left_side = !left_side;
+        obj->set_dir_center(pl->orientation(), pos);
+        obj->set_direction(pl->orientation());
+        obj->set_orientation(pl->orientation());
+        obj->set_speed(10);
+        obj->set_side(pl->side());
+        obj->_generate_move();
+        auto r = dynamic_pointer_cast<MiniRocket>(obj);
+        r->set_damage(damage_);
+        r->set_range(range_);
+        if (!uses) {
+            try_end();
+        }
+    }
 }
 
 void MineDetectorItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
@@ -519,6 +565,7 @@ map<unsigned int, function<shared_ptr<PlayerItem>()>> load_player_items() {
     ret[LaserItem::TYPE] = make_shared<LaserItem>;
     ret[ShieldItem::TYPE] = make_shared<ShieldItem>;
     ret[RocketItem::TYPE] = make_shared<RocketItem>;
+    ret[BurstRocketItem::TYPE] = make_shared<BurstRocketItem>;
     ret[MineDetectorItem::TYPE] = make_shared<MineDetectorItem>;
     return ret;
 }

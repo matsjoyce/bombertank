@@ -35,6 +35,36 @@ public:
     void render(sf::RenderTarget& rt) override;
     unsigned int render_layer() override;
     void collision(objptr obj, bool caused_by_self) override;
+    void set_range(unsigned int r) {
+        time_left = r;
+    }
+};
+
+class MiniRocket : public Object {
+    unsigned int time_left = 20;
+    sf::Sound sound;
+    unsigned int power = 1;
+    unsigned int damage = 100;
+public:
+    constexpr static const int TYPE = 11;
+    virtual unsigned int type() override {
+        return 11;
+    }
+    MiniRocket(unsigned int id_, Map* map_);
+    void update() override;
+    void render(sf::RenderTarget& rt) override;
+    void render_handle(msgpackvar m) override;
+    unsigned int render_layer() override;
+    void collision(objptr obj, bool caused_by_self) override;
+    void set_range(unsigned int r) {
+        time_left = r;
+    }
+    void set_damage(unsigned int d) {
+        damage = d;
+    }
+    void set_power(unsigned int p) {
+        power = p;
+    }
 };
 
 #endif // PROJECTILES_HPP

@@ -56,6 +56,7 @@ map<unsigned int, function<objptr(unsigned int, Map*)>> load_objects() {
         load<Chest>();
         load<LevelUp>();
         load<Rocket>();
+        load<MiniRocket>();
         loaded = true;
     }
     return object_creators;

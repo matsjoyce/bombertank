@@ -54,3 +54,61 @@ void Rocket::collision(objptr obj, bool /*caused_by_self*/) {
         destroy();
     }
 }
+
+MiniRocket::MiniRocket(unsigned int id_, Map* map_) : Object(id_, map_) {
+    set_size(2, 4);
+    if (auto rm = render_map()) {
+        sound.setBuffer(rm->load_sound_buf("data/sounds/missile.wav"));
+        sound.play();
+        destroyed.connect([this]{sound.stop();});
+    }
+    else if (auto sm = server_map()) {
+        destroyed.connect([sm, this]{
+            msgpackvar m;
+            m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
+            m["type"] = as_ui(RenderObjectMessage::END);
+            m["id"] = id;
+            sm->event(shared_from_this(), std::move(m));
+        });
+    }
+}
+
+void MiniRocket::update() {
+    accelerate(1);
+    --time_left;
+    if (!time_left) {
+        destroy();
+    }
+}
+
+void MiniRocket::render(sf::RenderTarget& rt) {
+    sf::Sprite sp(render_map()->load_texture("data/images/rocket.png"));
+    position_sprite(sp);
+    sp.setOrigin(2, 2);
+    rt.draw(sp);
+}
+
+unsigned int MiniRocket::render_layer() {
+    return 4;
+}
+
+void MiniRocket::collision(objptr obj, bool /*caused_by_self*/) {
+    if (obj->side() != side()) {
+        _generate_move();
+        obj->take_damage(damage, DamageType::FORCE);
+        destroy();
+    }
+}
+
+void MiniRocket::render_handle(msgpackvar m) {
+    switch(static_cast<RenderObjectMessage>(m["type"].as_uint64_t())) {
+        case RenderObjectMessage::END: {
+            if (auto rm = render_map()) {
+                rm->add_effect<Explosion>(center());
+            }
+            destroy();
+            break;
+        }
+        default: Object::render_handle(m);
+    }
+}

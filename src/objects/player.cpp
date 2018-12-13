@@ -27,7 +27,7 @@ using namespace std;
 
 enum class PlayerServerMessage : unsigned int {
     START_MOVE = static_cast<unsigned int>(RenderObjectMessage::END),
-    END_MOVE, START_PRIMARY, START_SECONDARY, END_PRIMARY, END_SECONDARY, SECONDARY_L, SECONDARY_R, PRIMARY_SET, USE_ITEM, SELECT_KLASS
+    END_MOVE, START_PRIMARY, START_SECONDARY, END_PRIMARY, END_SECONDARY, SECONDARY_L, SECONDARY_R, PRIMARY_SET, SELECT_KLASS
 };
 
 enum class PlayerRenderMessage : unsigned int {
@@ -90,11 +90,14 @@ map<PlayerKlass, KlassInfo> klass_info = {
         {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<CrateItem>());}, "Basics"}},
         {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<MineDetectorItem>());}, "Basics"}},
         {2, {[](shared_ptr<Player> pl){pl->add_item(make_shared<ShieldItem>());}, "Shield"}},
-        {3, {[](shared_ptr<Player> pl){pl->add_item(make_shared<RocketItem>());}, "Rockets"}},
+        {3, {[](shared_ptr<Player> pl){pl->add_item(make_shared<BurstRocketItem>());}, "Burst Rockets"}},
+        {4, {[](shared_ptr<Player> pl){pl->add_item(make_shared<RocketItem>());}, "Rockets"}},
         {5, {[](shared_ptr<Player> pl){auto i = pl->item<RocketItem>(); i->set_max_uses(i->max_uses() + 1);}, "+1 rockets"}},
+        {6, {[](shared_ptr<Player> pl){auto i = pl->item<BurstRocketItem>(); i->set_max_uses(i->max_uses() * 2);}, "x2 burst rockets"}},
         {7, {[](shared_ptr<Player> pl){auto i = pl->item<RocketItem>(); i->set_max_uses(i->max_uses() + 1);}, "+1 rockets"}},
         {8, {[](shared_ptr<Player> pl){auto i = pl->item<RocketItem>(); i->set_range(i->range() + 1);}, "+1 rocket range"}},
         {9, {[](shared_ptr<Player> pl){auto i = pl->item<RocketItem>(); i->set_max_uses(i->max_uses() + 1);}, "+1 rockets"}},
+        {10, {[](shared_ptr<Player> pl){auto i = pl->item<BurstRocketItem>(); i->set_max_uses(i->max_uses() * 2);}, "x2 burst rockets"}},
     }}},
     {PlayerKlass::RADIANT, {"Radiant", "data/images/radiant_icon.png", {
         {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<BombItem>());}, "Basics"}},
@@ -131,18 +134,28 @@ Player::Player(unsigned int id_, Map* map_) : Object(id_, map_), klass_(PlayerKl
             setup_keys();
         });
     }
-    auto fid = map->paused.connect([this] {
-        direction_stack.clear();
-        if (items_.count(primary_item)) {
-            items_[primary_item]->try_end();
-        }
-        if (items_.count(secondary_item)) {
-            items_[secondary_item]->try_end();
-        }
-    });
-    destroyed.connect([this, fid] {
-        map->paused.disconnect(fid);
-    });
+    else {
+        auto fid = map->paused.connect([this] {
+            direction_stack.clear();
+            if (items_.count(primary_item)) {
+                items_[primary_item]->try_end();
+            }
+            if (items_.count(secondary_item)) {
+                items_[secondary_item]->try_end();
+            }
+        });
+        destroyed.connect([this, fid] {
+            map->paused.disconnect(fid);
+        });
+    }
+}
+
+void Player::post_constructor() {
+    Object::post_constructor();
+    if (server_map()) {
+        set_primary(BombItem::TYPE);
+        set_secondary(CrateItem::TYPE);
+    }
 }
 
 void Player::render(sf::RenderTarget& rt) {
@@ -237,7 +250,7 @@ void Player::handle(msgpackvar m) {
             break;
         }
         case PlayerServerMessage::START_PRIMARY: {
-            if (items_.count(primary_item)) {
+            if (!map->is_paused() && items_.count(primary_item)) {
                 items_[primary_item]->try_start();
             }
             break;
@@ -249,7 +262,7 @@ void Player::handle(msgpackvar m) {
             break;
         }
         case PlayerServerMessage::START_SECONDARY: {
-            if (primary_item != secondary_item && items_.count(secondary_item)) {
+            if (!map->is_paused() && primary_item != secondary_item && items_.count(secondary_item)) {
                 items_[secondary_item]->try_start();
             }
             break;
@@ -303,8 +316,6 @@ void Player::handle(msgpackvar m) {
         case PlayerServerMessage::SELECT_KLASS: {
             klass_ = static_cast<PlayerKlass>(m["klass"].as_uint64_t());
             add_upgrades_for_level(0, true);
-            set_primary(BombItem::TYPE);
-            set_secondary(CrateItem::TYPE);
             on_ready.emit();
             break;
         }

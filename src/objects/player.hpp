@@ -41,6 +41,7 @@ class Player : public Object {
     PlayerKlass klass_, current_selected_klass;
 public:
     Signal<> on_ready;
+    void post_constructor() override;
     constexpr static const int TYPE = 3;
     virtual unsigned int type() override {
         return 3;

@@ -72,7 +72,11 @@ public:
         return max_uses_;
     }
     void set_max_uses(unsigned int max_uses) {
+        auto diff = max_uses - max_uses_;
         max_uses_ = max_uses;
+        uses += diff;
+        send_update();
+
     }
     void make_empty() override;
 };
@@ -196,7 +200,7 @@ public:
 };
 
 class LaserItem : public UsesPlayerItem {
-    unsigned int warmup = 0, range_ = STANDARD_OBJECT_SIZE * 10, damage_ = 10;
+    unsigned int warmup = 0, range_ = STANDARD_OBJECT_SIZE * 5, damage_ = 5;
 public:
     LaserItem() : UsesPlayerItem(5) {}
     constexpr static const int TYPE = 4;
@@ -252,6 +256,34 @@ public:
     }
     void render(sf::RenderTarget& rt, sf::Vector2f position) override;
     void start() override;
+    unsigned int range() const {
+        return range_;
+    }
+    void set_range(unsigned int range) {
+        range_ = range;
+    }
+    unsigned int damage() const {
+        return damage_;
+    }
+    void set_damage(unsigned int damage) {
+        damage_ = damage;
+    }
+};
+
+class BurstRocketItem : public UsesPlayerItem {
+    unsigned int warmup = 0, range_ = 10, damage_ = 20;
+    bool left_side = true;
+public:
+    BurstRocketItem() : UsesPlayerItem(4) {}
+    constexpr static const int TYPE = 8;
+    unsigned int type() override {
+        return 8;
+    }
+    std::string name() override {
+        return "Burst Rockets";
+    }
+    void render(sf::RenderTarget& rt, sf::Vector2f position) override;
+    void update() override;
     unsigned int range() const {
         return range_;
     }
