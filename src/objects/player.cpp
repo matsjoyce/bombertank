@@ -108,8 +108,7 @@ map<PlayerKlass, KlassInfo> klass_info = {
         {5, {[](shared_ptr<Player> pl){auto i = pl->item<LaserItem>(); i->set_max_uses(i->max_uses() * 2);}, "x2 laser"}},
         {7, {[](shared_ptr<Player> pl){auto i = pl->item<LaserItem>(); i->set_max_uses(i->max_uses() * 2);}, "x2 laser"}},
         {8, {[](shared_ptr<Player> pl){auto i = pl->item<LaserItem>(); i->set_range(i->range() * 2);}, "x2 laser range"}},
-        {9, {[](shared_ptr<Player> pl){auto i = pl->item<LaserItem>(); i->set_max_uses(i->max_uses() * 2);}, "x2 laser"}},
-        {10, {[](shared_ptr<Player> pl){auto i = pl->item<LaserItem>(); i->set_damage(i->damage() * 2);}, "x2 laser damage"}},
+        {10, {[](shared_ptr<Player> pl){auto i = pl->item<LaserItem>(); i->set_max_uses(i->max_uses() * 2);}, "x2 laser"}},
     }}},
     {PlayerKlass::FLAMER, {"Flamer", "data/images/flamer_icon.png", {
         {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<BombItem>());}, "Basics"}},

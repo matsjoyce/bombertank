@@ -183,6 +183,7 @@ public:
     using Vec<int, Point>::Vec;
     Point(const sf::Vector2u& p) : Vec<int, Point>(p.x, p.y) {}
     Point(const sf::Vector2i& p) : Vec<int, Point>(p.x, p.y) {}
+    Point(const sf::Vector2f& p) : Vec<int, Point>(p.x, p.y) {}
 
     inline Point to_tile() const {
         return (*this) / STANDARD_OBJECT_SIZE;

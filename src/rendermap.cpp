@@ -92,6 +92,17 @@ void RenderMap::render(sf::RenderTarget& rt) {
     auto view = rt.getView();
     view.setCenter(center());
     rt.setView(view);
+
+    sf::Texture tex = load_texture("data/images/tiles.png");
+    tex.setRepeated(true);
+    sf::Sprite spr(tex);
+
+    auto size = Point(ceil(view.getSize().x / STANDARD_OBJECT_SIZE), ceil(view.getSize().x / STANDARD_OBJECT_SIZE)) * STANDARD_OBJECT_SIZE;
+    spr.setTextureRect(sf::IntRect(center() % STANDARD_OBJECT_SIZE, size));
+    spr.setOrigin(size / 2);
+    spr.setPosition(center());
+    rt.draw(spr);
+
     for (auto& obj : layers) {
         if (obj.second.index() == 0) {
             get<0>(obj.second)->render(rt);

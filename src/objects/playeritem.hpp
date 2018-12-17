@@ -200,7 +200,7 @@ public:
 };
 
 class LaserItem : public UsesPlayerItem {
-    unsigned int warmup = 0, range_ = STANDARD_OBJECT_SIZE * 5, damage_ = 5;
+    unsigned int warmup = 0, range_ = STANDARD_OBJECT_SIZE * 5, damage_ = 10;
 public:
     LaserItem() : UsesPlayerItem(5) {}
     constexpr static const int TYPE = 4;
