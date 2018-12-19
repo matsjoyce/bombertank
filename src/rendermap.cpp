@@ -136,6 +136,17 @@ void RenderMap::render(sf::RenderTarget& rt) {
         rt.setView(view);
         following->render_hud(rt);
     }
+    if (is_editor()) {
+        sf::Texture tex = load_texture("data/images/grid.png");
+        tex.setRepeated(true);
+        sf::Sprite spr(tex);
+
+        auto size = Point(ceil(view.getSize().x / STANDARD_OBJECT_SIZE), ceil(view.getSize().x / STANDARD_OBJECT_SIZE)) * STANDARD_OBJECT_SIZE;
+        spr.setTextureRect(sf::IntRect(center() % STANDARD_OBJECT_SIZE, size));
+        spr.setOrigin(size / 2);
+        spr.setPosition(center());
+        rt.draw(spr);
+    }
 }
 
 void RenderMap::register_keypress(sf::Keyboard::Key key, unsigned int id) {

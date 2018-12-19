@@ -161,3 +161,9 @@ void PVPGameManager::player_ready() {
 bool PVPGameManager::done() {
     return state == GMState::GAME_OVER;
 }
+
+EditorGameManager::EditorGameManager(std::string fname) : GameManager(fname) {
+    sm.set_is_editor(true);
+    auto f = ifstream(fname);
+    load_objects_from_file(f, sm);
+}

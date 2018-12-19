@@ -82,18 +82,15 @@ unique_ptr<Stage> LoadStage::update(sf::RenderWindow& window) {
         auto ss = make_unique<SelectStage>(move(gstate), maps);
 
         ss->on_selected = [](unsigned int index, string value, unique_ptr<GameState>&& gstate){
-//             gstate->sm.pause(true);
-//             if (index) {
-//                 auto f = ifstream(value);
-//                 load_objects_from_file(f, gstate->sm);
-//             }
-//             auto es1 = make_unique<EventServer>(), es2 = make_unique<EventServer>();
-//             es1->connect(es2.get());
-//             es2->connect(es1.get());
-//             gstate->rms.emplace_back(move(es1), -1);
-//             gstate->sm.add_controller(0, move(es2));
-//             gstate->sm.resume();
-//             gstate->sm.pause(false);
+            gstate->gm = make_unique<EditorGameManager>(index ? value : "map_save.btm");
+
+            auto es1 = make_unique<EventServer>(), es2 = make_unique<EventServer>();
+            es1->connect(es2.get());
+            es2->connect(es1.get());
+            auto& rm = gstate->rms.emplace_back(move(es1), 0);
+            rm.set_is_editor(true);
+            gstate->gm->add_controller(0, move(es2));
+
             return make_unique<EditorStage>(move(gstate), index ? value : "map_save.btm");
         };
         return move(ss);
@@ -227,58 +224,62 @@ unique_ptr<Stage> EditorStage::update(sf::RenderWindow& window) {
         if (event.type == sf::Event::Closed) {
             window.close();
         }
-//         if (event.type == sf::Event::MouseButtonPressed) {
-//             auto pos = ((Point(event.mouseButton.x, event.mouseButton.y) - Point(window.getSize()) / 2) / SCALEUP / gstate->dpi_scaling_factor).to_tile() + gstate->rms[0].center().to_tile();
-//             auto r = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift) ? Rect(pos, last_pos) : Rect(pos, pos);
-//             r.set_size(r.width() + 1, r.height() + 1);
-//             for (auto point : RectangularIterator(r)) {
-//                 if (point != last_pos) {
-//                     auto obj = gstate->sm.add(placing);
-//                     obj->set_nw_corner(point.from_tile());
-//                     obj->_generate_move();
-//                 }
-//             }
-//             last_pos = pos;
-//         }
-//         if (event.type == sf::Event::KeyPressed) {
-//             if (event.key.control && event.key.code == sf::Keyboard::S) {
-//                 cout << "Saving to " << fname_ << endl;
-//                 ofstream f(fname_);
-//                 gstate->sm.save_objects_to_map(f);
-//                 f.close();
-//             }
-//             else if (event.key.control && event.key.code == sf::Keyboard::Q) {
-//                 return make_unique<LoadStage>(true);
-//             }
-//             else if (event.key.code == sf::Keyboard::Delete) {
-//                 auto pos = ((Point(sf::Mouse::getPosition(window)) - Point(window.getSize()) / 2) / SCALEUP / gstate->dpi_scaling_factor).to_tile() + gstate->rms[0].center().to_tile();
-//                 auto r = event.key.shift ? Rect(pos.from_tile(), last_pos.from_tile()) : Rect(pos.from_tile(), pos.from_tile());
-//                 r.set_size(r.width() + STANDARD_OBJECT_SIZE, r.height() + STANDARD_OBJECT_SIZE);
-//                 for (auto& obj : gstate->sm.collides(r)) {
-//                     obj.second->destroy();
-//                 }
-//                 last_pos = pos;
-//             }
-//             else if (event.key.code == sf::Keyboard::W) {
-//                 gstate->rms[0].center_on(gstate->rms[0].center() - Point(0, STANDARD_OBJECT_SIZE));
-//             }
-//             else if (event.key.code == sf::Keyboard::A) {
-//                 gstate->rms[0].center_on(gstate->rms[0].center() - Point(STANDARD_OBJECT_SIZE, 0));
-//             }
-//             else if (event.key.code == sf::Keyboard::S) {
-//                 gstate->rms[0].center_on(gstate->rms[0].center() + Point(0, STANDARD_OBJECT_SIZE));
-//             }
-//             else if (event.key.code == sf::Keyboard::D) {
-//                 gstate->rms[0].center_on(gstate->rms[0].center() + Point(STANDARD_OBJECT_SIZE, 0));
-//             }
-//         }
-//         if (event.type == sf::Event::TextEntered) {
-//             if (isdigit(event.text.unicode)) {
-//                 placing = event.text.unicode - '0';
-//                 cout << "Placing " << placing << endl;
-//             }
-//         }
+        if (event.type == sf::Event::MouseButtonPressed) {
+            auto pos = ((Point(event.mouseButton.x, event.mouseButton.y) - Point(window.getSize()) / 2) / SCALEUP / gstate->dpi_scaling_factor).to_tile() + gstate->rms[0].center().to_tile();
+            auto r = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift) ? Rect(pos, last_pos) : Rect(pos, pos);
+            r.set_size(r.width() + 1, r.height() + 1);
+            Rect collides_rect(STANDARD_OBJECT_SIZE, STANDARD_OBJECT_SIZE);
+            for (auto point : RectangularIterator(r)) {
+                collides_rect.set_nw_corner(point.from_tile());
+                cout << gstate->gm->map().collides(collides_rect).size() << endl;
+                if (!gstate->gm->map().collides(collides_rect).size()) {
+                    auto obj = gstate->gm->map().add(placing);
+                    obj->set_nw_corner(point.from_tile());
+                    obj->_generate_move();
+                }
+            }
+            last_pos = pos;
+        }
+        if (event.type == sf::Event::KeyPressed) {
+            if (event.key.control && event.key.code == sf::Keyboard::S) {
+                cout << "Saving to " << fname_ << endl;
+                ofstream f(fname_);
+                gstate->gm->map().save_objects_to_map(f);
+                f.close();
+            }
+            else if (event.key.control && event.key.code == sf::Keyboard::Q) {
+                return make_unique<LoadStage>(true);
+            }
+            else if (event.key.code == sf::Keyboard::Delete) {
+                auto pos = ((Point(sf::Mouse::getPosition(window)) - Point(window.getSize()) / 2) / SCALEUP / gstate->dpi_scaling_factor).to_tile() + gstate->rms[0].center().to_tile();
+                auto r = event.key.shift ? Rect(pos.from_tile(), last_pos.from_tile()) : Rect(pos.from_tile(), pos.from_tile());
+                r.set_size(r.width() + STANDARD_OBJECT_SIZE, r.height() + STANDARD_OBJECT_SIZE);
+                for (auto& obj : gstate->gm->map().collides(r)) {
+                    obj.second->destroy();
+                }
+                last_pos = pos;
+            }
+            else if (event.key.code == sf::Keyboard::W) {
+                gstate->rms[0].center_on(gstate->rms[0].center() - Point(0, STANDARD_OBJECT_SIZE));
+            }
+            else if (event.key.code == sf::Keyboard::A) {
+                gstate->rms[0].center_on(gstate->rms[0].center() - Point(STANDARD_OBJECT_SIZE, 0));
+            }
+            else if (event.key.code == sf::Keyboard::S) {
+                gstate->rms[0].center_on(gstate->rms[0].center() + Point(0, STANDARD_OBJECT_SIZE));
+            }
+            else if (event.key.code == sf::Keyboard::D) {
+                gstate->rms[0].center_on(gstate->rms[0].center() + Point(STANDARD_OBJECT_SIZE, 0));
+            }
+        }
+        if (event.type == sf::Event::TextEntered) {
+            if (isdigit(event.text.unicode)) {
+                placing = event.text.unicode - '0';
+                cout << "Placing " << placing << endl;
+            }
+        }
     }
+    gstate->gm->map().update(false);
     for (auto& rm : gstate->rms) {
         rm.update();
     }
@@ -289,13 +290,6 @@ void EditorStage::render(sf::RenderWindow& window) {
     sf::View view;
     view.reset(sf::FloatRect({0, 0}, Point(window.getSize()) / SCALEUP / gstate->dpi_scaling_factor));
     window.setView(view);
-
-    sf::Texture tex = gstate->rms[0].load_texture("data/images/blank.png");
-    tex.setRepeated(true);
-    sf::Sprite spr(tex);
-    spr.setTextureRect(sf::IntRect(Point(STANDARD_OBJECT_SIZE, STANDARD_OBJECT_SIZE) - Point(window.getSize()) / 2 / SCALEUP / gstate->dpi_scaling_factor % STANDARD_OBJECT_SIZE,
-                                   Point(window.getSize()) / SCALEUP / gstate->dpi_scaling_factor));
-    window.draw(spr);
 
     gstate->rms[0].render(window);
 }

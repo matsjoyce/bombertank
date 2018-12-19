@@ -49,8 +49,7 @@ protected:
     std::map<unsigned int, std::function<objptr(unsigned int, Map*)>> object_creators;
     std::map<unsigned int, objptr> objects;
     objptr add(unsigned int type, unsigned int id);
-    virtual void remove(objptr obj);
-    bool is_paused_ = false;
+    bool is_paused_ = false, is_editor_ = false;
     std::mt19937 generator;
 public:
     Signal<> paused;
@@ -58,8 +57,14 @@ public:
     inline bool is_paused() const {
         return is_paused_;
     }
-    friend class Object;
     std::mt19937& random_generator();
+    virtual void remove(objptr obj);
+    bool is_editor() {
+        return is_editor_;
+    }
+    void set_is_editor(bool ie) {
+        is_editor_ = ie;
+    }
 };
 
 #endif // MAP_HPP

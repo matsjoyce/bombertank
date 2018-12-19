@@ -38,9 +38,9 @@ objptr ServerMap::add(unsigned int type) {
     return obj;
 }
 
-void ServerMap::update() {
+void ServerMap::update(bool update_objs/*=true*/) {
     in_update = true;
-    if (!is_paused_) {
+    if (!is_paused_ && update_objs) {
         ++frame_;
         auto [start, end] = frame_callbacks.equal_range(frame_);
         for (; start != end; ++start) {
@@ -139,6 +139,7 @@ void ServerMap::resume() {
 }
 
 void ServerMap::level_up_trigger(objptr obj) {
+    if (is_editor()) return;
     geometric_distribution<unsigned int> distribution(0.09);
     auto score = distribution(random_generator());
     cout << score << " " << level_ups_created << endl;

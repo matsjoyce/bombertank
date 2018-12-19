@@ -23,7 +23,6 @@
 
 class ServerMap : public Map {
     unsigned int next_id = 1;
-    void remove(objptr obj) override;
     std::set<unsigned int> defered_destroy;
     bool in_update = false;
     std::deque<std::pair<objptr, msgpackvar>> pending_events;
@@ -35,10 +34,11 @@ class ServerMap : public Map {
     std::function<void(msgpackvar&& m)> ev_sender;
 public:
     const unsigned int frame_rate = 20;
-    void update();
+    void update(bool update_objs=true);
     void pause(std::string reason, bool events_too=false);
     void resume();
     void event(objptr obj, msgpackvar&& msg);
+    void remove(objptr obj) override;
     objptr add(unsigned int type);
     std::vector<std::pair<int, objptr>> collides(const Rect& r);
     std::vector<std::pair<int, objptr>> collides(const Rect& r, std::function<int(objptr)> sortfunc);

@@ -30,7 +30,8 @@ void StaticBomb::render(sf::RenderTarget& rt) {
 }
 
 StaticBomb::StaticBomb(unsigned int id_, Map* map_) : Object(id_, map_) {
-    if (auto sm = server_map()) {
+    auto sm = server_map();
+    if (sm && !sm->is_editor()) {
         destroyed.connect([sm, this]{
             msgpackvar m;
             m["mtype"] = as_ui(ToRenderMessage::FOROBJ);

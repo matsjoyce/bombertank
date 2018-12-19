@@ -59,4 +59,9 @@ public:
     bool done();
 };
 
+class EditorGameManager : public GameManager {
+public:
+    EditorGameManager(std::string fname);
+};
+
 #endif // GAMEMANAGER_HPP
