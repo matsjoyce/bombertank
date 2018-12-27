@@ -16,35 +16,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CHEST_HPP
-#define CHEST_HPP
+#ifndef FLOORS_HPP
+#define FLOORS_HPP
 
 #include "loader.hpp"
 
-class Chest : public Object {
+class Lava : public Object {
 public:
-    Chest(unsigned int id_, Map* map_);
-    constexpr static const int TYPE = 8;
-    virtual unsigned int type() override {
-        return 8;
-    }
-    void render(sf::RenderTarget& rt) override;
-    unsigned int render_layer() override;
-    void render_handle(msgpackvar m) override;
-    void collision(objptr obj, bool caused_by_self) override;
-};
-
-class LevelUp : public Object {
-public:
-    constexpr static const int TYPE = 12;
-    virtual unsigned int type() override {
-        return 12;
-    }
     using Object::Object;
-    void render(sf::RenderTarget& rt) override;
+    constexpr static const int TYPE = 4;
+    virtual unsigned int type() override {
+        return 4;
+    }
     unsigned int render_layer() override;
-    void update() override;
+    void render(sf::RenderTarget& rt) override;
     unsigned int layer() override;
+    unsigned int take_damage(unsigned int damage, DamageType dt) override;
+    void update() override;
 };
 
-#endif // CHEST_HPP
+
+#endif // FLOORS_HPP

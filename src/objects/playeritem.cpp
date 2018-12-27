@@ -453,7 +453,7 @@ void BurstRocketItem::update() {
 }
 
 void MineDetectorItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
-    sf::Sprite spr(player()->render_map()->load_texture("data/images/blank.png"));
+    sf::Sprite spr(player()->render_map()->load_texture("data/images/grid.png"));
     spr.setPosition(position);
     rt.draw(spr);
     sf::Text txt(to_string(uses), player()->render_map()->load_font("data/fonts/font.pcf"), 12);

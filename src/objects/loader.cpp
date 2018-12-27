@@ -23,6 +23,7 @@
 #include "bomb.hpp"
 #include "chest.hpp"
 #include "projectiles.hpp"
+#include "floors.hpp"
 
 using namespace std;
 
@@ -57,6 +58,7 @@ map<unsigned int, function<objptr(unsigned int, Map*)>> load_objects() {
         load<LevelUp>();
         load<Rocket>();
         load<MiniRocket>();
+        load<Lava>();
         loaded = true;
     }
     return object_creators;
