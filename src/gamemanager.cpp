@@ -92,11 +92,11 @@ void GameManager::run() {
     }
 }
 
-std::vector<Point> load_objects_from_file(std::istream& f, ServerMap& map) {
+std::vector<Point> load_objects_from_file(std::istream& f, ServerMap& map, bool is_editor=false) {
     int type, x, y;
     vector<Point> ret;
     while (f >> type >> x >> y) {
-        if (type == Player::TYPE) {
+        if (type == Player::TYPE && !is_editor) {
             ret.push_back(Point(x, y).from_tile());
         }
         else {
@@ -165,5 +165,5 @@ bool PVPGameManager::done() {
 EditorGameManager::EditorGameManager(std::string fname) : GameManager(fname) {
     sm.set_is_editor(true);
     auto f = ifstream(fname);
-    load_objects_from_file(f, sm);
+    load_objects_from_file(f, sm, true);
 }
