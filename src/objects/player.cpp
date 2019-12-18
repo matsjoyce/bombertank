@@ -48,7 +48,7 @@ map<int, PlayerSettings> player_settings = {
             sf::Color(128, 0, 0)
     }},
     {1, {
-            sf::Keyboard::I, sf::Keyboard::K, sf::Keyboard::J, sf::Keyboard::L,
+            sf::Keyboard::Up, sf::Keyboard::Down, sf::Keyboard::Left, sf::Keyboard::Right,
             sf::Keyboard::Num7, sf::Keyboard::Num8, sf::Keyboard::Num9, sf::Keyboard::Num0, sf::Keyboard::Hyphen,
             sf::Color(0, 128, 0)
     }},
