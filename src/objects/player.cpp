@@ -49,7 +49,7 @@ map<int, PlayerSettings> player_settings = {
     }},
     {1, {
             sf::Keyboard::I, sf::Keyboard::K, sf::Keyboard::J, sf::Keyboard::L,
-            sf::Keyboard::Num6, sf::Keyboard::Num7, sf::Keyboard::Num8, sf::Keyboard::Num9, sf::Keyboard::Num0,
+            sf::Keyboard::Num7, sf::Keyboard::Num8, sf::Keyboard::Num9, sf::Keyboard::Num0, sf::Keyboard::Hyphen,
             sf::Color(0, 128, 0)
     }},
 };
