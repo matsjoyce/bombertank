@@ -34,11 +34,9 @@ class Player : public Object {
     std::string tex_name = "data/images/tank1.png";
     void setup_keys();
     std::map<unsigned int, std::shared_ptr<PlayerItem>> items_;
-    unsigned int primary_item = -1, secondary_item = -1;
-    void set_primary(unsigned int pri);
-    void set_secondary(unsigned int sec);
+    unsigned int active_item = -1;
     void add_upgrades_for_level(unsigned int start, bool initial);
-    PlayerKlass klass_, current_selected_klass;
+    PlayerKlass klass_;
 public:
     Signal<> on_ready;
     void post_constructor() override;
