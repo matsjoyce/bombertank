@@ -41,7 +41,7 @@ unsigned int Lava::take_damage(unsigned int /*damage*/, DamageType /*dt*/) {
 
 void Lava::update() {
     for (auto& obj : server_map()->collides(*this)) {
-        if (obj.second->id != id) {
+        if (obj.second->id != id && !obj.second->is_projectile()) {
             obj.second->take_damage(2, DamageType::HEAT);
         }
     }

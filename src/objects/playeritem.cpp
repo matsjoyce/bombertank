@@ -297,41 +297,33 @@ void LaserItem::update() {
     }
 }
 
-class LaserEffect : public Effect {
-    unsigned int dist;
-public:
-    unsigned int layer() override {
-        return 5;
+LaserEffect::LaserEffect(RenderMap* map_, unsigned int id_, Point pos_, Orientation::Orientation ori, unsigned int dist_)
+    : Effect(map_, id_, pos_, ori), dist(dist_) {
+    sound.setBuffer(map->load_sound_buf("data/sounds/laser-small.wav"));
+    sound.play();
+}
+
+void LaserEffect::render(sf::RenderTarget& rt) {
+    if (time_left) {
+        auto tex = map->load_texture("data/images/laser.png");
+        tex.setRepeated(true);
+        sf::Sprite sp(tex);
+        sp.setOrigin(sf::Vector2f(sp.getTextureRect().width / 2, dist));
+        sp.setPosition(pos);
+        sp.setTextureRect({0, 0, sp.getTextureRect().width, static_cast<int>(dist)});
+        sp.setRotation(angle(orientation));
+        rt.draw(sp);
     }
-    LaserEffect(RenderMap* map_, unsigned int id_, Point pos_, Orientation::Orientation ori, unsigned int dist_)
-        : Effect(map_, id_, pos_, ori), dist(dist_) {
-        sound.setBuffer(map->load_sound_buf("data/sounds/laser-small.wav"));
-        sound.play();
+}
+
+void LaserEffect::update() {
+    if (time_left) {
+        --time_left;
     }
-    void render(sf::RenderTarget& rt) override {
-        if (time_left) {
-            auto tex = map->load_texture("data/images/laser.png");
-            tex.setRepeated(true);
-            sf::Sprite sp(tex);
-            sp.setOrigin(sf::Vector2f(sp.getTextureRect().width / 2, dist));
-            sp.setPosition(pos);
-            sp.setTextureRect({0, 0, sp.getTextureRect().width, static_cast<int>(dist)});
-            sp.setRotation(angle(orientation));
-            rt.draw(sp);
-        }
+    if (!time_left && sound.getStatus() == sf::Sound::Stopped) {
+        destroy();
     }
-    void update() override {
-        if (time_left) {
-            --time_left;
-        }
-        if (!time_left && sound.getStatus() == sf::Sound::Stopped) {
-            destroy();
-        }
-    }
-private:
-    int time_left = 5;
-    sf::Sound sound;
-};
+}
 
 void LaserItem::render_handle(msgpackvar&& m) {
     switch (static_cast<PIRenderMessage>(m["itype"].as_uint64_t())) {

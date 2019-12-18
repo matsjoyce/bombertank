@@ -90,4 +90,24 @@ private:
     sf::Sound sound;
 };
 
+class LaserRobo : public Object {
+    int wait = 0;
+    sf::Clock clock;
+    bool stuck = false;
+    unsigned int warmup = 0, range_ = STANDARD_OBJECT_SIZE * 5, damage_ = 10;
+    void fire_laser(Orientation::Orientation direction);
+    void check_speed();
+    void check_laser();
+public:
+    constexpr static const int TYPE = 13;
+    virtual unsigned int type() override {
+        return 13;
+    }
+    LaserRobo(unsigned int id_, Map* map_);
+    void update() override;
+    void render(sf::RenderTarget& rt) override;
+    void render_handle(msgpackvar m) override;
+    void collision(objptr obj, bool caused_by_self) override;
+};
+
 #endif // BOMB_HPP

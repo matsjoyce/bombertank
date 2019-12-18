@@ -112,6 +112,9 @@ public:
     ServerMap* server_map();
 
     virtual unsigned int render_layer();
+    virtual bool is_projectile() {
+        return false;
+    }
     virtual void render_update();
     virtual void render(sf::RenderTarget& rt);
     virtual void render_hud(sf::RenderTarget& rt);

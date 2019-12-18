@@ -227,6 +227,20 @@ public:
     }
 };
 
+class LaserEffect : public Effect {
+    unsigned int dist;
+public:
+    unsigned int layer() override {
+        return 5;
+    }
+    LaserEffect(RenderMap* map_, unsigned int id_, Point pos_, Orientation::Orientation ori, unsigned int dist_);
+    void render(sf::RenderTarget& rt) override;
+    void update() override;
+private:
+    int time_left = 5;
+    sf::Sound sound;
+};
+
 class ShieldItem : public UsesPlayerItem {
     unsigned int glow = 0;
 public:

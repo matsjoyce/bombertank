@@ -19,6 +19,7 @@
 #include "bomb.hpp"
 #include "player.hpp"
 #include "attackutils.hpp"
+#include "playeritem.hpp"
 #include <iostream>
 
 using namespace std;
@@ -196,4 +197,107 @@ void Explosion::update() {
 
 unsigned int Explosion::layer() {
     return position == Position::CENTER ? 10 : 9;
+}
+
+LaserRobo::LaserRobo(unsigned int id_, Map* map_) : Object(id_, map_) {
+    if (server_map()) {
+        uniform_int_distribution<int> distribution(0, 3);
+        set_direction(Orientation::Orientation(distribution(map->random_generator())));
+
+        destroyed.connect([this]{
+            server_map()->level_up_trigger(shared_from_this());
+        });
+    }
+}
+
+void LaserRobo::update() {
+    check_speed();
+    check_laser();
+}
+
+void LaserRobo::check_speed() {
+    if (wait) {
+        --wait;
+        return;
+    }
+    else if (stuck) {
+        uniform_int_distribution<int> distribution(0, 3);
+        auto old_dir = direction();
+        while (direction() == old_dir) {
+            set_direction(Orientation::Orientation(distribution(map->random_generator())));
+        }
+        set_orientation(direction());
+        stuck = false;
+    }
+
+    accelerate(2 - speed());
+}
+
+void LaserRobo::check_laser() {
+    if (warmup) {
+        --warmup;
+    }
+    else {
+        for (unsigned int direction = 0; direction < 4; ++direction){
+            auto r = Rect(Size(4, range_).rotate(Orientation::Orientation(direction)));
+            auto start = dir_center(Orientation::Orientation(direction));
+            r.set_dir_center(opposite(Orientation::Orientation(direction)), start);
+            auto dist_r = Rect(start, start);
+            for (auto& obj : server_map()->collides(r, [&dist_r](objptr obj){return obj->separation_distance(dist_r);})) {
+                if (obj.second->type() == Player::TYPE) {
+                    fire_laser(Orientation::Orientation(direction));
+                    return;
+                }
+                else if (obj.second->id != id) {
+                    break;
+                }
+            }
+        }
+    }
+}
+
+void LaserRobo::fire_laser(Orientation::Orientation direction) {
+    auto sm = server_map();
+    warmup = 1;
+
+    auto pos = dir_center(direction);
+    auto dist = progressive_kill_in_direction(sm, pos, 4, range_, direction, damage_, DamageType::HEAT);
+
+    msgpackvar m;
+    m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
+    m["type"] = as_ui(RenderObjectMessage::END);
+    m["id"] = id;
+    m["dist"] = dist;
+    m["ori"] = as_ui(direction);
+    m["x"] = pos.x;
+    m["y"] = pos.y;
+    sm->event(shared_from_this(), std::move(m));
+}
+
+void LaserRobo::render_handle(msgpackvar m) {
+    switch(static_cast<RenderObjectMessage>(m["type"].as_uint64_t())) {
+        case RenderObjectMessage::END: {
+            if (auto rm = render_map()) {
+                rm->add_effect<LaserEffect>(Point(extract_int(m["x"]), extract_int(m["y"])),
+                                            static_cast<Orientation::Orientation>(m["ori"].as_uint64_t()), m["dist"].as_uint64_t());
+            }
+            break;
+        }
+        default: Object::render_handle(m);
+    }
+}
+
+void LaserRobo::collision(objptr obj, bool caused_by_self) {
+    stuck = true;
+    wait = 20;
+}
+
+void LaserRobo::render(sf::RenderTarget& rt) {
+    auto t = clock.getElapsedTime().asSeconds();
+    if (t > 0.2 && speed()) {
+        clock.restart();
+    }
+    sf::Sprite sp(render_map()->load_texture(t < 0.1 && speed() ? "data/images/robobomb2.png" : "data/images/robobomb.png"));
+    position_sprite(sp);
+    rt.draw(sp);
 }

@@ -38,6 +38,9 @@ public:
     void set_range(unsigned int r) {
         time_left = r;
     }
+    bool is_projectile() override {
+        return true;
+    }
 };
 
 class MiniRocket : public Object {
@@ -64,6 +67,9 @@ public:
     }
     void set_power(unsigned int p) {
         power = p;
+    }
+    bool is_projectile() override {
+        return true;
     }
 };
 
