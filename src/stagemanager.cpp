@@ -204,10 +204,11 @@ unique_ptr<Stage> PlayStage::update(sf::RenderWindow& window) {
 
 void PlayStage::render(sf::RenderWindow& window) {
     sf::View view;
-    view.reset(sf::FloatRect(0, 0, window.getSize().x / SCALEUP / gstate->dpi_scaling_factor, window.getSize().y / SCALEUP / 2 / gstate->dpi_scaling_factor));
+    auto multiscreen_divide = (gstate->rms.size() > 1) ? 2 : 1;
+    view.reset(sf::FloatRect(0, 0, window.getSize().x / SCALEUP / gstate->dpi_scaling_factor, window.getSize().y / SCALEUP / multiscreen_divide / gstate->dpi_scaling_factor));
 
     if (gstate->rms.size()) {
-        view.setViewport(sf::FloatRect(0, 0, 1.0, 0.5));
+        view.setViewport(sf::FloatRect(0, 0, 1.0, (gstate->rms.size() > 1) ? 0.5 : 1));
         window.setView(view);
         gstate->rms[0].render(window);
     }
