@@ -50,6 +50,7 @@ unsigned int Chest::render_layer() {
 void Chest::collision(objptr obj, bool /*caused_by_self*/) {
     if (auto pl = dynamic_pointer_cast<Player>(obj)) {
         vector<unsigned int> options;
+        options.push_back(-1);
         for (auto& item : pl->items()) {
             if (dynamic_pointer_cast<UsesPlayerItem>(item.second)) {
                 options.push_back(item.first);
@@ -58,16 +59,30 @@ void Chest::collision(objptr obj, bool /*caused_by_self*/) {
 
         if (options.size()) {
             uniform_int_distribution<int> distribution(0, options.size() - 1);
-            auto item = load_player_items()[options[distribution(map->random_generator())]]();
-            pl->add_item(item);
+            auto item_id = options[distribution(map->random_generator())];
+            if (item_id == static_cast<unsigned int>(-1)) {
+                pl->heal(50);
 
-            msgpackvar m;
-            m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
-            m["type"] = as_ui(RenderObjectMessage::END);
-            m["id"] = id;
-            m["item"] = item->name();
-            m["side"] = pl->side();
-            server_map()->event(shared_from_this(), std::move(m));
+                msgpackvar m;
+                m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
+                m["type"] = as_ui(RenderObjectMessage::END);
+                m["id"] = id;
+                m["item"] = "+50 hp";
+                m["side"] = pl->side();
+                server_map()->event(shared_from_this(), std::move(m));
+            }
+            else {
+                auto item = load_player_items()[item_id]();
+                pl->add_item(item);
+
+                msgpackvar m;
+                m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
+                m["type"] = as_ui(RenderObjectMessage::END);
+                m["id"] = id;
+                m["item"] = item->name();
+                m["side"] = pl->side();
+                server_map()->event(shared_from_this(), std::move(m));
+            }
         }
         destroy();
     }

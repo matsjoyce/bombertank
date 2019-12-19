@@ -73,7 +73,8 @@ void Object::render_handle(msgpackvar m) {
             set_side(m["side"].as_uint64_t());
             break;
         }
-        case RenderObjectMessage::TAKE_DAMAGE: {
+        case RenderObjectMessage::TAKE_DAMAGE:
+        case RenderObjectMessage::HEAL: {
             set_hp(m["hp"].as_uint64_t());
             break;
         }
@@ -203,7 +204,6 @@ unsigned int Object::take_damage(unsigned int damage, DamageType /*dt*/) {
     else {
         hp_ -= damage;
         if (auto sm = server_map()) {
-
             msgpackvar m;
             m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
             m["type"] = as_ui(RenderObjectMessage::TAKE_DAMAGE);
@@ -212,6 +212,18 @@ unsigned int Object::take_damage(unsigned int damage, DamageType /*dt*/) {
             sm->event(shared_from_this(), std::move(m));
         }
         return 0;
+    }
+}
+
+void Object::heal(unsigned int healing) {
+    hp_ = min(max_hp(), hp_ + healing);
+    if (auto sm = server_map()) {
+        msgpackvar m;
+        m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
+        m["type"] = as_ui(RenderObjectMessage::HEAL);
+        m["id"] = id;
+        m["hp"] = hp_;
+        sm->event(shared_from_this(), std::move(m));
     }
 }
 

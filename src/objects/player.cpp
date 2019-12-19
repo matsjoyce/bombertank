@@ -471,6 +471,7 @@ void DeadPlayer::render(sf::RenderTarget& rt) {
     sp.setOrigin(sf::Vector2f(sp.getTextureRect().width / 2, sp.getTextureRect().height / 2));
     sp.setPosition(pos);
     sp.setRotation(angle(orientation));
+    sp.setColor(sf::Color(255, 255, 255, 200));
     rt.draw(sp);
 }
 

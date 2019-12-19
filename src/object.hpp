@@ -45,6 +45,7 @@ enum class RenderObjectMessage : unsigned int {
     DESTROY,
     CHANGE_SIDE,
     TAKE_DAMAGE,
+    HEAL,
     END
 };
 
@@ -96,6 +97,7 @@ public:
     void set_side(unsigned int side);
 
     virtual unsigned int take_damage(unsigned int damage, DamageType dt);
+    virtual void heal(unsigned int healing);
     inline bool alive() {
         return hp_;
     }
