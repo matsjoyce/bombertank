@@ -95,6 +95,7 @@ class LaserRobo : public Object {
     bool stuck = false;
     unsigned int warmup = 0, range_ = STANDARD_OBJECT_SIZE * 5, damage_ = 10;
     void fire_laser(Orientation::Orientation direction);
+protected:
     void check_speed();
     bool check_laser();
 public:
@@ -108,6 +109,18 @@ public:
     unsigned int render_layer() override;
     void render_handle(msgpackvar m) override;
     void collision(objptr obj, bool caused_by_self) override;
+};
+
+class LaserTurret : public LaserRobo {
+public:
+    using LaserRobo::LaserRobo;
+    constexpr static const int TYPE = 14;
+    virtual unsigned int type() override {
+        return 14;
+    }
+    void update() override;
+    void render(sf::RenderTarget& rt) override;
+    unsigned int max_hp() override;
 };
 
 #endif // BOMB_HPP

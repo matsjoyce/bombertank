@@ -308,3 +308,17 @@ void LaserRobo::render(sf::RenderTarget& rt) {
 unsigned int LaserRobo::render_layer() {
     return 4;
 }
+
+void LaserTurret::update() {
+    check_laser();
+}
+
+void LaserTurret::render(sf::RenderTarget& rt) {
+    sf::Sprite sp(render_map()->load_texture("data/images/laserturret.png"));
+    position_sprite(sp);
+    rt.draw(sp);
+}
+
+unsigned int LaserTurret::max_hp() {
+    return 50;
+}
