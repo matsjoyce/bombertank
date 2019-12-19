@@ -22,7 +22,8 @@ using namespace std;
 
 Rocket::Rocket(unsigned int id_, Map* map_) : StaticBomb(id_, map_) {
     set_size(2, 4);
-    if (auto rm = render_map()) {
+    auto rm = render_map();
+    if (rm && !rm->is_editor()) {
         sound.setBuffer(rm->load_sound_buf("data/sounds/missile.wav"));
         sound.play();
         destroyed.connect([this]{sound.stop();});
@@ -57,7 +58,8 @@ void Rocket::collision(objptr obj, bool /*caused_by_self*/) {
 
 MiniRocket::MiniRocket(unsigned int id_, Map* map_) : Object(id_, map_) {
     set_size(2, 4);
-    if (auto rm = render_map()) {
+    auto rm = render_map();
+    if (rm && !rm->is_editor()) {
         sound.setBuffer(rm->load_sound_buf("data/sounds/missile.wav"));
         sound.play();
         destroyed.connect([this]{sound.stop();});

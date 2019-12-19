@@ -46,6 +46,7 @@ public:
     RenderMap(std::unique_ptr<EventServer> evs, unsigned int side);
     void update();
     void render(sf::RenderTarget& rt);
+    void render_editor_tile(sf::RenderTarget& rt, sf::Vector2f position, unsigned int id);
     void register_keypress(sf::Keyboard::Key key, unsigned int id);
     void handle_keypress(sf::Keyboard::Key key, bool is_down);
     const sf::Texture& load_texture(std::string path);
@@ -67,6 +68,7 @@ public:
     void follow(objptr obj);
     void center_on(Point center);
     Point center();
+    std::vector<unsigned int> editor_tiles();
 };
 
 #endif // RENDERMAP_HPP

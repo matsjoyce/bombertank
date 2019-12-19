@@ -41,6 +41,9 @@ public:
     bool is_projectile() override {
         return true;
     }
+    bool show_in_editor() override {
+        return false;
+    }
 };
 
 class MiniRocket : public Object {
@@ -70,6 +73,9 @@ public:
     }
     bool is_projectile() override {
         return true;
+    }
+    bool show_in_editor() override {
+        return false;
     }
 };
 

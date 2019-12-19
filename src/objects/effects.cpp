@@ -38,7 +38,7 @@ void PopupText::render(sf::RenderTarget& rt) {
         auto col = color;
         col.a = static_cast<unsigned int>(color.a) * min(255u, time_left * 20) / 255;
         text.setFillColor(col);
-        text.setPosition(0, time_left + new_view.getSize().y - 60);
+        text.setPosition(0, time_left + new_view.getSize().y / 2 - 30);
         rt.draw(text);
         rt.setView(view);
     }

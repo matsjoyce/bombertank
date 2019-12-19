@@ -45,6 +45,9 @@ public:
     unsigned int render_layer() override;
     void update() override;
     unsigned int layer() override;
+    bool show_in_editor() override {
+        return false;
+    }
 };
 
 #endif // CHEST_HPP

@@ -115,6 +115,9 @@ public:
     virtual bool is_projectile() {
         return false;
     }
+    virtual bool show_in_editor() {
+        return true;
+    }
     virtual void render_update();
     virtual void render(sf::RenderTarget& rt);
     virtual void render_hud(sf::RenderTarget& rt);

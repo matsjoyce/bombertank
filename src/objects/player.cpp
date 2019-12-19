@@ -409,7 +409,7 @@ void Player::render_hud(sf::RenderTarget& rt) {
         if (item.second->active()) {
             sf::RectangleShape bg(sf::Vector2f(STANDARD_OBJECT_SIZE + 4, STANDARD_OBJECT_SIZE + 4));
             bg.setPosition(pos - sf::Vector2f(2, 2));
-            bg.setFillColor(sf::Color(255, 0, 0, 255));
+            bg.setFillColor(sf::Color(255, 0, 0, 128));
             rt.draw(bg);
         }
         item.second->render(rt, pos);

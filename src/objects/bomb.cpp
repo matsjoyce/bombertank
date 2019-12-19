@@ -293,11 +293,7 @@ void LaserRobo::collision(objptr obj, bool caused_by_self) {
 }
 
 void LaserRobo::render(sf::RenderTarget& rt) {
-    auto t = clock.getElapsedTime().asSeconds();
-    if (t > 0.2 && speed()) {
-        clock.restart();
-    }
-    sf::Sprite sp(render_map()->load_texture(t < 0.1 && speed() ? "data/images/robobomb2.png" : "data/images/robobomb.png"));
+    sf::Sprite sp(render_map()->load_texture("data/images/laserrobo.png"));
     position_sprite(sp);
     rt.draw(sp);
 }

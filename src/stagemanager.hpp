@@ -65,9 +65,10 @@ public:
 
 class EditorStage : public Stage {
     std::unique_ptr<GameState> gstate;
-    int placing = 1;
+    unsigned int placing = 1;
     Point last_pos;
     std::string fname_;
+    std::vector<unsigned int> placable_tiles;
 public:
     EditorStage(std::unique_ptr<GameState> gs, std::string fname);
     std::unique_ptr<Stage> update(sf::RenderWindow& window) override;

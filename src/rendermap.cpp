@@ -149,6 +149,16 @@ void RenderMap::render(sf::RenderTarget& rt) {
     }
 }
 
+void RenderMap::render_editor_tile(sf::RenderTarget& rt, sf::Vector2f position, unsigned int id) {
+    auto obj = object_creators[id](0, this);
+    auto old_view = rt.getView();
+    sf::View new_view = old_view;
+    new_view.move(-position);
+    rt.setView(new_view);
+    obj->render(rt);
+    rt.setView(old_view);
+}
+
 void RenderMap::register_keypress(sf::Keyboard::Key key, unsigned int id) {
     keypress_register[key] = id;
 }
@@ -246,3 +256,13 @@ Point RenderMap::center() {
     return center_;
 }
 
+std::vector<unsigned int> RenderMap::editor_tiles() {
+    std::vector<unsigned int> res;
+    for (auto& type : object_creators) {
+        auto obj = type.second(0, this);
+        if (obj->show_in_editor()) {
+            res.push_back(type.first);
+        }
+    }
+    return res;
+}

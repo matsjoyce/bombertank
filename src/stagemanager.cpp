@@ -21,6 +21,7 @@
 #include "rendermap.hpp"
 #include "gamemanager.hpp"
 #include "objects/player.hpp"
+#include "objects/effects.hpp"
 #include <fstream>
 #include <thread>
 #include <filesystem>
@@ -220,7 +221,7 @@ void PlayStage::render(sf::RenderWindow& window) {
     }
 }
 
-EditorStage::EditorStage(std::unique_ptr<GameState> gs, std::string fname) : gstate(move(gs)), fname_(fname) {
+EditorStage::EditorStage(std::unique_ptr<GameState> gs, std::string fname) : gstate(move(gs)), fname_(fname), placable_tiles(gstate->rms[0].editor_tiles()) {
 }
 
 unique_ptr<Stage> EditorStage::update(sf::RenderWindow& window) {
@@ -230,20 +231,30 @@ unique_ptr<Stage> EditorStage::update(sf::RenderWindow& window) {
             window.close();
         }
         if (event.type == sf::Event::MouseButtonPressed) {
-            auto pos = ((Point(event.mouseButton.x, event.mouseButton.y) - Point(window.getSize()) / 2) / SCALEUP / gstate->dpi_scaling_factor).to_tile() + gstate->rms[0].center().to_tile();
-            auto r = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift) ? Rect(pos, last_pos) : Rect(pos, pos);
-            r.set_size(r.width() + 1, r.height() + 1);
-            Rect collides_rect(STANDARD_OBJECT_SIZE, STANDARD_OBJECT_SIZE);
-            for (auto point : RectangularIterator(r)) {
-                collides_rect.set_nw_corner(point.from_tile());
-                cout << gstate->gm->map().collides(collides_rect).size() << endl;
-                if (!gstate->gm->map().collides(collides_rect).size()) {
-                    auto obj = gstate->gm->map().add(placing);
-                    obj->set_nw_corner(point.from_tile());
-                    obj->_generate_move();
+            if ((window.getSize().y - event.mouseButton.y) / SCALEUP / gstate->dpi_scaling_factor < STANDARD_OBJECT_SIZE + 6) {
+                // Select tile
+                auto index = (event.mouseButton.x) / SCALEUP / gstate->dpi_scaling_factor / (STANDARD_OBJECT_SIZE + 6);
+                if (index >= 0 && index < placable_tiles.size()) {
+                    placing = placable_tiles[index];
                 }
             }
-            last_pos = pos;
+            else {
+                // Draw tile
+                auto pos = ((Point(event.mouseButton.x, event.mouseButton.y) - Point(window.getSize()) / 2) / SCALEUP / gstate->dpi_scaling_factor).to_tile() + gstate->rms[0].center().to_tile();
+                auto r = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift) ? Rect(pos, last_pos) : Rect(pos, pos);
+                r.set_size(r.width() + 1, r.height() + 1);
+                Rect collides_rect(STANDARD_OBJECT_SIZE, STANDARD_OBJECT_SIZE);
+                for (auto point : RectangularIterator(r)) {
+                    collides_rect.set_nw_corner(point.from_tile());
+                    cout << gstate->gm->map().collides(collides_rect).size() << endl;
+                    if (!gstate->gm->map().collides(collides_rect).size()) {
+                        auto obj = gstate->gm->map().add(placing);
+                        obj->set_nw_corner(point.from_tile());
+                        obj->_generate_move();
+                    }
+                }
+                last_pos = pos;
+            }
         }
         if (event.type == sf::Event::KeyPressed) {
             if (event.key.control && event.key.code == sf::Keyboard::S) {
@@ -251,6 +262,7 @@ unique_ptr<Stage> EditorStage::update(sf::RenderWindow& window) {
                 ofstream f(fname_);
                 gstate->gm->map().save_objects_to_map(f);
                 f.close();
+                gstate->rms[0].add_effect<PopupText>(0, "Saved to " + fname_, sf::Color::Red);
             }
             else if (event.key.control && event.key.code == sf::Keyboard::Q) {
                 return make_unique<LoadStage>(true);
@@ -277,12 +289,6 @@ unique_ptr<Stage> EditorStage::update(sf::RenderWindow& window) {
                 gstate->rms[0].center_on(gstate->rms[0].center() + Point(STANDARD_OBJECT_SIZE, 0));
             }
         }
-        if (event.type == sf::Event::TextEntered) {
-            if (isdigit(event.text.unicode)) {
-                placing = event.text.unicode - '0';
-                cout << "Placing " << placing << endl;
-            }
-        }
     }
     gstate->gm->map().update(false);
     for (auto& rm : gstate->rms) {
@@ -297,6 +303,23 @@ void EditorStage::render(sf::RenderWindow& window) {
     window.setView(view);
 
     gstate->rms[0].render(window);
+
+    window.setView(view);
+    sf::RectangleShape lowerbg(sf::Vector2f(window.getView().getSize().x, STANDARD_OBJECT_SIZE + 6));
+    lowerbg.setFillColor(sf::Color(0, 0, 0, 128));
+    lowerbg.setPosition(0, window.getView().getSize().y - lowerbg.getSize().y);
+    window.draw(lowerbg);
+
+    for (unsigned int i = 0; i < placable_tiles.size(); ++i) {
+        auto pos = sf::Vector2f((STANDARD_OBJECT_SIZE + 6) * i + 3, window.getView().getSize().y - STANDARD_OBJECT_SIZE - 3);
+        if (placable_tiles[i] == placing) {
+            sf::RectangleShape bg(sf::Vector2f(STANDARD_OBJECT_SIZE + 4, STANDARD_OBJECT_SIZE + 4));
+            bg.setPosition(pos - sf::Vector2f(2, 2));
+            bg.setFillColor(sf::Color(255, 0, 0, 128));
+            window.draw(bg);
+        }
+        gstate->rms[0].render_editor_tile(window, pos, placable_tiles[i]);
+    }
 }
 
 void StageManager::update(sf::RenderWindow& window) {

@@ -92,7 +92,6 @@ private:
 
 class LaserRobo : public Object {
     int wait = 0;
-    sf::Clock clock;
     bool stuck = false;
     unsigned int warmup = 0, range_ = STANDARD_OBJECT_SIZE * 5, damage_ = 10;
     void fire_laser(Orientation::Orientation direction);
