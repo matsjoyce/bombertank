@@ -211,8 +211,9 @@ LaserRobo::LaserRobo(unsigned int id_, Map* map_) : Object(id_, map_) {
 }
 
 void LaserRobo::update() {
-    check_speed();
-    check_laser();
+    if (!check_laser()) {
+        check_speed();
+    }
 }
 
 void LaserRobo::check_speed() {
@@ -233,7 +234,7 @@ void LaserRobo::check_speed() {
     accelerate(2 - speed());
 }
 
-void LaserRobo::check_laser() {
+bool LaserRobo::check_laser() {
     if (warmup) {
         --warmup;
     }
@@ -246,7 +247,12 @@ void LaserRobo::check_laser() {
             for (auto& obj : server_map()->collides(r, [&dist_r](objptr obj){return obj->separation_distance(dist_r);})) {
                 if (obj.second->type() == Player::TYPE) {
                     fire_laser(Orientation::Orientation(direction));
-                    return;
+                    set_orientation(Orientation::Orientation(direction));
+                    accelerate(-speed());
+                    _generate_move();
+                    wait = 10;
+                    stuck = true;
+                    return true;
                 }
                 else if (obj.second->id != id) {
                     break;
@@ -254,11 +260,12 @@ void LaserRobo::check_laser() {
             }
         }
     }
+    return false;
 }
 
 void LaserRobo::fire_laser(Orientation::Orientation direction) {
     auto sm = server_map();
-    warmup = 1;
+    warmup = 5;
 
     auto pos = dir_center(direction);
     auto dist = progressive_kill_in_direction(sm, pos, 4, range_, direction, damage_, DamageType::HEAT);
@@ -296,4 +303,8 @@ void LaserRobo::render(sf::RenderTarget& rt) {
     sf::Sprite sp(render_map()->load_texture("data/images/laserrobo.png"));
     position_sprite(sp);
     rt.draw(sp);
+}
+
+unsigned int LaserRobo::render_layer() {
+    return 4;
 }

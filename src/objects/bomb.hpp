@@ -96,7 +96,7 @@ class LaserRobo : public Object {
     unsigned int warmup = 0, range_ = STANDARD_OBJECT_SIZE * 5, damage_ = 10;
     void fire_laser(Orientation::Orientation direction);
     void check_speed();
-    void check_laser();
+    bool check_laser();
 public:
     constexpr static const int TYPE = 13;
     virtual unsigned int type() override {
@@ -105,6 +105,7 @@ public:
     LaserRobo(unsigned int id_, Map* map_);
     void update() override;
     void render(sf::RenderTarget& rt) override;
+    unsigned int render_layer() override;
     void render_handle(msgpackvar m) override;
     void collision(objptr obj, bool caused_by_self) override;
 };
