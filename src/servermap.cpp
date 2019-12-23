@@ -64,11 +64,13 @@ void ServerMap::update(bool update_objs/*=true*/) {
     pending_events.clear();
 }
 
-vector<pair<int, objptr>> ServerMap::collides(const Rect& r) {
+vector<pair<int, objptr>> ServerMap::collides(const Rect& r, unsigned int layer/*=-1*/) {
     vector<pair<int, objptr>> ret;
     int dist;
     for (auto& obj : objects) {
-        if (!defered_destroy.count(obj.first) && (dist = obj.second->separation_distance(r)) < 0) {
+        if (!defered_destroy.count(obj.first)
+            && (layer == static_cast<unsigned int>(-1) || layer == obj.second->layer())
+            && (dist = obj.second->separation_distance(r)) < 0) {
             auto item = make_pair(dist, obj.second);
             ret.insert(upper_bound(ret.begin(), ret.end(), item), item);
         }
@@ -76,10 +78,12 @@ vector<pair<int, objptr>> ServerMap::collides(const Rect& r) {
     return ret;
 }
 
-vector<pair<int, objptr>> ServerMap::collides(const Rect& r, std::function<int(objptr)> sortfunc) {
+vector<pair<int, objptr>> ServerMap::collides(const Rect& r, std::function<int(objptr)> sortfunc, unsigned int layer/*=-1*/) {
     vector<pair<int, objptr>> ret;
     for (auto& obj : objects) {
-        if (!defered_destroy.count(obj.first) && obj.second->separation_distance(r) < 0) {
+        if (!defered_destroy.count(obj.first)
+            && (layer == static_cast<unsigned int>(-1) || layer == obj.second->layer())
+            && obj.second->separation_distance(r) < 0) {
             auto item = make_pair(sortfunc(obj.second), obj.second);
             ret.insert(upper_bound(ret.begin(), ret.end(), item), item);
         }
@@ -87,13 +91,14 @@ vector<pair<int, objptr>> ServerMap::collides(const Rect& r, std::function<int(o
     return ret;
 }
 
-vector<pair<int, objptr>> ServerMap::collides_by_moving(const Rect& r, Orientation::Orientation dir, int movement) {
+vector<pair<int, objptr>> ServerMap::collides_by_moving(const Rect& r, Orientation::Orientation dir, int movement, unsigned int layer/*=-1*/) {
     auto mr = r.movement_rect(dir, movement);
     auto margin = -static_cast<int>(r.dimension_in_dir(dir)) / 2;
     vector<pair<int, objptr>> ret;
     int dist;
     for (auto& obj : objects) {
         if (obj.second->alive() && obj.second->separation_distance(mr) < 0
+            && (layer == static_cast<unsigned int>(-1) || layer == obj.second->layer())
             && (dist = obj.second->separation_distance(r)) > margin) {
             auto item = make_pair(dist, obj.second);
             ret.insert(upper_bound(ret.begin(), ret.end(), item), item);

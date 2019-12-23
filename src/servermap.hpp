@@ -40,9 +40,9 @@ public:
     void event(objptr obj, msgpackvar&& msg);
     void remove(objptr obj) override;
     objptr add(unsigned int type);
-    std::vector<std::pair<int, objptr>> collides(const Rect& r);
-    std::vector<std::pair<int, objptr>> collides(const Rect& r, std::function<int(objptr)> sortfunc);
-    std::vector<std::pair<int, objptr>> collides_by_moving(const Rect& r, Orientation::Orientation dir, int movement);
+    std::vector<std::pair<int, objptr>> collides(const Rect& r, unsigned int layer=-1);
+    std::vector<std::pair<int, objptr>> collides(const Rect& r, std::function<int(objptr)> sortfunc, unsigned int layer=-1);
+    std::vector<std::pair<int, objptr>> collides_by_moving(const Rect& r, Orientation::Orientation dir, int movement, unsigned int layer=-1);
     void save_objects_to_map(std::ostream& f);
     void level_up_trigger(objptr obj);
     unsigned int frame() const {

@@ -23,11 +23,12 @@
 using namespace std;
 
 
-unsigned int progressive_kill_in_direction(ServerMap* sm, Point start, unsigned int size, unsigned int length, Orientation::Orientation direction, int damage, DamageType type) {
+unsigned int progressive_kill_in_direction(ServerMap* sm, Point start, unsigned int size, unsigned int length,
+                                           Orientation::Orientation direction, int damage, DamageType type, unsigned int layer) {
     auto r = Rect(Size(size, length).rotate(direction));
     r.set_dir_center(opposite(direction), start);
     auto dist_r = Rect(start, start);
-    for (auto& obj : sm->collides(r, [&dist_r](objptr obj){return obj->separation_distance(dist_r);})) {
+    for (auto& obj : sm->collides(r, [&dist_r](objptr obj){return obj->separation_distance(dist_r);}, layer)) {
         damage = obj.second->take_damage(damage, type);
         if (obj.second->alive()) {
             return max(0, obj.first);

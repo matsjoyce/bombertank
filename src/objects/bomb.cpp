@@ -38,10 +38,10 @@ StaticBomb::StaticBomb(unsigned int id_, Map* map_) : Object(id_, map_) {
             m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
             m["type"] = as_ui(RenderObjectMessage::END);
             m["id"] = id;
-            m["n"] = progressive_kill_in_direction(sm, center(), 14, STANDARD_OBJECT_SIZE * power, Orientation::N, damage, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
-            m["e"] = progressive_kill_in_direction(sm, center(), 14, STANDARD_OBJECT_SIZE * power, Orientation::E, damage, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
-            m["s"] = progressive_kill_in_direction(sm, center(), 14, STANDARD_OBJECT_SIZE * power, Orientation::S, damage, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
-            m["w"] = progressive_kill_in_direction(sm, center(), 14, STANDARD_OBJECT_SIZE * power, Orientation::W, damage, DamageType::FORCE) / STANDARD_OBJECT_SIZE;
+            m["n"] = progressive_kill_in_direction(sm, center(), 14, STANDARD_OBJECT_SIZE * power, Orientation::N, damage, DamageType::FORCE, -1) / STANDARD_OBJECT_SIZE;
+            m["e"] = progressive_kill_in_direction(sm, center(), 14, STANDARD_OBJECT_SIZE * power, Orientation::E, damage, DamageType::FORCE, -1) / STANDARD_OBJECT_SIZE;
+            m["s"] = progressive_kill_in_direction(sm, center(), 14, STANDARD_OBJECT_SIZE * power, Orientation::S, damage, DamageType::FORCE, -1) / STANDARD_OBJECT_SIZE;
+            m["w"] = progressive_kill_in_direction(sm, center(), 14, STANDARD_OBJECT_SIZE * power, Orientation::W, damage, DamageType::FORCE, -1) / STANDARD_OBJECT_SIZE;
             sm->event(shared_from_this(), std::move(m));
         });
     }
@@ -147,7 +147,7 @@ void RoboBomb::render(sf::RenderTarget& rt) {
 
 void Mine::update() {
     for (auto& obj : server_map()->collides(*this)) {
-        if (obj.second->side() != side()) {
+        if (obj.second->side() != side() && !obj.second->is_projectile()) {
             destroy();
         }
     }
@@ -268,7 +268,7 @@ void LaserRobo::fire_laser(Orientation::Orientation direction) {
     warmup = 5;
 
     auto pos = dir_center(direction);
-    auto dist = progressive_kill_in_direction(sm, pos, 4, range_, direction, damage_, DamageType::HEAT);
+    auto dist = progressive_kill_in_direction(sm, pos, 4, range_, direction, damage_, DamageType::HEAT, layer());
 
     msgpackvar m;
     m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
