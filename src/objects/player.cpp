@@ -186,7 +186,7 @@ void Player::handle_keypress(sf::Keyboard::Key key, bool is_down) {
             }
             m["item"] = iter->first;
         }
-        else if (is_down) {
+        else if (is_down && !klass_select_wait) {
             m["type"] = as_ui(PlayerServerMessage::SELECT_KLASS);
             m["klass"] = as_ui(PlayerKlass::BEGIN) + index;
             klass_ = static_cast<PlayerKlass>(as_ui(PlayerKlass::BEGIN) + index);
@@ -405,28 +405,33 @@ void Player::render_hud(sf::RenderTarget& rt) {
     rt.draw(sp_bar_fg);
 
     if (klass_ == PlayerKlass::UNDECIDED) {
-        unsigned int h = STANDARD_OBJECT_SIZE + 20;
-        unsigned int w = STANDARD_OBJECT_SIZE + 30;
-        int x = rt.getView().getSize().x / 2 - w * (static_cast<unsigned int>(PlayerKlass::END) - static_cast<unsigned int>(PlayerKlass::BEGIN)) / 2;
-        int y = rt.getView().getSize().y - static_cast<int>(h) - 10;
+        if (klass_select_wait) {
+            --klass_select_wait;
+        }
+        else {
+            unsigned int h = STANDARD_OBJECT_SIZE + 20;
+            unsigned int w = STANDARD_OBJECT_SIZE + 30;
+            int x = rt.getView().getSize().x / 2 - w * (static_cast<unsigned int>(PlayerKlass::END) - static_cast<unsigned int>(PlayerKlass::BEGIN)) / 2;
+            int y = rt.getView().getSize().y - static_cast<int>(h) - 10;
 
-        for (PlayerKlass k = PlayerKlass::BEGIN; k != PlayerKlass::END; k = static_cast<PlayerKlass>(static_cast<unsigned int>(k) + 1)) {
-            sf::Vector2f pos(x + w / 2, y + 3);
+            for (PlayerKlass k = PlayerKlass::BEGIN; k != PlayerKlass::END; k = static_cast<PlayerKlass>(static_cast<unsigned int>(k) + 1)) {
+                sf::Vector2f pos(x + w / 2, y + 3);
 
-            sf::Sprite spr(render_map()->load_texture(klass_info[k].icon));
-            spr.setOrigin(spr.getTextureRect().width / 2.0f, 0.0f);
-            spr.setPosition(pos);
-            rt.draw(spr);
+                sf::Sprite spr(render_map()->load_texture(klass_info[k].icon));
+                spr.setOrigin(spr.getTextureRect().width / 2.0f, 0.0f);
+                spr.setPosition(pos);
+                rt.draw(spr);
 
-            sf::Text text(klass_info[k].name, render_map()->load_font("data/fonts/font.pcf"), 12);
-            sf::FloatRect textRect = text.getLocalBounds();
-            text.setOrigin(textRect.left + textRect.width/2.0f,
-                           textRect.top  + textRect.height/2.0f);
-            text.setPosition(pos + sf::Vector2f(0, (h + STANDARD_OBJECT_SIZE) / 2));
-            text.setFillColor(sf::Color(255, 0, 0));
-            rt.draw(text);
+                sf::Text text(klass_info[k].name, render_map()->load_font("data/fonts/font.pcf"), 12);
+                sf::FloatRect textRect = text.getLocalBounds();
+                text.setOrigin(textRect.left + textRect.width/2.0f,
+                            textRect.top  + textRect.height/2.0f);
+                text.setPosition(pos + sf::Vector2f(0, (h + STANDARD_OBJECT_SIZE) / 2));
+                text.setFillColor(sf::Color(255, 0, 0));
+                rt.draw(text);
 
-            x += w;
+                x += w;
+            }
         }
     }
 
