@@ -386,7 +386,7 @@ void Player::render_hud(sf::RenderTarget& rt) {
     rt.draw(darkbg);
 
     sf::RectangleShape border(sf::Vector2f(202, 8));
-    border.setPosition(1, 9);
+    border.setPosition(1, 11);
     border.setFillColor(sf::Color::Black);
     rt.draw(border);
 
@@ -394,14 +394,14 @@ void Player::render_hud(sf::RenderTarget& rt) {
     barbgtex.setRepeated(true);
     sf::Sprite sp_bar_bg(barbgtex);
     sp_bar_bg.setTextureRect(sf::IntRect(0, 0, 200, 6));
-    sp_bar_bg.setPosition(2, 10);
+    sp_bar_bg.setPosition(2, 12);
     rt.draw(sp_bar_bg);
 
     auto barfgtex = rm->load_texture("data/images/shield_bar_fg.png");
     barfgtex.setRepeated(true);
     sf::Sprite sp_bar_fg(barfgtex);
     sp_bar_fg.setTextureRect(sf::IntRect(0, 0, min(200u, 200 * shield_ / max_shield_), 6));
-    sp_bar_fg.setPosition(2, 10);
+    sp_bar_fg.setPosition(2, 12);
     rt.draw(sp_bar_fg);
 
     if (klass_ == PlayerKlass::UNDECIDED) {
