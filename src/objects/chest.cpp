@@ -49,8 +49,7 @@ unsigned int Chest::render_layer() {
 
 void Chest::collision(objptr obj, bool /*caused_by_self*/) {
     if (auto pl = dynamic_pointer_cast<Player>(obj)) {
-        vector<unsigned int> options;
-        options.push_back(-1);
+        vector<unsigned int> options = {static_cast<unsigned int>(-1), static_cast<unsigned int>(-2)};
         for (auto& item : pl->items()) {
             if (dynamic_pointer_cast<UsesPlayerItem>(item.second)) {
                 options.push_back(item.first);
@@ -68,6 +67,17 @@ void Chest::collision(objptr obj, bool /*caused_by_self*/) {
                 m["type"] = as_ui(RenderObjectMessage::END);
                 m["id"] = id;
                 m["item"] = "+50 hp";
+                m["side"] = pl->side();
+                server_map()->event(shared_from_this(), std::move(m));
+            }
+            else if (item_id == static_cast<unsigned int>(-2)) {
+                pl->set_shield(pl->max_shield());
+
+                msgpackvar m;
+                m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
+                m["type"] = as_ui(RenderObjectMessage::END);
+                m["id"] = id;
+                m["item"] = "Shield";
                 m["side"] = pl->side();
                 server_map()->event(shared_from_this(), std::move(m));
             }

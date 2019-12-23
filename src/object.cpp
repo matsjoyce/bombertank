@@ -299,7 +299,7 @@ void Object::render_hud(sf::RenderTarget& rt) {
     border.setFillColor(sf::Color::Black);
     rt.draw(border);
 
-    auto texbg = rm->load_texture("data/images/hp_bar_bg.png");
+    auto texbg = rm->load_texture("data/images/bar_bg.png");
     texbg.setRepeated(true);
     sf::Sprite sp_bg(texbg);
     sp_bg.setTextureRect(sf::IntRect(0, 0, 200, 6));

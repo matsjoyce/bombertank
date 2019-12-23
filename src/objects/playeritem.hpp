@@ -241,23 +241,6 @@ private:
     sf::Sound sound;
 };
 
-class ShieldItem : public UsesPlayerItem {
-    unsigned int glow = 0;
-public:
-    ShieldItem() : UsesPlayerItem(25) {}
-    constexpr static const int TYPE = 5;
-    unsigned int type() override {
-        return 5;
-    }
-    std::string name() override {
-        return "Shield";
-    }
-    void render(sf::RenderTarget& rt, sf::Vector2f position) override;
-    unsigned int damage_intercept(unsigned int damage, DamageType dt);
-    void render_handle(msgpackvar&& m) override;
-    void render_overlay(sf::RenderTarget& rt) override;
-};
-
 class RocketItem : public UsesPlayerItem {
     unsigned int range_ = 20, damage_ = 25;
 public:

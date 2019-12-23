@@ -337,51 +337,6 @@ void LaserItem::render_handle(msgpackvar&& m) {
     }
 }
 
-void ShieldItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
-    sf::Sprite spr(player()->render_map()->load_texture("data/images/shield_icon.png"));
-    spr.setPosition(position);
-    rt.draw(spr);
-    sf::Text txt(to_string(uses), player()->render_map()->load_font("data/fonts/font.pcf"), 12);
-    txt.setPosition(position);
-    rt.draw(txt);
-}
-
-void ShieldItem::render_handle(msgpackvar&& m) {
-    switch (static_cast<PIRenderMessage>(m["itype"].as_uint64_t())) {
-        case PIRenderMessage::FIRE: {
-            uses = m["uses"].as_uint64_t();
-            glow = 500;
-            break;
-        }
-        default: UsesPlayerItem::render_handle(std::move(m));
-    }
-}
-
-unsigned int ShieldItem::damage_intercept(unsigned int damage, DamageType /*dt*/) {
-    auto amount = min(uses, damage);
-    uses -= amount;
-
-    msgpackvar m;
-    m["itype"] = as_ui(PIRenderMessage::FIRE);
-    m["uses"] = uses;
-    player()->item_msg(std::move(m), type());
-
-    if (!uses) {
-        try_end();
-    }
-    return damage - amount;
-}
-
-void ShieldItem::render_overlay(sf::RenderTarget& rt) {
-    if (glow) {
-        sf::Sprite spr(player()->render_map()->load_texture("data/images/shield.png"));
-        player()->position_sprite(spr);
-        spr.setColor(sf::Color(255, 255, 255, min(255u, glow)));
-        rt.draw(spr);
-        glow -= 10;
-    }
-}
-
 void RocketItem::render(sf::RenderTarget& rt, sf::Vector2f position) {
     sf::Sprite spr(player()->render_map()->load_texture("data/images/rocket_icon.png"));
     spr.setPosition(position);
@@ -555,7 +510,6 @@ map<unsigned int, function<shared_ptr<PlayerItem>()>> load_player_items() {
     ret[MineItem::TYPE] = make_shared<MineItem>;
     ret[ChargeItem::TYPE] = make_shared<ChargeItem>;
     ret[LaserItem::TYPE] = make_shared<LaserItem>;
-    ret[ShieldItem::TYPE] = make_shared<ShieldItem>;
     ret[RocketItem::TYPE] = make_shared<RocketItem>;
     ret[BurstRocketItem::TYPE] = make_shared<BurstRocketItem>;
     ret[MineDetectorItem::TYPE] = make_shared<MineDetectorItem>;

@@ -32,7 +32,7 @@ enum class PlayerServerMessage : unsigned int {
 
 enum class PlayerRenderMessage : unsigned int {
     TRANSFER = static_cast<unsigned int>(RenderObjectMessage::END),
-    ADD_ITEM, FOR_ITEM, LEVEL_UP
+    ADD_ITEM, FOR_ITEM, LEVEL_UP, SHIELD
 };
 
 struct PlayerSettings {
@@ -72,22 +72,19 @@ map<PlayerKlass, KlassInfo> klass_info = {
         {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<BombItem>());}, "Basics"}},
         {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<CrateItem>());}, "Basics"}},
         {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<MineDetectorItem>());}, "Basics"}},
-        {2, {[](shared_ptr<Player> pl){pl->add_item(make_shared<ShieldItem>());}, "Shield"}},
         {3, {[](shared_ptr<Player> pl){pl->add_item(make_shared<MineItem>());}, "Mines"}},
         {4, {[](shared_ptr<Player> pl){auto i = pl->item<MineDetectorItem>(); i->set_range(i->range() + STANDARD_OBJECT_SIZE);}, "+1 mine detector range"}},
         {5, {[](shared_ptr<Player> pl){auto i = pl->item<BombItem>(); i->set_max_uses(i->max_uses() + 1);}, "+1 bombs"}},
         {6, {[](shared_ptr<Player> pl){auto i = pl->item<CrateItem>(); i->set_hp(i->hp() * 2);}, "x2 crate hp"}},
         {7, {[](shared_ptr<Player> pl){auto i = pl->item<BombItem>(); i->set_size(i->size() * 2);}, "+1 bomb size"}},
         {8, {[](shared_ptr<Player> pl){auto i = pl->item<MineItem>(); i->set_size(i->size() * 2);}, "+1 mine size"}},
-        {9, {[](shared_ptr<Player> pl){auto i = pl->item<ShieldItem>(); i->set_max_uses(i->max_uses() * 2);}, "x2 shield strength"}},
+        {9, {[](shared_ptr<Player> pl){pl->set_max_shield(pl->max_shield() * 2); pl->set_shield(pl->shield() + pl->max_shield() / 2);}, "x2 shield strength"}},
         {10, {[](shared_ptr<Player> pl){auto i = pl->item<MineItem>(); i->set_max_uses(i->max_uses() * 2);}, "x2 mines"}},
         {11, {[](shared_ptr<Player> pl){auto i = pl->item<BombItem>(); i->set_max_uses(i->max_uses() + 1);}, "+1 bombs"}},
     }}},
     {PlayerKlass::ROCKETEER, {"Rocketeer", "data/images/rocketeer_icon.png", {
         {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<BombItem>());}, "Basics"}},
-//         {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<CrateItem>());}, "Basics"}},
         {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<MineDetectorItem>());}, "Basics"}},
-        {2, {[](shared_ptr<Player> pl){pl->add_item(make_shared<ShieldItem>());}, "Shield"}},
         {3, {[](shared_ptr<Player> pl){pl->add_item(make_shared<BurstRocketItem>());}, "Burst Rockets"}},
         {4, {[](shared_ptr<Player> pl){pl->add_item(make_shared<RocketItem>());}, "Rockets"}},
         {5, {[](shared_ptr<Player> pl){auto i = pl->item<RocketItem>(); i->set_max_uses(i->max_uses() + 1);}, "+1 rockets"}},
@@ -99,9 +96,7 @@ map<PlayerKlass, KlassInfo> klass_info = {
     }}},
     {PlayerKlass::RADIANT, {"Radiant", "data/images/radiant_icon.png", {
         {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<BombItem>());}, "Basics"}},
-//         {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<CrateItem>());}, "Basics"}},
         {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<MineDetectorItem>());}, "Basics"}},
-        {2, {[](shared_ptr<Player> pl){pl->add_item(make_shared<ShieldItem>());}, "Shield"}},
         {3, {[](shared_ptr<Player> pl){pl->add_item(make_shared<LaserItem>());}, "Laser"}},
         {5, {[](shared_ptr<Player> pl){auto i = pl->item<LaserItem>(); i->set_max_uses(i->max_uses() * 2);}, "x2 laser"}},
         {7, {[](shared_ptr<Player> pl){auto i = pl->item<LaserItem>(); i->set_max_uses(i->max_uses() * 2);}, "x2 laser"}},
@@ -110,15 +105,11 @@ map<PlayerKlass, KlassInfo> klass_info = {
     }}},
     {PlayerKlass::FLAMER, {"Flamer", "data/images/flamer_icon.png", {
         {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<BombItem>());}, "Basics"}},
-//         {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<CrateItem>());}, "Basics"}},
         {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<MineDetectorItem>());}, "Basics"}},
-        {2, {[](shared_ptr<Player> pl){pl->add_item(make_shared<ShieldItem>());}, "Shield"}},
     }}},
     {PlayerKlass::HEAVY, {"Heavy", "data/images/heavy_icon.png", {
         {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<BombItem>());}, "Basics"}},
-//         {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<CrateItem>());}, "Basics"}},
         {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<MineDetectorItem>());}, "Basics"}},
-        {2, {[](shared_ptr<Player> pl){pl->add_item(make_shared<ShieldItem>());}, "Shield"}},
     }}},
 };
 
@@ -146,6 +137,7 @@ Player::Player(unsigned int id_, Map* map_) : Object(id_, map_), klass_(PlayerKl
 
 void Player::post_constructor() {
     Object::post_constructor();
+    shield_ = max_shield_;
 }
 
 void Player::render(sf::RenderTarget& rt) {
@@ -161,6 +153,14 @@ void Player::render(sf::RenderTarget& rt) {
     position_sprite(sp2);
     sp2.setColor(player_settings[side()].color);
     rt.draw(sp2);
+
+    if (shield_glow) {
+        sf::Sprite spr(render_map()->load_texture("data/images/shield.png"));
+        position_sprite(spr);
+        spr.setColor(sf::Color(255, 255, 255, min(255u, shield_glow)));
+        rt.draw(spr);
+        shield_glow -= 10;
+    }
 
     for (auto& item : items_) {
         item.second->render_overlay(rt);
@@ -280,6 +280,18 @@ void Player::render_handle(msgpackvar m) {
             }
             break;
         }
+        case PlayerRenderMessage::SHIELD: {
+            if (m.count("glow")) {
+                shield_glow = m["glow"].as_uint64_t();
+            }
+            if (m.count("shield")) {
+                shield_ = m["shield"].as_uint64_t();
+            }
+            if (m.count("max_shield")) {
+                max_shield_ = m["max_shield"].as_uint64_t();
+            }
+            break;
+        }
         default: Object::render_handle(m);
     }
 }
@@ -367,6 +379,31 @@ void Player::render_hud(sf::RenderTarget& rt) {
     txt.setPosition(238, -3);
     rt.draw(txt);
 
+
+    sf::RectangleShape darkbg(sf::Vector2f(rt.getView().getSize().x, 10));
+    darkbg.setPosition(0, 10);
+    darkbg.setFillColor(sf::Color(0, 0, 0, 128));
+    rt.draw(darkbg);
+
+    sf::RectangleShape border(sf::Vector2f(202, 8));
+    border.setPosition(1, 9);
+    border.setFillColor(sf::Color::Black);
+    rt.draw(border);
+
+    auto barbgtex = rm->load_texture("data/images/bar_bg.png");
+    barbgtex.setRepeated(true);
+    sf::Sprite sp_bar_bg(barbgtex);
+    sp_bar_bg.setTextureRect(sf::IntRect(0, 0, 200, 6));
+    sp_bar_bg.setPosition(2, 10);
+    rt.draw(sp_bar_bg);
+
+    auto barfgtex = rm->load_texture("data/images/shield_bar_fg.png");
+    barfgtex.setRepeated(true);
+    sf::Sprite sp_bar_fg(barfgtex);
+    sp_bar_fg.setTextureRect(sf::IntRect(0, 0, min(200u, 200 * shield_ / max_shield_), 6));
+    sp_bar_fg.setPosition(2, 10);
+    rt.draw(sp_bar_fg);
+
     if (klass_ == PlayerKlass::UNDECIDED) {
         unsigned int h = STANDARD_OBJECT_SIZE + 20;
         unsigned int w = STANDARD_OBJECT_SIZE + 30;
@@ -447,6 +484,19 @@ unsigned int Player::take_damage(unsigned int damage, DamageType dt) {
     if (items_.count(active_item) && items_[active_item]->active()) {
         damage = items_[active_item]->damage_intercept(damage, dt);
     }
+    if (shield_) {
+        cout << "SH[" << shield_ << " " << damage << "]" << endl;
+        auto amt = min(shield_, damage);
+        shield_ -= amt;
+        damage -= amt;
+        msgpackvar m;
+        m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
+        m["id"] = id;
+        m["type"] = as_ui(PlayerRenderMessage::SHIELD);
+        m["glow"] = 500u;
+        m["shield"] = shield_;
+        server_map()->event(shared_from_this(), std::move(m));
+    }
     return Object::take_damage(damage, dt);
 }
 
@@ -464,6 +514,31 @@ void Player::level_up() {
 
 bool Player::ready() {
     return klass_ != PlayerKlass::UNDECIDED;
+}
+
+
+void Player::set_max_shield(unsigned int max_shield) {
+    max_shield_ = max_shield;
+    if (auto sm = server_map()) {
+        msgpackvar m;
+        m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
+        m["id"] = id;
+        m["type"] = as_ui(PlayerRenderMessage::SHIELD);
+        m["max_shield"] = max_shield_;
+        sm->event(shared_from_this(), std::move(m));
+    }
+}
+
+void Player::set_shield(unsigned int shield) {
+    shield_ = shield;
+    if (auto sm = server_map()) {
+        msgpackvar m;
+        m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
+        m["id"] = id;
+        m["type"] = as_ui(PlayerRenderMessage::SHIELD);
+        m["shield"] = shield_;
+        sm->event(shared_from_this(), std::move(m));
+    }
 }
 
 void DeadPlayer::render(sf::RenderTarget& rt) {

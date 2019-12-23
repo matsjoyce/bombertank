@@ -37,6 +37,7 @@ class Player : public Object {
     unsigned int active_item = -1;
     void add_upgrades_for_level(unsigned int start, bool initial);
     PlayerKlass klass_;
+    unsigned int shield_ = -1, max_shield_ = 25, shield_glow = 0;
 public:
     Signal<> on_ready;
     void post_constructor() override;
@@ -71,6 +72,14 @@ public:
     template<class T> std::shared_ptr<T> item() {
         return std::dynamic_pointer_cast<T>(items_[T::TYPE]);
     }
+    unsigned int shield() const {
+        return shield_;
+    }
+    void set_shield(unsigned int shield);
+    unsigned int max_shield() const {
+        return max_shield_;
+    }
+    void set_max_shield(unsigned int max_shield);
 };
 
 class DeadPlayer : public Effect {
