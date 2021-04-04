@@ -52,6 +52,11 @@ map<int, PlayerSettings> player_settings = {
             sf::Keyboard::Num7, sf::Keyboard::Num8, sf::Keyboard::Num9, sf::Keyboard::Num0, sf::Keyboard::Hyphen,
             sf::Color(0, 128, 0)
     }},
+    {2, {
+            sf::Keyboard::I, sf::Keyboard::K, sf::Keyboard::J, sf::Keyboard::L,
+            sf::Keyboard::Z, sf::Keyboard::X, sf::Keyboard::C, sf::Keyboard::V, sf::Keyboard::B,
+            sf::Color(0, 0, 128)
+    }},
 };
 
 enum class PlayerKlass : unsigned int {
@@ -131,6 +136,7 @@ Player::Player(unsigned int id_, Map* map_) : Object(id_, map_), klass_(PlayerKl
         });
         destroyed.connect([this, fid] {
             map->paused.disconnect(fid);
+            server_map()->level_up_trigger(shared_from_this());
         });
     }
 }

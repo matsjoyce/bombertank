@@ -122,7 +122,7 @@ unsigned int LevelUp::render_layer() {
 void LevelUp::update() {
     for (auto& obj : server_map()->collides(*this)) {
         if (auto pl = dynamic_pointer_cast<Player>(obj.second)) {
-            pl->level_up();
+            pl->heal(100);
             destroy();
         }
     }

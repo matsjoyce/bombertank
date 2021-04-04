@@ -21,11 +21,6 @@
 using namespace std;
 
 Wall::Wall(unsigned int id_, Map* map_) : Object(id_, map_) {
-    if (server_map()) {
-        destroyed.connect([this]{
-            server_map()->level_up_trigger(shared_from_this());
-        });
-    }
 }
 
 

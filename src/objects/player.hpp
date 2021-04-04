@@ -28,7 +28,7 @@ enum class PlayerKlass : unsigned int;
 class Player : public Object {
     std::vector<Orientation::Orientation> direction_stack;
     int max_speed = 4;
-    unsigned int level_ = 1;
+    unsigned int level_ = 10;
     unsigned int lives_ = 3;
     sf::Clock anim_clock;
     std::string tex_name = "data/images/tank1.png";

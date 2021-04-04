@@ -144,16 +144,11 @@ void ServerMap::resume() {
 }
 
 void ServerMap::level_up_trigger(objptr obj) {
-    if (is_editor()) return;
-    geometric_distribution<unsigned int> distribution(0.09);
-    auto score = distribution(random_generator());
-    cout << score << " " << level_ups_created << endl;
-    if (score > level_ups_created) {
-        auto lu = add(LevelUp::TYPE);
-        lu->set_center(obj->center());
-        lu->_generate_move();
-        ++level_ups_created;
-    }
+    if (is_editor()/* || obj->type() != Player::TYPE*/) return;
+    auto lu = add(LevelUp::TYPE);
+    lu->set_center(obj->center());
+    lu->_generate_move();
+    ++level_ups_created;
 }
 
 void ServerMap::on_frame(unsigned int frame, std::function<void()> f) {

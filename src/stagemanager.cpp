@@ -250,19 +250,38 @@ unique_ptr<Stage> PlayStage::update(sf::RenderWindow& window) {
 
 void PlayStage::render(sf::RenderWindow& window) {
     sf::View view;
-    auto multiscreen_divide = (gstate->rms.size() > 1) ? 2 : 1;
-    view.reset(sf::FloatRect(0, 0, window.getSize().x / SCALEUP / dpi_scaling_factor(window), window.getSize().y / SCALEUP / multiscreen_divide / dpi_scaling_factor(window)));
-
-    if (gstate->rms.size()) {
-        view.setViewport(sf::FloatRect(0, 0, 1.0, (gstate->rms.size() > 1) ? 0.5 : 1));
-        window.setView(view);
-        gstate->rms[0].render(window);
+    auto x_multiscreen_divide = 1;
+    auto y_multiscreen_divide = 1;
+    {
+        auto num_players = 1u;
+        auto do_y = true;
+        while (num_players < gstate->rms.size()) {
+            if (do_y) {
+                ++y_multiscreen_divide;
+            }
+            else {
+                ++x_multiscreen_divide;
+            }
+            do_y = !do_y;
+            num_players *= 2;
+        }
     }
+    auto multiscreen_divide_scaling = (gstate->rms.size() > 2) ? 1.5 : 1;
+    view.reset(
+        sf::FloatRect(
+            0,
+            0,
+            window.getSize().x / SCALEUP / x_multiscreen_divide / dpi_scaling_factor(window) * multiscreen_divide_scaling,
+            window.getSize().y / SCALEUP / y_multiscreen_divide / dpi_scaling_factor(window) * multiscreen_divide_scaling
+        )
+    );
 
-    if (gstate->rms.size() > 1) {
-        view.setViewport(sf::FloatRect(0, 0.5, 1.0, 0.5));
+    for (auto i = 0u; i < gstate->rms.size(); ++i) {
+        auto y_pos = i / x_multiscreen_divide;
+        auto x_pos = i % x_multiscreen_divide;
+        view.setViewport(sf::FloatRect(1.0 / x_multiscreen_divide * x_pos, 1.0 / y_multiscreen_divide * y_pos, 1.0 / x_multiscreen_divide, 1.0 / y_multiscreen_divide));
         window.setView(view);
-        gstate->rms[1].render(window);
+        gstate->rms[i].render(window);
     }
 }
 
