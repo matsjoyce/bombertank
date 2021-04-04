@@ -176,7 +176,7 @@ void Player::handle_keypress(sf::Keyboard::Key key, bool is_down) {
         auto index = key == settings.item0 ? 0 : key == settings.item1 ? 1 : key == settings.item2 ? 2 : key == settings.item3 ? 3 : 4;
         cout << "Item key " << index << endl;
         if (ready()) {
-            if (index >= items_.size()) {
+            if (index >= static_cast<int>(items_.size())) {
                 return;
             }
             m["type"] = as_ui(is_down ? PlayerServerMessage::START_ITEM : PlayerServerMessage::END_ITEM);

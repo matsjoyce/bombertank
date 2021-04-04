@@ -29,7 +29,7 @@ enum class GMState : unsigned int {
     GAME_OVER
 };
 
-GameManager::GameManager(std::string fname) : state(GMState::WAITING_FOR_PLAYER) {
+GameManager::GameManager() : state(GMState::WAITING_FOR_PLAYER) {
     sm.set_event_sender(std::bind(&GameManager::broadcast_msg, this, placeholders::_1));
 }
 
@@ -108,21 +108,26 @@ std::vector<Point> load_objects_from_file(std::istream& f, ServerMap& map, bool 
     return ret;
 }
 
-PVPGameManager::PVPGameManager(std::string fname) : GameManager(fname) {
+PVPGameManager::PVPGameManager() {
     sm.pause("Starting");
+}
+
+PVPGameManager::PVPGameManager(std::string fname) : PVPGameManager() {
     auto f = ifstream(fname);
-    player_start_pos = load_objects_from_file(f, sm);
-    int i = 0;
-    for (auto& pos : player_start_pos) {
-        auto player = dynamic_pointer_cast<Player>(sm.add(Player::TYPE));
-        players.emplace_back(player);
-        player->set_nw_corner(pos);
-        player->_generate_move();
-        player->set_side(i);
-        player->destroyed.connect([this]{player_dead();});
-        player->on_ready.connect([this]{player_ready();});
-        ++i;
+    for (auto& pos : load_objects_from_file(f, sm)) {
+        add_player(pos);
     };
+}
+
+void PVPGameManager::add_player(Point pos) {
+    auto player = dynamic_pointer_cast<Player>(sm.add(Player::TYPE));
+    players.emplace_back(player);
+    player_start_pos.emplace_back(pos);
+    player->set_nw_corner(pos);
+    player->_generate_move();
+    player->set_side(players.size() - 1);
+    player->destroyed.connect([this]{player_dead();});
+    player->on_ready.connect([this]{player_ready();});
 }
 
 void PVPGameManager::player_dead() {
@@ -162,7 +167,7 @@ bool PVPGameManager::done() {
     return state == GMState::GAME_OVER;
 }
 
-EditorGameManager::EditorGameManager(std::string fname) : GameManager(fname) {
+EditorGameManager::EditorGameManager(std::string fname) {
     sm.set_is_editor(true);
     auto f = ifstream(fname);
     load_objects_from_file(f, sm, true);

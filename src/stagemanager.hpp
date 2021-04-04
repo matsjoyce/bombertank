@@ -24,6 +24,11 @@
 #include <functional>
 #include "point.hpp"
 #include "signal.hpp"
+#include "rendermap.hpp"
+#include "gamemanager.hpp"
+#include "objects/player.hpp"
+
+constexpr unsigned int SCALEUP = 2;
 
 class Stage {
 public:
@@ -32,16 +37,28 @@ public:
     virtual ~Stage() = default;
 };
 
-struct GameState;
+int dpi_scaling_factor(sf::RenderWindow& window);
+
+struct GameState {
+    std::unique_ptr<GameManager> gm;
+    std::vector<Point> starting_positions;
+    std::vector<std::shared_ptr<Player>> players;
+    std::vector<RenderMap> rms;
+    sf::Font font;
+    GameState();
+};
 
 class LoadStage : public Stage {
     std::unique_ptr<GameState> gstate;
     bool load_editor;
+    int current_index = 0;
+    std::unique_ptr<Stage> selected(sf::RenderWindow& window);
+    std::vector<std::string> load_maps(std::string dir);
 public:
     LoadStage(bool is_editor=false);
     std::unique_ptr<Stage> update(sf::RenderWindow& window) override;
     static std::unique_ptr<Stage> create(bool is_editor=false);
-    std::vector<std::string> load_maps(std::string dir);
+    void render(sf::RenderWindow& window) override;
 };
 
 class SelectStage : public Stage {

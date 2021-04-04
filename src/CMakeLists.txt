@@ -3,6 +3,7 @@ set(SOURCE
     rect.cpp
     object.cpp
     map.cpp
+    mapgenerator.cpp
     rendermap.cpp
     eventqueue.cpp
     effect.cpp
@@ -26,6 +27,3 @@ add_library(bombertank STATIC ${SOURCE})
 
 add_executable(main main.cpp)
 target_link_libraries(main bombertank sfml-graphics sfml-audio stdc++fs pthread)
-
-add_executable(maped maped.cpp)
-target_link_libraries(maped bombertank sfml-graphics sfml-audio stdc++fs pthread)

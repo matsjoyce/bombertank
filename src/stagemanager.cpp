@@ -17,11 +17,8 @@
  */
 
 #include "stagemanager.hpp"
-#include "servermap.hpp"
-#include "rendermap.hpp"
-#include "gamemanager.hpp"
-#include "objects/player.hpp"
 #include "objects/effects.hpp"
+#include "mapgenerator.hpp"
 #include <fstream>
 #include <thread>
 #include <filesystem>
@@ -31,22 +28,17 @@
 namespace fs = std::filesystem;
 using namespace std;
 
-constexpr unsigned int SCALEUP = 2;
-
-// TODO WARNING: The below code interacts with the ServerMap directly which is NOT threadsafe! Must be migrated to use rendermaps!
-
-struct GameState {
-    unique_ptr<GameManager> gm;
-    vector<Point> starting_positions;
-    vector<shared_ptr<Player>> players;
-    vector<RenderMap> rms;
-    sf::Font font;
-    int dpi_scaling_factor = 1;
-    GameState() {
-        font.loadFromFile("data/fonts/font.pcf");
-        const_cast<sf::Texture&>(font.getTexture(12)).setSmooth(false);
+int dpi_scaling_factor(sf::RenderWindow& window) {
+    if (window.getSize().x > 2000) {
+        return 2;
     }
-};
+    return 1;
+}
+
+GameState::GameState() {
+    font.loadFromFile("data/fonts/font.pcf");
+    const_cast<sf::Texture&>(font.getTexture(12)).setSmooth(false);
+}
 
 unique_ptr<Stage> Stage::update(sf::RenderWindow& /*window*/) {
     return {};
@@ -54,6 +46,13 @@ unique_ptr<Stage> Stage::update(sf::RenderWindow& /*window*/) {
 
 void Stage::render(sf::RenderWindow& /*window*/) {
 }
+
+const std::vector<std::string> LOAD_STAGE_OPTIONS = {
+    "PLAY",
+    "MAP EDITOR",
+    "EXIT",
+    "EXPR"
+};
 
 LoadStage::LoadStage(bool is_editor) : gstate(make_unique<GameState>()), load_editor(is_editor) {
 }
@@ -74,45 +73,91 @@ vector<string> LoadStage::load_maps(std::string dir) {
 }
 
 unique_ptr<Stage> LoadStage::update(sf::RenderWindow& window) {
-    if (window.getSize().x > 2000) {
-        gstate->dpi_scaling_factor = 2;
+    sf::Event event;
+    while (window.pollEvent(event)) {
+        if (event.type == sf::Event::Closed) {
+            window.close();
+        }
+        if (event.type == sf::Event::KeyPressed) {
+            if (event.key.code == sf::Keyboard::Enter) {
+                return selected(window);
+            }
+            else if (event.key.code == sf::Keyboard::Down) {
+                current_index = (current_index + 1) % LOAD_STAGE_OPTIONS.size();
+            }
+            else if (event.key.code == sf::Keyboard::Up) {
+                current_index = (current_index - 1 + LOAD_STAGE_OPTIONS.size()) % LOAD_STAGE_OPTIONS.size();
+            }
+        }
     }
-    if (load_editor) {
-        auto maps = load_maps("maps");
-        maps.insert(maps.begin(), "<New>");
-        auto ss = make_unique<SelectStage>(move(gstate), maps);
+    return {};
+}
 
-        ss->on_selected = [](unsigned int index, string value, unique_ptr<GameState>&& gstate){
-            gstate->gm = make_unique<EditorGameManager>(index ? value : "map_save.btm");
+void LoadStage::render(sf::RenderWindow& window) {
+    sf::View view;
+    view.reset(sf::FloatRect(sf::Vector2f(0, 0), Point(window.getSize()) / dpi_scaling_factor(window) / SCALEUP));
+    view.setViewport(sf::FloatRect(0, 0, 1.0, 1.0));
+    window.setView(view);
 
-            auto es1 = make_unique<EventServer>(), es2 = make_unique<EventServer>();
-            es1->connect(es2.get());
-            es2->connect(es1.get());
-            auto& rm = gstate->rms.emplace_back(move(es1), 0);
-            rm.set_is_editor(true);
-            gstate->gm->add_controller(0, move(es2));
-
-            return make_unique<EditorStage>(move(gstate), index ? value : "map_save.btm");
-        };
-        return move(ss);
+    int y = 0;
+    for (auto& value : LOAD_STAGE_OPTIONS) {
+        sf::Text txt(value, gstate->font, 12);
+        txt.setPosition(sf::Vector2f(6, 6 + 14 * y));
+        txt.setFillColor(y == current_index ? sf::Color::Red : sf::Color::Black);
+        window.draw(txt);
+        ++y;
     }
-    else {
-        auto ss = make_unique<SelectStage>(move(gstate), load_maps("maps"));
+}
 
-        ss->on_selected = [](unsigned int /*index*/, string value, unique_ptr<GameState>&& gstate){
-            gstate->gm = make_unique<PVPGameManager>(value);
-            auto gm = dynamic_cast<PVPGameManager*>(gstate->gm.get());
-            for (auto i = 0u; i < gm->sides(); ++i) {
+std::unique_ptr<Stage> LoadStage::selected(sf::RenderWindow& window) {
+    switch (current_index) {
+        case 0: {
+            auto ss = make_unique<SelectStage>(move(gstate), load_maps("maps"));
+
+            ss->on_selected = [](unsigned int /*index*/, string value, unique_ptr<GameState>&& gstate){
+                gstate->gm = make_unique<PVPGameManager>(value);
+                auto gm = dynamic_cast<PVPGameManager*>(gstate->gm.get());
+                for (auto i = 0u; i < gm->sides(); ++i) {
+                    auto es1 = make_unique<EventServer>(), es2 = make_unique<EventServer>();
+                    es1->connect(es2.get());
+                    es2->connect(es1.get());
+                    gstate->rms.emplace_back(move(es1), i);
+                    gm->add_controller(i, move(es2));
+                };
+                gm->start();
+                return make_unique<PlayStage>(move(gstate));
+            };
+            return ss;
+        }
+        case 1: {
+            auto maps = load_maps("maps");
+            maps.insert(maps.begin(), "<New>");
+            auto ss = make_unique<SelectStage>(move(gstate), maps);
+
+            ss->on_selected = [](unsigned int index, string value, unique_ptr<GameState>&& gstate){
+                gstate->gm = make_unique<EditorGameManager>(index ? value : "map_save.btm");
+
                 auto es1 = make_unique<EventServer>(), es2 = make_unique<EventServer>();
                 es1->connect(es2.get());
                 es2->connect(es1.get());
-                gstate->rms.emplace_back(move(es1), i);
-                gm->add_controller(i, move(es2));
+                auto& rm = gstate->rms.emplace_back(move(es1), 0);
+                rm.set_is_editor(true);
+                gstate->gm->add_controller(0, move(es2));
+
+                return make_unique<EditorStage>(move(gstate), index ? value : "map_save.btm");
             };
-            gm->start();
-            return make_unique<PlayStage>(move(gstate));
-        };
-        return move(ss);
+            return ss;
+        }
+        case 2: {
+            window.close();
+            return {};
+        }
+        case 3: {
+            return make_unique<ExperimentalStage>();
+        }
+        default: {
+            return {};
+        }
     }
 }
 
@@ -146,7 +191,7 @@ unique_ptr<Stage> SelectStage::update(sf::RenderWindow& window) {
 
 void SelectStage::render(sf::RenderWindow& window) {
     sf::View view;
-    view.reset(sf::FloatRect(sf::Vector2f(0, 0), Point(window.getSize()) / gstate->dpi_scaling_factor / SCALEUP));
+    view.reset(sf::FloatRect(sf::Vector2f(0, 0), Point(window.getSize()) / dpi_scaling_factor(window) / SCALEUP));
     view.setViewport(sf::FloatRect(0, 0, 1.0, 1.0));
     window.setView(view);
 
@@ -206,7 +251,7 @@ unique_ptr<Stage> PlayStage::update(sf::RenderWindow& window) {
 void PlayStage::render(sf::RenderWindow& window) {
     sf::View view;
     auto multiscreen_divide = (gstate->rms.size() > 1) ? 2 : 1;
-    view.reset(sf::FloatRect(0, 0, window.getSize().x / SCALEUP / gstate->dpi_scaling_factor, window.getSize().y / SCALEUP / multiscreen_divide / gstate->dpi_scaling_factor));
+    view.reset(sf::FloatRect(0, 0, window.getSize().x / SCALEUP / dpi_scaling_factor(window), window.getSize().y / SCALEUP / multiscreen_divide / dpi_scaling_factor(window)));
 
     if (gstate->rms.size()) {
         view.setViewport(sf::FloatRect(0, 0, 1.0, (gstate->rms.size() > 1) ? 0.5 : 1));
@@ -231,16 +276,16 @@ unique_ptr<Stage> EditorStage::update(sf::RenderWindow& window) {
             window.close();
         }
         if (event.type == sf::Event::MouseButtonPressed) {
-            if ((window.getSize().y - event.mouseButton.y) / SCALEUP / gstate->dpi_scaling_factor < STANDARD_OBJECT_SIZE + 6) {
+            if ((window.getSize().y - event.mouseButton.y) / SCALEUP / dpi_scaling_factor(window) < STANDARD_OBJECT_SIZE + 6) {
                 // Select tile
-                auto index = (event.mouseButton.x) / SCALEUP / gstate->dpi_scaling_factor / (STANDARD_OBJECT_SIZE + 6);
-                if (index >= 0 && index < placable_tiles.size()) {
+                auto index = (event.mouseButton.x) / static_cast<int>(SCALEUP) / dpi_scaling_factor(window) / (STANDARD_OBJECT_SIZE + 6);
+                if (index >= 0 && index < static_cast<int>(placable_tiles.size())) {
                     placing = placable_tiles[index];
                 }
             }
             else {
                 // Draw tile
-                auto pos = ((Point(event.mouseButton.x, event.mouseButton.y) - Point(window.getSize()) / 2) / SCALEUP / gstate->dpi_scaling_factor).to_tile() + gstate->rms[0].center().to_tile();
+                auto pos = ((Point(event.mouseButton.x, event.mouseButton.y) - Point(window.getSize()) / 2) / SCALEUP / dpi_scaling_factor(window)).to_tile() + gstate->rms[0].center().to_tile();
                 auto r = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) || sf::Keyboard::isKeyPressed(sf::Keyboard::RShift) ? Rect(pos, last_pos) : Rect(pos, pos);
                 r.set_size(r.width() + 1, r.height() + 1);
                 Rect collides_rect(STANDARD_OBJECT_SIZE, STANDARD_OBJECT_SIZE);
@@ -268,7 +313,7 @@ unique_ptr<Stage> EditorStage::update(sf::RenderWindow& window) {
                 return make_unique<LoadStage>(true);
             }
             else if (event.key.code == sf::Keyboard::Delete) {
-                auto pos = ((Point(sf::Mouse::getPosition(window)) - Point(window.getSize()) / 2) / SCALEUP / gstate->dpi_scaling_factor).to_tile() + gstate->rms[0].center().to_tile();
+                auto pos = ((Point(sf::Mouse::getPosition(window)) - Point(window.getSize()) / 2) / SCALEUP / dpi_scaling_factor(window)).to_tile() + gstate->rms[0].center().to_tile();
                 auto r = event.key.shift ? Rect(pos.from_tile(), last_pos.from_tile()) : Rect(pos.from_tile(), pos.from_tile());
                 r.set_size(r.width() + STANDARD_OBJECT_SIZE, r.height() + STANDARD_OBJECT_SIZE);
                 for (auto& obj : gstate->gm->map().collides(r)) {
@@ -299,7 +344,7 @@ unique_ptr<Stage> EditorStage::update(sf::RenderWindow& window) {
 
 void EditorStage::render(sf::RenderWindow& window) {
     sf::View view;
-    view.reset(sf::FloatRect({0, 0}, Point(window.getSize()) / SCALEUP / gstate->dpi_scaling_factor));
+    view.reset(sf::FloatRect({0, 0}, Point(window.getSize()) / SCALEUP / dpi_scaling_factor(window)));
     window.setView(view);
 
     gstate->rms[0].render(window);

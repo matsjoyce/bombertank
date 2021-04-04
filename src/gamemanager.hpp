@@ -32,7 +32,7 @@ protected:
     std::map<unsigned int, std::unique_ptr<EventServer>> side_controllers;
     GMState state;
 public:
-    GameManager(std::string fname);
+    GameManager();
     virtual ~GameManager();
     ServerMap& map() {
         return sm;
@@ -50,11 +50,13 @@ class PVPGameManager : public GameManager {
     std::vector<Point> player_start_pos;
     std::vector<std::shared_ptr<Player>> players;
 public:
+    PVPGameManager();
     PVPGameManager(std::string fname);
+    void add_player(Point pos);
     void player_dead();
     void player_ready();
     unsigned int sides() {
-        return player_start_pos.size();
+        return players.size();
     }
     bool done();
 };
