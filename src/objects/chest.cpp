@@ -107,27 +107,3 @@ void Chest::render_handle(msgpackvar m) {
         default: Object::render_handle(std::move(m));
     }
 }
-
-
-void LevelUp::render(sf::RenderTarget& rt) {
-    sf::Sprite sp(render_map()->load_texture("data/images/level_up.png"));
-    position_sprite(sp);
-    rt.draw(sp);
-}
-
-unsigned int LevelUp::render_layer() {
-    return 2;
-}
-
-void LevelUp::update() {
-    for (auto& obj : server_map()->collides(*this)) {
-        if (auto pl = dynamic_pointer_cast<Player>(obj.second)) {
-            pl->heal(100);
-            destroy();
-        }
-    }
-}
-
-unsigned int LevelUp::layer() {
-    return 4;
-}

@@ -19,7 +19,7 @@
 #include "servermap.hpp"
 #include "object.hpp"
 #include "objects/player.hpp"
-#include "objects/chest.hpp"
+#include "objects/dropitem.hpp"
 #include <iostream>
 #include <chrono>
 
@@ -144,8 +144,8 @@ void ServerMap::resume() {
 }
 
 void ServerMap::level_up_trigger(objptr obj) {
-    if (is_editor()/* || obj->type() != Player::TYPE*/) return;
-    auto lu = add(LevelUp::TYPE);
+    if (is_editor()) return;
+    auto lu = add(HealthDropItem::TYPE);
     lu->set_center(obj->center());
     lu->_generate_move();
     ++level_ups_created;

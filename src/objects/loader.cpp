@@ -24,6 +24,7 @@
 #include "chest.hpp"
 #include "projectiles.hpp"
 #include "floors.hpp"
+#include "dropitem.hpp"
 
 using namespace std;
 
@@ -55,12 +56,12 @@ map<unsigned int, function<objptr(unsigned int, Map*)>> load_objects() {
         load<RoboBomb>();
         load<Mine>();
         load<Chest>();
-        load<LevelUp>();
         load<Rocket>();
         load<MiniRocket>();
         load<Lava>();
         load<LaserRobo>();
         load<LaserTurret>();
+        load<HealthDropItem>();
         loaded = true;
     }
     return object_creators;

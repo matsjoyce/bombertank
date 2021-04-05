@@ -16,22 +16,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CHEST_HPP
-#define CHEST_HPP
+#ifndef DROPITEM_HPP
+#define DROPITEM_HPP
 
 #include "loader.hpp"
 
-class Chest : public Object {
+class Player;
+
+class DropItem : public Object {
 public:
-    Chest(unsigned int id_, Map* map_);
-    constexpr static const int TYPE = 8;
-    virtual unsigned int type() override {
-        return 8;
-    }
-    void render(sf::RenderTarget& rt) override;
+    using Object::Object;
     unsigned int render_layer() override;
-    void render_handle(msgpackvar m) override;
-    void collision(objptr obj, bool caused_by_self) override;
+    void update() override;
+    unsigned int layer() override;
+    bool show_in_editor() override {
+        return false;
+    }
+    virtual void apply(std::shared_ptr<Player> player) = 0;
 };
 
-#endif // CHEST_HPP
+class HealthDropItem : public DropItem {
+public:
+    using DropItem::DropItem;
+    constexpr static const int TYPE = 15;
+    virtual unsigned int type() override {
+        return 15;
+    }
+    void render(sf::RenderTarget& rt) override;
+    void apply(std::shared_ptr<Player> player) override;
+};
+
+#endif // DROPITEM_HPP
