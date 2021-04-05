@@ -281,7 +281,6 @@ void LaserItem::update() {
         --uses;
         auto ori = player()->orientation();
         auto pos = player()->dir_center(ori);
-        cout << "LASER" << player()->level() << endl;
         auto dist = progressive_kill_in_direction(player()->server_map(), pos, 4, range_, ori, damage_, DamageType::HEAT, player()->layer());
 
         msgpackvar m;

@@ -100,7 +100,7 @@ RoboBomb::RoboBomb(unsigned int id_, Map* map_) : StaticBomb(id_, map_) {
         uniform_int_distribution<int> distribution(0, 3);
         set_direction(Orientation::Orientation(distribution(map->random_generator())));
         destroyed.connect([this]{
-            server_map()->level_up_trigger(shared_from_this());
+            server_map()->drop_trigger(shared_from_this());
         });
     }
 }
@@ -203,7 +203,7 @@ LaserRobo::LaserRobo(unsigned int id_, Map* map_) : Object(id_, map_) {
         uniform_int_distribution<int> distribution(0, 3);
         set_direction(Orientation::Orientation(distribution(map->random_generator())));
         destroyed.connect([this]{
-            server_map()->level_up_trigger(shared_from_this());
+            server_map()->drop_trigger(shared_from_this());
         });
     }
 }

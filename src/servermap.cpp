@@ -145,7 +145,7 @@ void ServerMap::resume() {
 
 std::vector<unsigned int> DROP_OPTIONS = {HealthDropItem::TYPE, SpeedDropItem::TYPE};
 
-void ServerMap::level_up_trigger(objptr obj) {
+void ServerMap::drop_trigger(objptr obj) {
     if (is_editor()) return;
     if (obj->type() != Player::TYPE) {
         uniform_int_distribution<int> distribution(1, 8);

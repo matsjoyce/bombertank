@@ -61,7 +61,7 @@ map<int, PlayerSettings> player_settings = {
 
 enum class PlayerKlass : unsigned int {
     UNDECIDED, BEGIN,
-    BOMBER=BEGIN, ROCKETEER, RADIANT, FLAMER, HEAVY,
+    BOMBER=BEGIN, ROCKETEER, RADIANT,// FLAMER, HEAVY,
     END
 };
 
@@ -69,53 +69,59 @@ constexpr unsigned int NUM_KLASSES = static_cast<unsigned int>(PlayerKlass::END)
 
 struct KlassInfo {
     string name, icon;
-    multimap<unsigned int, tuple<function<void(shared_ptr<Player>)>, string>> upgrades;
+    function<void(shared_ptr<Player>)> modifier;
 };
 
 map<PlayerKlass, KlassInfo> klass_info = {
-    {PlayerKlass::BOMBER, {"Bomber", "data/images/bomber_icon.png", {
-        {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<BombItem>());}, "Basics"}},
-        {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<CrateItem>());}, "Basics"}},
-        {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<MineDetectorItem>());}, "Basics"}},
-        {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<MineItem>());}, "Mines"}},
-        {2, {[](shared_ptr<Player> pl){auto i = pl->item<MineDetectorItem>(); i->set_range(i->range() + STANDARD_OBJECT_SIZE);}, "+1 mine detector range"}},
-        {3, {[](shared_ptr<Player> pl){auto i = pl->item<BombItem>(); i->set_max_uses(i->max_uses() + 1);}, "+1 bombs"}},
-        {4, {[](shared_ptr<Player> pl){auto i = pl->item<CrateItem>(); i->set_hp(i->hp() * 2);}, "x2 crate hp"}},
-        {5, {[](shared_ptr<Player> pl){auto i = pl->item<BombItem>(); i->set_size(i->size() * 2);}, "+1 bomb size"}},
-        {6, {[](shared_ptr<Player> pl){auto i = pl->item<MineItem>(); i->set_size(i->size() * 2);}, "+1 mine size"}},
-        {7, {[](shared_ptr<Player> pl){pl->set_max_shield(pl->max_shield() * 2); pl->set_shield(pl->shield() + pl->max_shield() / 2);}, "x2 shield strength"}},
-        {8, {[](shared_ptr<Player> pl){auto i = pl->item<MineItem>(); i->set_max_uses(i->max_uses() * 2);}, "x2 mines"}},
-        {9, {[](shared_ptr<Player> pl){auto i = pl->item<BombItem>(); i->set_max_uses(i->max_uses() + 1);}, "+1 bombs"}},
-    }}},
-    {PlayerKlass::ROCKETEER, {"Rocketeer", "data/images/rocketeer_icon.png", {
-        {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<BombItem>());}, "Basics"}},
-        {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<MineDetectorItem>());}, "Basics"}},
-        {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<BurstRocketItem>());}, "Burst Rockets"}},
-        {2, {[](shared_ptr<Player> pl){auto i = pl->item<BurstRocketItem>(); i->set_max_uses(i->max_uses() * 2);}, "x2 burst rockets"}},
-        {3, {[](shared_ptr<Player> pl){pl->add_item(make_shared<RocketItem>());}, "Rockets"}},
-        {4, {[](shared_ptr<Player> pl){auto i = pl->item<RocketItem>(); i->set_max_uses(i->max_uses() + 1);}, "+1 rockets"}},
-        {5, {[](shared_ptr<Player> pl){auto i = pl->item<RocketItem>(); i->set_max_uses(i->max_uses() + 1);}, "+1 rockets"}},
-        {6, {[](shared_ptr<Player> pl){auto i = pl->item<RocketItem>(); i->set_range(i->range() + 1);}, "+1 rocket range"}},
-        {7, {[](shared_ptr<Player> pl){auto i = pl->item<RocketItem>(); i->set_max_uses(i->max_uses() + 1);}, "+1 rockets"}},
-        {8, {[](shared_ptr<Player> pl){auto i = pl->item<BurstRocketItem>(); i->set_max_uses(i->max_uses() * 2);}, "x2 burst rockets"}},
-    }}},
-    {PlayerKlass::RADIANT, {"Radiant", "data/images/radiant_icon.png", {
-        {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<BombItem>());}, "Basics"}},
-        {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<MineDetectorItem>());}, "Basics"}},
-        {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<LaserItem>());}, "Laser"}},
-        {2, {[](shared_ptr<Player> pl){auto i = pl->item<LaserItem>(); i->set_max_uses(i->max_uses() * 2);}, "x2 laser"}},
-        {3, {[](shared_ptr<Player> pl){auto i = pl->item<LaserItem>(); i->set_max_uses(i->max_uses() * 2);}, "x2 laser"}},
-        {5, {[](shared_ptr<Player> pl){auto i = pl->item<LaserItem>(); i->set_range(i->range() * 2);}, "x2 laser range"}},
-        {7, {[](shared_ptr<Player> pl){auto i = pl->item<LaserItem>(); i->set_max_uses(i->max_uses() * 2);}, "x2 laser"}},
-    }}},
-    {PlayerKlass::FLAMER, {"Flamer", "data/images/flamer_icon.png", {
-        {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<BombItem>());}, "Basics"}},
-        {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<MineDetectorItem>());}, "Basics"}},
-    }}},
-    {PlayerKlass::HEAVY, {"Heavy", "data/images/heavy_icon.png", {
-        {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<BombItem>());}, "Basics"}},
-        {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<MineDetectorItem>());}, "Basics"}},
-    }}},
+    {PlayerKlass::BOMBER,
+        {
+            "Bomber",
+            "data/images/bomber_icon.png",
+            [](shared_ptr<Player> pl) {
+                auto bomb_item = make_shared<BombItem>();
+                pl->add_item(bomb_item);
+                pl->add_item(make_shared<CrateItem>());
+                auto mine_detector = make_shared<MineDetectorItem>();
+                pl->add_item(mine_detector);
+                pl->add_item(make_shared<MineItem>());
+                mine_detector->set_range(mine_detector->range() + STANDARD_OBJECT_SIZE);
+                bomb_item->set_max_uses(bomb_item->max_uses() + 2);
+                bomb_item->set_size(2);
+                pl->set_max_shield(pl->max_shield() * 2); pl->set_shield(pl->shield() + pl->max_shield() / 2);
+            }
+        }
+    },
+    {PlayerKlass::ROCKETEER,
+        {
+            "Rocketeer",
+            "data/images/rocketeer_icon.png",
+            [](shared_ptr<Player> pl) {
+                pl->add_item(make_shared<BombItem>());
+                pl->add_item(make_shared<MineDetectorItem>());
+                pl->add_item(make_shared<BurstRocketItem>());
+                pl->add_item(make_shared<RocketItem>());
+            }
+        }
+    },
+    {PlayerKlass::RADIANT,
+        {
+            "Radiant",
+            "data/images/radiant_icon.png",
+            [](shared_ptr<Player> pl) {
+                pl->add_item(make_shared<BombItem>());
+                pl->add_item(make_shared<MineDetectorItem>());
+                pl->add_item(make_shared<LaserItem>());
+            }
+        }
+    }
+//     {PlayerKlass::FLAMER, {"Flamer", "data/images/flamer_icon.png", {
+//         {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<BombItem>());}, "Basics"}},
+//         {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<MineDetectorItem>());}, "Basics"}},
+//     }}},
+//     {PlayerKlass::HEAVY, {"Heavy", "data/images/heavy_icon.png", {
+//         {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<BombItem>());}, "Basics"}},
+//         {1, {[](shared_ptr<Player> pl){pl->add_item(make_shared<MineDetectorItem>());}, "Basics"}},
+//     }}},
 };
 
 Player::Player(unsigned int id_, Map* map_) : Object(id_, map_), klass_(PlayerKlass::UNDECIDED) {
@@ -136,7 +142,7 @@ Player::Player(unsigned int id_, Map* map_) : Object(id_, map_), klass_(PlayerKl
         });
         destroyed.connect([this, fid] {
             map->paused.disconnect(fid);
-            server_map()->level_up_trigger(shared_from_this());
+            server_map()->drop_trigger(shared_from_this());
         });
     }
 }
@@ -248,7 +254,7 @@ void Player::handle(msgpackvar m) {
         }
         case PlayerServerMessage::SELECT_KLASS: {
             klass_ = static_cast<PlayerKlass>(m["klass"].as_uint64_t());
-            add_upgrades_for_level(0, true);
+            klass_info[klass_].modifier(dynamic_pointer_cast<Player>(shared_from_this()));
             on_ready.emit();
             break;
         }
@@ -260,7 +266,6 @@ void Player::render_handle(msgpackvar m) {
     switch (static_cast<PlayerRenderMessage>(m["type"].as_uint64_t())) {
         case PlayerRenderMessage::TRANSFER: {
             lives_ = m["lives"].as_uint64_t();
-            level_ = m["level"].as_uint64_t();
             break;
         }
         case PlayerRenderMessage::ADD_ITEM: {
@@ -318,12 +323,6 @@ void Player::setup_keys() {
     }
 }
 
-void Player::add_upgrades_for_level(unsigned int start, bool initial) {
-    for (auto iter = klass_info[klass_].upgrades.upper_bound(start); iter != klass_info[klass_].upgrades.upper_bound(level_); ++iter) {
-        get<0>(iter->second)(dynamic_pointer_cast<Player>(shared_from_this()));
-    }
-}
-
 void Player::update() {
     for (auto& item : items_) {
         item.second->update();
@@ -352,14 +351,11 @@ void Player::transfer(objptr obj) {
     auto pl = dynamic_cast<Player*>(obj.get());
     pl->lives_ = lives_ - 1;
     pl->set_side(side());
-    pl->level_ = level_;
-    pl->add_upgrades_for_level(0, true);
     msgpackvar m;
     m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
     m["type"] = as_ui(PlayerRenderMessage::TRANSFER);
     m["id"] = pl->id;
     m["lives"] = pl->lives_;
-    m["level"] = pl->level_;
     server_map()->event(obj, std::move(m));
 }
 
@@ -381,7 +377,7 @@ void Player::render_hud(sf::RenderTarget& rt) {
     sp_fg.setPosition(204, 0);
     rt.draw(sp_fg);
 
-    sf::Text txt("Lvl " + to_string(level_) + " " + klass_info[klass_].name, rm->load_font("data/fonts/font.pcf"), 12);
+    sf::Text txt(klass_info[klass_].name, rm->load_font("data/fonts/font.pcf"), 12);
     txt.setPosition(238, -3);
     rt.draw(txt);
 

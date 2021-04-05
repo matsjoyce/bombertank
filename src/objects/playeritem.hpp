@@ -127,7 +127,7 @@ public:
 class CrateItem : public UsedPlayerItem {
     unsigned int hp_ = 50;
 public:
-    CrateItem() : UsedPlayerItem(2) {}
+    CrateItem() : UsedPlayerItem(3) {}
     constexpr static const int TYPE = 1;
     unsigned int type() override {
         return 1;
@@ -148,7 +148,7 @@ public:
 class MineItem : public UsesPlayerItem {
     unsigned int damage_ = 100, size_ = 1;
 public:
-    MineItem() : UsesPlayerItem(2) {}
+    MineItem() : UsesPlayerItem(3) {}
     constexpr static const int TYPE = 2;
     unsigned int type() override {
         return 2;
@@ -202,7 +202,7 @@ public:
 class LaserItem : public UsesPlayerItem {
     unsigned int warmup = 0, range_ = STANDARD_OBJECT_SIZE * 5, damage_ = 10;
 public:
-    LaserItem() : UsesPlayerItem(5) {}
+    LaserItem() : UsesPlayerItem(30) {}
     constexpr static const int TYPE = 4;
     unsigned int type() override {
         return 4;
@@ -244,6 +244,7 @@ private:
 class RocketItem : public UsesPlayerItem {
     unsigned int range_ = 20, damage_ = 25;
 public:
+    RocketItem() : UsesPlayerItem(3) {}
     constexpr static const int TYPE = 6;
     unsigned int type() override {
         return 6;
@@ -268,10 +269,10 @@ public:
 };
 
 class BurstRocketItem : public UsesPlayerItem {
-    unsigned int warmup = 0, range_ = 10, damage_ = 20;
+    unsigned int warmup = 0, range_ = 20, damage_ = 20;
     bool left_side = true;
 public:
-    BurstRocketItem() : UsesPlayerItem(4) {}
+    BurstRocketItem() : UsesPlayerItem(12) {}
     constexpr static const int TYPE = 8;
     unsigned int type() override {
         return 8;

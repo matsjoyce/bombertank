@@ -27,14 +27,12 @@ enum class PlayerKlass : unsigned int;
 
 class Player : public Object {
     std::vector<Orientation::Orientation> direction_stack;
-    unsigned int level_ = 10;
     unsigned int lives_ = 3;
     sf::Clock anim_clock;
     std::string tex_name = "data/images/tank1.png";
     void setup_keys();
     std::map<unsigned int, std::shared_ptr<PlayerItem>> items_;
     unsigned int active_item = -1;
-    void add_upgrades_for_level(unsigned int start, bool initial);
     PlayerKlass klass_;
     unsigned int shield_ = -1, max_shield_ = 25, shield_glow = 0, klass_select_wait = 100, speed_boost = 0;
 public:
@@ -46,9 +44,6 @@ public:
     }
     inline unsigned int lives() const {
         return lives_;
-    }
-    inline unsigned int level() const {
-        return level_;
     }
     inline const std::map<unsigned int, std::shared_ptr<PlayerItem>>& items() const {
         return items_;
