@@ -157,6 +157,13 @@ void Player::render(sf::RenderTarget& rt) {
         auto t = fmod(anim_clock.getElapsedTime().asSeconds() * 24, 4);
         tex_name = t < 1 ? "data/images/tank1.png" : t < 2 ? "data/images/tank2.png" : t < 3 ? "data/images/tank3.png" : "data/images/tank4.png";
     }
+
+    if (speed_boost) {
+        sf::Sprite sp(render_map()->load_texture("data/images/speed_glow.png"));
+        position_sprite(sp);
+        rt.draw(sp);
+    }
+
     sf::Sprite sp(render_map()->load_texture(tex_name));
     position_sprite(sp);
     rt.draw(sp);
