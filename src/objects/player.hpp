@@ -27,7 +27,6 @@ enum class PlayerKlass : unsigned int;
 
 class Player : public Object {
     std::vector<Orientation::Orientation> direction_stack;
-    int max_speed = 4;
     unsigned int level_ = 10;
     unsigned int lives_ = 3;
     sf::Clock anim_clock;
@@ -37,7 +36,7 @@ class Player : public Object {
     unsigned int active_item = -1;
     void add_upgrades_for_level(unsigned int start, bool initial);
     PlayerKlass klass_;
-    unsigned int shield_ = -1, max_shield_ = 25, shield_glow = 0, klass_select_wait = 100;
+    unsigned int shield_ = -1, max_shield_ = 25, shield_glow = 0, klass_select_wait = 100, speed_boost = 0;
 public:
     Signal<> on_ready;
     void post_constructor() override;
@@ -67,7 +66,7 @@ public:
     void add_item(std::shared_ptr<PlayerItem> item);
     void render_hud(sf::RenderTarget & rt) override;
     void item_msg(msgpackvar&& m, unsigned int type);
-    void level_up();
+    void add_speed_boost(int boost);
     bool ready();
     template<class T> std::shared_ptr<T> item() {
         return std::dynamic_pointer_cast<T>(items_[T::TYPE]);
@@ -80,6 +79,7 @@ public:
         return max_shield_;
     }
     void set_max_shield(unsigned int max_shield);
+    int max_speed();
 };
 
 class DeadPlayer : public Effect {

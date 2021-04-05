@@ -47,4 +47,15 @@ public:
     void apply(std::shared_ptr<Player> player) override;
 };
 
+class SpeedDropItem : public DropItem {
+public:
+    using DropItem::DropItem;
+    constexpr static const int TYPE = 16;
+    virtual unsigned int type() override {
+        return 16;
+    }
+    void render(sf::RenderTarget& rt) override;
+    void apply(std::shared_ptr<Player> player) override;
+};
+
 #endif // DROPITEM_HPP

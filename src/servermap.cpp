@@ -143,12 +143,20 @@ void ServerMap::resume() {
     ServerMap::event({}, std::move(m));
 }
 
+std::vector<unsigned int> DROP_OPTIONS = {HealthDropItem::TYPE, SpeedDropItem::TYPE};
+
 void ServerMap::level_up_trigger(objptr obj) {
     if (is_editor()) return;
-    auto lu = add(HealthDropItem::TYPE);
-    lu->set_center(obj->center());
-    lu->_generate_move();
-    ++level_ups_created;
+    if (obj->type() != Player::TYPE) {
+        uniform_int_distribution<int> distribution(1, 8);
+        if (distribution(random_generator()) != 1) {
+            return;
+        }
+    }
+    uniform_int_distribution<int> distribution(0, DROP_OPTIONS.size() - 1);
+    auto di = add(DROP_OPTIONS[distribution(random_generator())]);
+    di->set_center(obj->center());
+    di->_generate_move();
 }
 
 void ServerMap::on_frame(unsigned int frame, std::function<void()> f) {

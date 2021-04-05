@@ -32,7 +32,7 @@ enum class PlayerServerMessage : unsigned int {
 
 enum class PlayerRenderMessage : unsigned int {
     TRANSFER = static_cast<unsigned int>(RenderObjectMessage::END),
-    ADD_ITEM, FOR_ITEM, LEVEL_UP, SHIELD
+    ADD_ITEM, FOR_ITEM, SHIELD, SPEED_BOOST
 };
 
 struct PlayerSettings {
@@ -279,13 +279,6 @@ void Player::render_handle(msgpackvar m) {
             }
             break;
         }
-        case PlayerRenderMessage::LEVEL_UP: {
-            level_ = m["level"].as_uint64_t();
-            for (auto iter = klass_info[klass_].upgrades.upper_bound(level_ - 1); iter != klass_info[klass_].upgrades.upper_bound(level_); ++iter) {
-                render_map()->add_effect<PopupText>(side(), get<1>(iter->second), sf::Color::Red);
-            }
-            break;
-        }
         case PlayerRenderMessage::SHIELD: {
             if (m.count("glow")) {
                 shield_glow = m["glow"].as_uint64_t();
@@ -296,6 +289,10 @@ void Player::render_handle(msgpackvar m) {
             if (m.count("max_shield")) {
                 max_shield_ = m["max_shield"].as_uint64_t();
             }
+            break;
+        }
+        case PlayerRenderMessage::SPEED_BOOST: {
+            speed_boost = extract_int(m["boost"]);
             break;
         }
         default: Object::render_handle(m);
@@ -336,7 +333,10 @@ void Player::update() {
             set_direction(direction_stack.back());
             set_orientation(direction_stack.back());
         }
-        accelerate(max_speed - speed());
+        accelerate(max_speed() - speed());
+        if (speed() && speed_boost) {
+            add_speed_boost(-1);
+        }
     }
 }
 
@@ -511,18 +511,6 @@ unsigned int Player::take_damage(unsigned int damage, DamageType dt) {
     return Object::take_damage(damage, dt);
 }
 
-void Player::level_up() {
-    ++level_;
-    add_upgrades_for_level(level_ - 1, false);
-
-    msgpackvar m;
-    m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
-    m["id"] = id;
-    m["type"] = as_ui(PlayerRenderMessage::LEVEL_UP);
-    m["level"] = level_;
-    server_map()->event(shared_from_this(), std::move(m));
-}
-
 bool Player::ready() {
     return klass_ != PlayerKlass::UNDECIDED;
 }
@@ -548,6 +536,22 @@ void Player::set_shield(unsigned int shield) {
         m["id"] = id;
         m["type"] = as_ui(PlayerRenderMessage::SHIELD);
         m["shield"] = shield_;
+        sm->event(shared_from_this(), std::move(m));
+    }
+}
+
+int Player::max_speed() {
+    return 4 + (speed_boost ? 4 : 0);
+}
+
+void Player::add_speed_boost(int boost) {
+    speed_boost += boost;
+    if (auto sm = server_map()) {
+        msgpackvar m;
+        m["mtype"] = as_ui(ToRenderMessage::FOROBJ);
+        m["type"] = as_ui(PlayerRenderMessage::SPEED_BOOST);
+        m["id"] = id;
+        m["boost"] = speed_boost;
         sm->event(shared_from_this(), std::move(m));
     }
 }

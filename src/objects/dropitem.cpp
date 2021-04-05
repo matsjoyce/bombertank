@@ -35,3 +35,13 @@ void HealthDropItem::render(sf::RenderTarget& rt) {
 void HealthDropItem::apply(shared_ptr<Player> player) {
     player->heal(100);
 }
+
+void SpeedDropItem::render(sf::RenderTarget& rt) {
+    sf::Sprite sp(render_map()->load_texture("data/images/speed_box.png"));
+    position_sprite(sp);
+    rt.draw(sp);
+}
+
+void SpeedDropItem::apply(shared_ptr<Player> player) {
+    player->add_speed_boost(100);
+}
