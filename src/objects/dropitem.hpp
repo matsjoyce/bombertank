@@ -33,6 +33,7 @@ public:
         return false;
     }
     virtual void apply(std::shared_ptr<Player> player) = 0;
+    unsigned int take_damage(unsigned int damage, DamageType dt) override;
 };
 
 class HealthDropItem : public DropItem {

@@ -37,7 +37,7 @@ class Player : public Object {
     unsigned int active_item = -1;
     void add_upgrades_for_level(unsigned int start, bool initial);
     PlayerKlass klass_;
-    unsigned int shield_ = -1, max_shield_ = 25, shield_glow = 0, klass_select_wait = 200;
+    unsigned int shield_ = -1, max_shield_ = 25, shield_glow = 0, klass_select_wait = 100;
 public:
     Signal<> on_ready;
     void post_constructor() override;

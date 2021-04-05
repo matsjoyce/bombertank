@@ -131,14 +131,13 @@ void PVPGameManager::add_player(Point pos) {
 }
 
 void PVPGameManager::player_dead() {
+    auto num_players_alive = 0;
+    auto players_choosing = 0;
     for (auto i = 0u; i != players.size(); ++i) {
         auto player = players[i];
-        if (!player->alive()) {
-            if (!player->lives()) {
-                state = GMState::GAME_OVER;
-                sm.pause("Game Over!");
-                return;
-            }
+        num_players_alive += player->alive() || player->lives();
+        if (!player->alive() && player->lives()) {
+            ++players_choosing;
             auto new_player = players[i] = dynamic_pointer_cast<Player>(sm.add(Player::TYPE));
             player->transfer(new_player);
             new_player->set_nw_corner(player_start_pos[i]);
@@ -148,8 +147,14 @@ void PVPGameManager::player_dead() {
             new_player->on_ready.connect([this]{player_ready();});
         }
     }
-    state = GMState::WAITING_FOR_PLAYER;
-    sm.pause("Someone Died!");
+    if (num_players_alive < 2) {
+        state = GMState::GAME_OVER;
+        sm.pause("Game Over!");
+    }
+    else if (players_choosing) {
+        state = GMState::WAITING_FOR_PLAYER;
+        sm.pause("Someone Died!");
+    }
 }
 
 void PVPGameManager::player_ready() {

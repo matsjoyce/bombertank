@@ -21,6 +21,11 @@ unsigned int DropItem::layer() {
     return 4;
 }
 
+unsigned int DropItem::take_damage(unsigned int /*damage*/, DamageType /*dt*/) {
+    // You have no power here!
+    return 0;
+}
+
 void HealthDropItem::render(sf::RenderTarget& rt) {
     sf::Sprite sp(render_map()->load_texture("data/images/health_box.png"));
     position_sprite(sp);

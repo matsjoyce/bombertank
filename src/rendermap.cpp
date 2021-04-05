@@ -117,7 +117,7 @@ void RenderMap::render(sf::RenderTarget& rt) {
         sc_view.reset(sf::FloatRect({}, view.getSize() / 6.0f));
         rt.setView(sc_view);
         sf::RectangleShape drect(sf::Vector2f(sc_view.getSize()));
-        drect.setFillColor(sf::Color(0, 0, 0, pause_darkness));
+        drect.setFillColor(sf::Color(0, 0, 0, pause_darkness * 2));
         rt.draw(drect);
 
         sf::Text text(pause_reason, load_font("data/fonts/font.pcf"), 12);
@@ -126,9 +126,9 @@ void RenderMap::render(sf::RenderTarget& rt) {
         text.setOrigin(textRect.left + textRect.width/2.0f,
                        textRect.top  + textRect.height/2.0f);
         text.setPosition(sc_view.getSize() / 2.0f);
-        text.setFillColor(sf::Color(255, 0, 0, pause_darkness));
+        text.setFillColor(sf::Color(255, 0, 0, pause_darkness * 2));
         rt.draw(text);
-        if (pause_darkness < 200) {
+        if (pause_darkness < 100) {
             ++pause_darkness;
         }
     }
