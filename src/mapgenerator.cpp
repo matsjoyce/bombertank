@@ -1,5 +1,5 @@
 #include "mapgenerator.hpp"
-#include "thirdparty/FastNoiseLite.hpp"
+#include "FastNoiseLite.hpp"
 #include "objects/floors.hpp"
 #include "objects/walls.hpp"
 #include <iostream>
