@@ -1,6 +1,6 @@
+#include <QApplication>
 #include <QDebug>
 #include <QFontDatabase>
-#include <QGuiApplication>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickStyle>
@@ -26,7 +26,7 @@ int main(int argc, char *argv[]) {
     qmlRegisterType<TankControlState>("BT", 1, 0, "TankControlState");
 
     QQuickStyle::setStyle("Theme");
-    QGuiApplication app(argc, argv);
+    QApplication app(argc, argv);
 
     // int id = QFontDatabase::addApplicationFont(":/PixelEmulator-xq08.ttf");
     // QString family = QFontDatabase::applicationFontFamilies(id).at(0);
@@ -49,8 +49,8 @@ int main(int argc, char *argv[]) {
 
     const QUrl url(QStringLiteral("qrc:/qml/main.qml"));
     QObject::connect(
-        &engine, &QQmlApplicationEngine::objectCreated,
-        &app, [url](QObject *obj, const QUrl &objUrl) {
+        &engine, &QQmlApplicationEngine::objectCreated, &app,
+        [url](QObject *obj, const QUrl &objUrl) {
             if (!obj && url == objUrl) {
                 QCoreApplication::exit(-1);
             }

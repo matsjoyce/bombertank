@@ -28,6 +28,5 @@ int main(int argc, char *argv[]) {
         QObject::connect(&gs, &GameServer::lastClientDisconnected, &app, &QCoreApplication::quit);
     }
 
-    gs.addGame();
     return app.exec();
 }

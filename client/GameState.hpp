@@ -3,7 +3,7 @@
 
 #include <QObject>
 
-#include "../common/TcpMessageSocket.hpp"
+#include "common/TcpMessageSocket.hpp"
 #include "objects/Base.hpp"
 #include "objects/TankControl.hpp"
 

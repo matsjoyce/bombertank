@@ -17,6 +17,7 @@ target_link_libraries(
     Qt${QT_VERSION_MAJOR}::Network
     Qt${QT_VERSION_MAJOR}::Quick
     Qt${QT_VERSION_MAJOR}::QuickControls2
+    Qt${QT_VERSION_MAJOR}::Widgets # For file dialog support
     bt_common
 )
 add_dependencies(bt_client bt_server)

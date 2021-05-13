@@ -3,33 +3,23 @@
 
 #include <QAbstractListModel>
 #include <QObject>
+#include <QUrl>
 
 #include "GameState.hpp"
 #include "common/TcpMessageSocket.hpp"
 
-class ListedGame : public QObject {
-    Q_OBJECT
+constexpr auto IdRole = Qt::UserRole;
+constexpr auto TitleRole = Qt::UserRole + 1;
 
-    Q_PROPERTY(int id READ id)
-    Q_PROPERTY(QString title READ title WRITE setTitle NOTIFY titleChanged)
-
-    int _id;
-    QString _title;
-
-   public:
-    ListedGame(int id, QObject* parent = nullptr) : QObject(parent), _id(id) {}
-    int id() const { return _id; }
-    QString title() const { return _title; }
-    void setTitle(QString title);
-
-   signals:
-    void titleChanged(QString title);
+struct ListedGame {
+    int id;
+    QString title;
 };
 
 class ListedGameModel : public QAbstractListModel {
     Q_OBJECT
 
-    std::vector<ListedGame*> _listedGames;
+    std::vector<ListedGame> _listedGames;
 
    public:
     using QAbstractListModel::QAbstractListModel;
@@ -58,7 +48,7 @@ class GameServer : public QObject {
     ListedGameModel* listedGamesModel() const { return _listedGamesModel; }
 
     Q_INVOKABLE GameState* joinGame(int id);
-    Q_INVOKABLE void createGame();
+    Q_INVOKABLE void createGame(QUrl mapFilePath);
 };
 
 #endif  // GAME_SERVER_HPP

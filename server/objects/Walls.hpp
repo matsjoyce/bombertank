@@ -11,12 +11,13 @@ class AbstractWallState : public BaseObjectState {
 
 class WallState : public AbstractWallState {
    public:
-    WallState();
+    WallState(ObjectType type_);
 };
 
 class IndestructableWallState : public AbstractWallState {
    public:
-    IndestructableWallState();
+    IndestructableWallState(ObjectType type_);
+    void damage(float amount, DamageType type) override {}
 };
 
 #endif  // OBJECTS_WALLS_HPP

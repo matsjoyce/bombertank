@@ -1,6 +1,7 @@
 #ifndef OBJECTS_BASE_HPP
 #define OBJECTS_BASE_HPP
 
+#include "common/Constants.hpp"
 #include "common/TcpMessageSocket.hpp"
 
 class BaseObjectState : public QObject {
@@ -8,14 +9,14 @@ class BaseObjectState : public QObject {
 
     Q_PROPERTY(float health READ health NOTIFY healthChanged)
 
-    unsigned int _type = 0;
+    ObjectType _type;
     float _x = 0, _y = 0, _rotation = 0, _health = 0;
 
    public:
     using QObject::QObject;
     void loadMessage(Message& msg);
 
-    unsigned int type() { return _type; }
+    ObjectType type() { return _type; }
     float x() { return _x; }
     float y() { return _y; }
     float rotation() { return _rotation; }

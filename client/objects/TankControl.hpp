@@ -3,7 +3,7 @@
 
 #include <QObject>
 
-#include "../common/TcpMessageSocket.hpp"
+#include "common/TcpMessageSocket.hpp"
 
 class TankControlState : public QObject {
     Q_OBJECT

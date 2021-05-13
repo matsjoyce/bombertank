@@ -5,17 +5,25 @@
 
 #include "Game.hpp"
 
-GameHandler::GameHandler(GameServer* gs) : QObject(gs) {
+GameHandler::GameHandler(GameServer* gs,
+                         std::vector<std::map<msgpack::type::variant, msgpack::type::variant>> startingObjects)
+    : QObject(gs) {
     auto thread = new QThread();
     connect(thread, &QThread::started, [=]() {
         auto game = new Game();
+        qInfo() << "Loading objects" << startingObjects.size();
+
+        for (auto& obj : startingObjects) {
+            game->addObject(static_cast<ObjectType>(obj.at("type").as_uint64_t()),
+                            {obj.at("x").as_double(), obj.at("y").as_double()}, 0, {});
+        }
         connect(game, &Game::sendMessage, gs, &GameServer::handleGameMessage);
         connect(this, &GameHandler::_addConnection, game, &Game::addConnection);
         connect(this, &GameHandler::_removeConnection, game, &Game::removeConnection);
         connect(this, &GameHandler::_sendMessage, game, &Game::recieveMessage, Qt::QueuedConnection);
         game->mainloop();
-        thread->quit();
         game->deleteLater();
+        thread->quit();
     });
     connect(thread, &QThread::finished, thread, &QThread::deleteLater);
     thread->start();
@@ -29,15 +37,18 @@ void GameHandler::sendMessage(int id, Message msg) { emit _sendMessage(id, msg);
 
 GameServer::GameServer(const QHostAddress& address, quint16 port) {
     _server = new QTcpServer(this);
-    _server->listen(address, port);
+    if (!_server->listen(address, port)) {
+        qWarning() << "Failed to bind to server port";
+        return;
+    }
     qInfo() << "Server started, listening at" << _server->serverAddress() << ":" << _server->serverPort();
 
     connect(_server, &QTcpServer::newConnection, this, &GameServer::handleConnection);
 }
 
-int GameServer::addGame() {
+int GameServer::addGame(const std::vector<std::map<msgpack::type::variant, msgpack::type::variant>>& startingObjects) {
     auto id = _nextGameId++;
-    _games[id] = new GameHandler(this);
+    _games[id] = new GameHandler(this, startingObjects);
     return id;
 }
 
@@ -54,6 +65,19 @@ void GameServer::handleConnection() {
     for (auto game : _games) {
         msgconn->sendMessage({{"cmd", "game_updated"}, {"id", game.first}});
     }
+}
+
+std::vector<std::map<msgpack::type::variant, msgpack::type::variant>> extractVectorOfMap(msgpack::type::variant obj) {
+    std::vector<std::map<msgpack::type::variant, msgpack::type::variant>> res;
+    auto vec = obj.as_vector();
+    std::transform(vec.begin(), vec.end(), std::back_inserter(res), [](auto& o) {
+        std::map<msgpack::type::variant, msgpack::type::variant> m;
+        for (auto& p : o.as_multimap()) {
+            m.insert(p);
+        }
+        return m;
+    });
+    return res;
 }
 
 void GameServer::handleClientMessage(int id, Message msg) {
@@ -84,7 +108,7 @@ void GameServer::handleClientMessage(int id, Message msg) {
     }
     else if (msg["cmd"].as_string() == "create_game") {
         qInfo() << "Creating new game";
-        auto gameId = addGame();
+        auto gameId = addGame(extractVectorOfMap(msg["starting_objects"]));
         connInfo.connection->sendMessage({{"cmd", "game_created"}, {"id", gameId}});
     }
     else {

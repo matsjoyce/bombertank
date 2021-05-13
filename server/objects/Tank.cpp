@@ -3,8 +3,9 @@
 #include <QDebug>
 
 #include "../Game.hpp"
+#include "common/Constants.hpp"
 
-TankState::TankState() : BaseObjectState(1, 150) { _actions.resize(5); }
+TankState::TankState(ObjectType type_) : BaseObjectState(type_, 150) { _actions.resize(5); }
 
 void TankState::createBodies(b2World& world, b2BodyDef& bodyDef) {
     bodyDef.type = b2_dynamicBody;
@@ -70,8 +71,11 @@ void TankState::prePhysics(Game* game) {
     if (_actions[0]) {
         // Shoot
         qDebug() << "Create shell";
-        auto shell = game->addObject(5, body->GetPosition() + 3.5 * forward, body->GetAngle(), 40 * forward);
-        body->ApplyLinearImpulseToCenter(-40 * shell->body->GetMass() * forward, true);
+        auto shell =
+            game->addObject(ObjectType::SHELL, body->GetPosition() + 3.5 * forward, body->GetAngle(), 40 * forward);
+        if (shell) {
+            body->ApplyLinearImpulseToCenter(-40 * shell->body->GetMass() * forward, true);
+        }
     }
 }
 

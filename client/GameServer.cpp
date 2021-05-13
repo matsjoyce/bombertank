@@ -1,6 +1,7 @@
 #include "GameServer.hpp"
 
 #include <QDebug>
+#include <QFile>
 #include <QQmlEngine>
 #include <QTimer>
 #include <algorithm>
@@ -33,33 +34,46 @@ GameState* GameServer::joinGame(int id) {
     return _gameState;
 }
 
-void GameServer::createGame() { _msgconn->sendMessage({{"cmd", "create_game"}}); }
-
-void ListedGame::setTitle(QString title) {
-    if (_title != title) {
-        _title = title;
-        emit titleChanged(_title);
+void GameServer::createGame(QUrl mapFilePath) {
+    QFile mapFile(mapFilePath.toLocalFile());
+    if (!mapFile.open(QIODevice::ReadOnly)) {
+        qWarning() << "Could not open map file" << mapFilePath;
+        return;
     }
+    QByteArray mapData = mapFile.readAll();
+    msgpack::object_handle oh = msgpack::unpack(mapData.constData(), mapData.size());
+    auto objs = oh.get().as<std::vector<msgpack::type::variant>>();
+
+    _msgconn->sendMessage({{"cmd", "create_game"}, {"starting_objects", objs}});
 }
 
 int ListedGameModel::rowCount(const QModelIndex& parent) const { return _listedGames.size(); }
 
 QVariant ListedGameModel::data(const QModelIndex& index, int role) const {
-    if (index.isValid() && index.row() < _listedGames.size() && role == Qt::UserRole) {
-        return QVariant::fromValue<QObject*>(_listedGames[index.row()]);
+    if (index.isValid() && index.row() < _listedGames.size()) {
+        auto& game = _listedGames[index.row()];
+        switch (role) {
+            case IdRole: {
+                return {game.id};
+            }
+            case TitleRole: {
+                return {game.title};
+            }
+        }
     }
     return QVariant();
 }
 
 QHash<int, QByteArray> ListedGameModel::roleNames() const {
     QHash<int, QByteArray> roles;
-    roles[Qt::UserRole] = "listedGame";
+    roles[IdRole] = "id";
+    roles[TitleRole] = "title";
     return roles;
 }
 
 void ListedGameModel::_removeGame(int id) {
     auto iter = std::lower_bound(_listedGames.begin(), _listedGames.end(), id,
-                                 [](ListedGame* game, int id) { return game->id() < id; });
+                                 [](const ListedGame& game, int id) { return game.id < id; });
     if (iter == _listedGames.end()) {
         return;
     }
@@ -71,16 +85,18 @@ void ListedGameModel::_removeGame(int id) {
 
 void ListedGameModel::_updateGame(int id, QString title) {
     auto iter = std::lower_bound(_listedGames.begin(), _listedGames.end(), id,
-                                 [](ListedGame* game, int id) { return game->id() < id; });
-    if (iter == _listedGames.end() || (*iter)->id() != id) {
-        auto lg = new ListedGame(id, this);
-        lg->setTitle(title);
+                                 [](const ListedGame& game, int id) { return game.id < id; });
+    if (iter == _listedGames.end() || iter->id != id) {
+        auto lg = ListedGame();
+        lg.id = id;
+        lg.title = title;
         auto pos = std::distance(_listedGames.begin(), iter);
         beginInsertRows(QModelIndex(), pos, pos);
         _listedGames.insert(iter, lg);
         endInsertRows();
     }
     else {
+        iter->title = title;
         auto pos = std::distance(_listedGames.begin(), iter);
         auto idx = index(pos, 0);
         emit dataChanged(idx, idx);

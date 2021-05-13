@@ -10,8 +10,15 @@
 
 Game::Game() : _world(b2Vec2(0, 0)) { _world.SetContactListener(this); }
 
-BaseObjectState* Game::addObject(int type, b2Vec2 position, float rotation, b2Vec2 velocity) {
-    auto& obj = _objects[_nextId++] = createObjectFromType(type);
+BaseObjectState* Game::addObject(ObjectType type, b2Vec2 position, float rotation, b2Vec2 velocity) {
+    auto objmove = createObjectFromType(type);
+    if (!objmove) {
+        qWarning() << "Could not create object of type" << static_cast<int>(type);
+        return nullptr;
+    }
+    auto id = _nextId++;
+    auto& obj = _objects[id] = std::move(objmove);
+    qInfo() << "Created object" << id << "of type" << static_cast<int>(type);
 
     b2BodyDef bodyDef;
     bodyDef.position = position;
@@ -41,25 +48,6 @@ void Game::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) {
 
 void Game::mainloop() {
     qDebug() << "Game mainloop start";
-    addObject(1, {12, -25}, 0, {0, 0});
-    addObject(1, {25, -25}, 0, {0, 0});
-    addObject(1, {37, -25}, M_PI_2, {0, 0});
-    addObject(2, {30, -40}, 0, {0, 0});
-    addObject(2, {24, -40}, 0, {0, 0});
-    addObject(2, {36, -40}, 0, {0, 0});
-    addObject(2, {27, -46}, 0, {0, 0});
-    addObject(2, {33, -46}, 0, {0, 0});
-    addObject(2, {30, -52}, 0, {0, 0});
-
-    for (auto x = 0; x < 80; x += 6) {
-        addObject(3, {x, 0}, 0, {0, 0});
-        addObject(3, {x, -60}, 0, {0, 0});
-    }
-
-    for (auto y = -6; y >= -54; y -= 6) {
-        addObject(3, {0, y}, 0, {0, 0});
-        addObject(3, {78, y}, 0, {0, 0});
-    }
 
     while (true) {
         QElapsedTimer timer;
@@ -126,7 +114,7 @@ void Game::mainloop() {
 
 void Game::addConnection(int id) {
     _connections.push_back(id);
-    emit sendMessage(id, {{"cmd", "attach"}, {"id", 0}});
+    emit sendMessage(id, {{"cmd", "attach"}, {"id", 1}});
 }
 
 void Game::removeConnection(int id) {

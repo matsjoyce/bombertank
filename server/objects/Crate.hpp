@@ -7,7 +7,7 @@ class CrateState : public BaseObjectState {
     b2Body* _groundBody = nullptr;
 
    public:
-    CrateState();
+    CrateState(ObjectType type_);
     void createBodies(b2World& world, b2BodyDef& bodyDef) override;
 };
 

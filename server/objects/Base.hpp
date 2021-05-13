@@ -4,6 +4,7 @@
 #include <memory>
 
 #include "box2d/box2d.h"
+#include "common/Constants.hpp"
 #include "common/TcpMessageSocket.hpp"
 
 enum class DamageType { IMPACT, PIERCING };
@@ -11,12 +12,12 @@ enum class DamageType { IMPACT, PIERCING };
 class Game;
 
 struct BaseObjectState {
-    unsigned int type;
+    ObjectType type;
     bool dirty = true, dead = false;
     b2Body* body = nullptr;
     float health, maxHealth;
 
-    BaseObjectState(unsigned int type_, float maxHealth_) : type(type_), health(maxHealth_), maxHealth(maxHealth_) {}
+    BaseObjectState(ObjectType type_, float maxHealth_) : type(type_), health(maxHealth_), maxHealth(maxHealth_) {}
     virtual ~BaseObjectState();
     Message message() const;
     virtual void createBodies(b2World& world, b2BodyDef& bodyDef);

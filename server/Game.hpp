@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "box2d/box2d.h"
+#include "common/Constants.hpp"
 #include "common/TcpMessageSocket.hpp"
 #include "objects/Base.hpp"
 
@@ -22,7 +23,7 @@ class Game : public QObject, public b2ContactListener {
    public:
     Game();
     void mainloop();
-    BaseObjectState *addObject(int type, b2Vec2 position, float rotation, b2Vec2 velocity);
+    BaseObjectState *addObject(ObjectType type, b2Vec2 position, float rotation, b2Vec2 velocity);
     void PostSolve(b2Contact *contact, const b2ContactImpulse *impulse) override;
 
    public slots:

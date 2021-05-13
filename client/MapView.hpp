@@ -6,19 +6,22 @@
 #include <QTimer>
 
 #include "GameState.hpp"
+#include "common/Constants.hpp"
 #include "objects/TankControl.hpp"
 
 class MapView : public QQuickItem {
     Q_OBJECT
     Q_PROPERTY(GameState* state READ state WRITE setState NOTIFY stateChanged)
-    Q_PROPERTY(int controlledObjectId READ controlledObjectId WRITE setControlledObjectId NOTIFY controlledObjectIdChanged)
+    Q_PROPERTY(
+        int controlledObjectId READ controlledObjectId WRITE setControlledObjectId NOTIFY controlledObjectIdChanged)
     Q_PROPERTY(BaseObjectState* controlledObject READ controlledObject NOTIFY controlledObjectChanged)
-    Q_PROPERTY(bool rotateWithControlledObject READ rotateWithControlledObject WRITE setRotateWithControlledObject NOTIFY rotateWithControlledObjectChanged)
+    Q_PROPERTY(bool rotateWithControlledObject READ rotateWithControlledObject WRITE setRotateWithControlledObject
+                   NOTIFY rotateWithControlledObjectChanged)
 
     QTimer _timer;
     GameState* _state = nullptr;
-    std::map<int, QQmlComponent*> _spriteComponents;
-    std::map<int, QQmlComponent*> _inputComponents;
+    std::map<ObjectType, QQmlComponent*> _spriteComponents;
+    std::map<ObjectType, QQmlComponent*> _inputComponents;
     std::map<int, QQuickItem*> _sprites;
     QQuickItem* _controls = nullptr;
     BaseObjectState* _controlledObject = nullptr;
@@ -30,7 +33,7 @@ class MapView : public QQuickItem {
     void _doUpdate();
     void _handleControlsUpdated();
     void _checkComponentsLoaded();
-    void _attachToObject(int id, int type);
+    void _attachToObject(int id, ObjectType type);
     void _controlledObjectDeleted();
 
    public:

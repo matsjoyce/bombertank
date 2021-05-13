@@ -7,13 +7,15 @@
 #include <QtMath>
 #include <QtQml>
 
-std::map<int, QUrl> spriteFilesForObjectType = {{1, QUrl(QStringLiteral("qrc:/qml/Sprite/Tank.qml"))},
-                                                {2, QUrl(QStringLiteral("qrc:/qml/Sprite/Crate.qml"))},
-                                                {3, QUrl(QStringLiteral("qrc:/qml/Sprite/Wall.qml"))},
-                                                {4, QUrl(QStringLiteral("qrc:/qml/Sprite/IndestructableWall.qml"))},
-                                                {5, QUrl(QStringLiteral("qrc:/qml/Sprite/Shell.qml"))}};
+std::map<ObjectType, QUrl> spriteFilesForObjectType = {
+    {ObjectType::TANK, QUrl(QStringLiteral("qrc:/qml/Sprite/Tank.qml"))},
+    {ObjectType::CRATE, QUrl(QStringLiteral("qrc:/qml/Sprite/Crate.qml"))},
+    {ObjectType::WALL, QUrl(QStringLiteral("qrc:/qml/Sprite/Wall.qml"))},
+    {ObjectType::INDESTRUCTABLE_WALL, QUrl(QStringLiteral("qrc:/qml/Sprite/IndestructableWall.qml"))},
+    {ObjectType::SHELL, QUrl(QStringLiteral("qrc:/qml/Sprite/Shell.qml"))}};
 
-std::map<int, QUrl> inputFilesForObjectType = {{1, QUrl(QStringLiteral("qrc:/qml/Sprite/TankInput.qml"))}};
+std::map<ObjectType, QUrl> inputFilesForObjectType = {
+    {ObjectType::TANK, QUrl(QStringLiteral("qrc:/qml/Sprite/TankInput.qml"))}};
 
 MapView::MapView() {
     _timer.start(16);
@@ -58,11 +60,11 @@ void MapView::setControlledObjectId(int controlledObjectId) {
     }
 }
 
-void MapView::_attachToObject(int id, int type) {
-    qDebug() << "Preparing controller for" << id << "of type" << type;
+void MapView::_attachToObject(int id, ObjectType type) {
+    qDebug() << "Preparing controller for" << id << "of type" << static_cast<int>(type);
     auto iter = _inputComponents.find(type);
     if (iter == _inputComponents.end() || !iter->second->isReady()) {
-        qWarning() << "Could not load input for type since it is not loaded yet";
+        qWarning() << "Could not load input for type since it is not loaded yet or does not exist";
         return;
     }
     _controls = qobject_cast<QQuickItem*>(iter->second->create());
@@ -144,7 +146,7 @@ void MapView::_doUpdate() {
             auto iter = _spriteComponents.find(snapshot_iter->second->type());
             if (iter == _spriteComponents.end() || !iter->second->isReady()) {
                 qWarning() << "Could not create item for" << snapshot_iter->first << "since its type"
-                           << snapshot_iter->second->type() << "is not loaded";
+                           << static_cast<int>(snapshot_iter->second->type()) << "is not loaded or does not exist";
             }
             else {
                 auto a = iter->second->create();

@@ -2,7 +2,7 @@
 
 #include <QDebug>
 
-CrateState::CrateState() : BaseObjectState(2, 50) {}
+CrateState::CrateState(ObjectType type_) : BaseObjectState(type_, 50) {}
 
 void CrateState::createBodies(b2World& world, b2BodyDef& bodyDef) {
     bodyDef.type = b2_dynamicBody;
@@ -15,7 +15,7 @@ void CrateState::createBodies(b2World& world, b2BodyDef& bodyDef) {
     // Half-size
     box.SetAsBox(3.0f, 3.0f);
 
-    body->CreateFixture(&box, 1.0);
+    body->CreateFixture(&box, 10.0);
 
     b2BodyDef groundDef;
     groundDef.type = b2_kinematicBody;
@@ -25,6 +25,6 @@ void CrateState::createBodies(b2World& world, b2BodyDef& bodyDef) {
     b2FrictionJointDef frictionDef;
     frictionDef.bodyA = body;
     frictionDef.bodyB = _groundBody;
-    frictionDef.maxForce = 500;
+    frictionDef.maxForce = 10 * body->GetMass() * 2;
     world.CreateJoint(&frictionDef);
 }
