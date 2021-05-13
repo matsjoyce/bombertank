@@ -1,0 +1,26 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/main.qml</file>
+        <file>qml/Theme/Button.qml</file>
+        <file>qml/Theme/qmldir</file>
+        <file>qml/UI/StartPage.qml</file>
+        <file>qml/UI/LobbyPage.qml</file>
+        <file>qml/UI/GamePage.qml</file>
+        <file>qml/UI/GameView.qml</file>
+        <file>qml/UI/StatusBar.qml</file>
+        <file>qml/UI/UI.qml</file>
+        <file>qml/Sprite/Tank.qml</file>
+        <file>qml/Sprite/Crate.qml</file>
+        <file>qml/Sprite/Wall.qml</file>
+        <file>qml/Sprite/IndestructableWall.qml</file>
+        <file>qml/Sprite/Shell.qml</file>
+        <file>qml/Sprite/TankInput.qml</file>
+        <file>data/images/tank1.png</file>
+        <file>data/images/pwall.png</file>
+        <file>data/images/wall.png</file>
+        <file>data/images/iwall.png</file>
+        <file>data/images/bar_bg.png</file>
+        <file>data/images/hp_bar_fg.png</file>
+        <file>data/images/shield_bar_fg.png</file>
+    </qresource>
+</RCC>
