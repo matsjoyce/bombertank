@@ -2,7 +2,7 @@
 
 #include <QDebug>
 
-CrateState::CrateState(ObjectType type_) : BaseObjectState(type_, 50) {}
+CrateState::CrateState(constants::ObjectType type_) : BaseObjectState(type_, 50) {}
 
 void CrateState::createBodies(b2World& world, b2BodyDef& bodyDef) {
     bodyDef.type = b2_dynamicBody;

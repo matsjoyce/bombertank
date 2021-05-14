@@ -1,5 +1,6 @@
 set(SOURCE
     TcpMessageSocket.cpp
+    Constants.cpp
 )
 
 add_library(bt_common STATIC ${SOURCE})

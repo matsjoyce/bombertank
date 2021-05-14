@@ -5,7 +5,7 @@
 #include "../Game.hpp"
 #include "common/Constants.hpp"
 
-TankState::TankState(ObjectType type_) : BaseObjectState(type_, 150) { _actions.resize(5); }
+TankState::TankState(constants::ObjectType type_) : BaseObjectState(type_, 150) { _actions.resize(5); }
 
 void TankState::createBodies(b2World& world, b2BodyDef& bodyDef) {
     bodyDef.type = b2_dynamicBody;
@@ -72,7 +72,7 @@ void TankState::prePhysics(Game* game) {
         // Shoot
         qDebug() << "Create shell";
         auto shell =
-            game->addObject(ObjectType::SHELL, body->GetPosition() + 3.5 * forward, body->GetAngle(), 40 * forward);
+            game->addObject(constants::ObjectType::SHELL, body->GetPosition() + 3.5 * forward, body->GetAngle(), 40 * forward);
         if (shell) {
             body->ApplyLinearImpulseToCenter(-40 * shell->body->GetMass() * forward, true);
         }

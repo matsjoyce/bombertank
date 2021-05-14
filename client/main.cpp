@@ -24,6 +24,7 @@ int main(int argc, char *argv[]) {
     qmlRegisterUncreatableType<GameState>("BT", 1, 0, "GameState", "Uncreatable!");
     qmlRegisterType<MapView>("BT", 1, 0, "MapView");
     qmlRegisterType<TankControlState>("BT", 1, 0, "TankControlState");
+    qmlRegisterUncreatableMetaObject(constants::staticMetaObject, "BT", 1, 0, "Constants", "Uncreatable!");
 
     QQuickStyle::setStyle("Theme");
     QApplication app(argc, argv);

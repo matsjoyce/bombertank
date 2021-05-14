@@ -1,6 +1,10 @@
 #ifndef CONSTANTS_HPP
 #define CONSTANTS_HPP
 
+#include <QObject>
+
+namespace constants {
+Q_NAMESPACE
 enum class ObjectType {
     WALL = 0,
     INDESTRUCTABLE_WALL = 1,
@@ -20,5 +24,7 @@ enum class ObjectType {
     HEALTH_DROP_ITEM = 15,
     SPEED_DROP_ITEM = 16
 };
+Q_ENUM_NS(ObjectType)
+}  // namespace constants
 
 #endif  // CONSTANTS_HPP

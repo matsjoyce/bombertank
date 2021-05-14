@@ -9,14 +9,14 @@ class BaseObjectState : public QObject {
 
     Q_PROPERTY(float health READ health NOTIFY healthChanged)
 
-    ObjectType _type;
+    constants::ObjectType _type;
     float _x = 0, _y = 0, _rotation = 0, _health = 0;
 
    public:
     using QObject::QObject;
     void loadMessage(Message& msg);
 
-    ObjectType type() { return _type; }
+    constants::ObjectType type() { return _type; }
     float x() { return _x; }
     float y() { return _y; }
     float rotation() { return _rotation; }

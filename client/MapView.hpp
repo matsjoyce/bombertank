@@ -20,8 +20,8 @@ class MapView : public QQuickItem {
 
     QTimer _timer;
     GameState* _state = nullptr;
-    std::map<ObjectType, QQmlComponent*> _spriteComponents;
-    std::map<ObjectType, QQmlComponent*> _inputComponents;
+    std::map<constants::ObjectType, QQmlComponent*> _spriteComponents;
+    std::map<constants::ObjectType, QQmlComponent*> _inputComponents;
     std::map<int, QQuickItem*> _sprites;
     QQuickItem* _controls = nullptr;
     BaseObjectState* _controlledObject = nullptr;
@@ -33,7 +33,7 @@ class MapView : public QQuickItem {
     void _doUpdate();
     void _handleControlsUpdated();
     void _checkComponentsLoaded();
-    void _attachToObject(int id, ObjectType type);
+    void _attachToObject(int id, constants::ObjectType type);
     void _controlledObjectDeleted();
 
    public:

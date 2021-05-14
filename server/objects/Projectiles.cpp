@@ -1,6 +1,6 @@
 #include "Projectiles.hpp"
 
-ShellState::ShellState(ObjectType type_) : BaseObjectState(type_, 2) {}
+ShellState::ShellState(constants::ObjectType type_) : BaseObjectState(type_, 2) {}
 
 void ShellState::createBodies(b2World& world, b2BodyDef& bodyDef) {
     bodyDef.type = b2_dynamicBody;

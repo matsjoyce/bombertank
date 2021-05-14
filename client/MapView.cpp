@@ -7,15 +7,15 @@
 #include <QtMath>
 #include <QtQml>
 
-std::map<ObjectType, QUrl> spriteFilesForObjectType = {
-    {ObjectType::TANK, QUrl(QStringLiteral("qrc:/qml/Sprite/Tank.qml"))},
-    {ObjectType::CRATE, QUrl(QStringLiteral("qrc:/qml/Sprite/Crate.qml"))},
-    {ObjectType::WALL, QUrl(QStringLiteral("qrc:/qml/Sprite/Wall.qml"))},
-    {ObjectType::INDESTRUCTABLE_WALL, QUrl(QStringLiteral("qrc:/qml/Sprite/IndestructableWall.qml"))},
-    {ObjectType::SHELL, QUrl(QStringLiteral("qrc:/qml/Sprite/Shell.qml"))}};
+std::map<constants::ObjectType, QUrl> spriteFilesForObjectType = {
+    {constants::ObjectType::TANK, QUrl(QStringLiteral("qrc:/qml/Sprite/Tank.qml"))},
+    {constants::ObjectType::CRATE, QUrl(QStringLiteral("qrc:/qml/Sprite/Crate.qml"))},
+    {constants::ObjectType::WALL, QUrl(QStringLiteral("qrc:/qml/Sprite/Wall.qml"))},
+    {constants::ObjectType::INDESTRUCTABLE_WALL, QUrl(QStringLiteral("qrc:/qml/Sprite/IndestructableWall.qml"))},
+    {constants::ObjectType::SHELL, QUrl(QStringLiteral("qrc:/qml/Sprite/Shell.qml"))}};
 
-std::map<ObjectType, QUrl> inputFilesForObjectType = {
-    {ObjectType::TANK, QUrl(QStringLiteral("qrc:/qml/Sprite/TankInput.qml"))}};
+std::map<constants::ObjectType, QUrl> inputFilesForObjectType = {
+    {constants::ObjectType::TANK, QUrl(QStringLiteral("qrc:/qml/Sprite/TankInput.qml"))}};
 
 MapView::MapView() {
     _timer.start(16);
@@ -60,7 +60,7 @@ void MapView::setControlledObjectId(int controlledObjectId) {
     }
 }
 
-void MapView::_attachToObject(int id, ObjectType type) {
+void MapView::_attachToObject(int id, constants::ObjectType type) {
     qDebug() << "Preparing controller for" << id << "of type" << static_cast<int>(type);
     auto iter = _inputComponents.find(type);
     if (iter == _inputComponents.end() || !iter->second->isReady()) {

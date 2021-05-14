@@ -1,7 +1,7 @@
 #include "Base.hpp"
 
 void BaseObjectState::loadMessage(Message& msg) {
-    _type = static_cast<ObjectType>(msg["type"].as_uint64_t());
+    _type = static_cast<constants::ObjectType>(msg["type"].as_uint64_t());
     _x = msg["x"].as_double();
     _y = msg["y"].as_double();
     _rotation = msg["rotation"].as_double();

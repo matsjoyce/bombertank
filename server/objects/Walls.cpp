@@ -14,6 +14,6 @@ void AbstractWallState::createBodies(b2World& world, b2BodyDef& bodyDef) {
     body->CreateFixture(&box, 1.0);
 }
 
-WallState::WallState(ObjectType type_) : AbstractWallState(type_, 100) {}
+WallState::WallState(constants::ObjectType type_) : AbstractWallState(type_, 100) {}
 
-IndestructableWallState::IndestructableWallState(ObjectType type_) : AbstractWallState(type_, 1) {}
+IndestructableWallState::IndestructableWallState(constants::ObjectType type_) : AbstractWallState(type_, 1) {}

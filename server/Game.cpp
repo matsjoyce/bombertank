@@ -10,7 +10,7 @@
 
 Game::Game() : _world(b2Vec2(0, 0)) { _world.SetContactListener(this); }
 
-BaseObjectState* Game::addObject(ObjectType type, b2Vec2 position, float rotation, b2Vec2 velocity) {
+BaseObjectState* Game::addObject(constants::ObjectType type, b2Vec2 position, float rotation, b2Vec2 velocity) {
     auto objmove = createObjectFromType(type);
     if (!objmove) {
         qWarning() << "Could not create object of type" << static_cast<int>(type);

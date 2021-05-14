@@ -14,7 +14,7 @@ GameHandler::GameHandler(GameServer* gs,
         qInfo() << "Loading objects" << startingObjects.size();
 
         for (auto& obj : startingObjects) {
-            game->addObject(static_cast<ObjectType>(obj.at("type").as_uint64_t()),
+            game->addObject(static_cast<constants::ObjectType>(obj.at("type").as_uint64_t()),
                             {obj.at("x").as_double(), obj.at("y").as_double()}, 0, {});
         }
         connect(game, &Game::sendMessage, gs, &GameServer::handleGameMessage);

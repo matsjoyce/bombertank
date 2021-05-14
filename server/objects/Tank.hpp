@@ -11,7 +11,7 @@ class TankState : public BaseObjectState {
     b2Joint *_leftTrackJoint = nullptr, *_rightTrackJoint = nullptr;
 
    public:
-    TankState(ObjectType type_);
+    TankState(constants::ObjectType type_);
     void createBodies(b2World& world, b2BodyDef& bodyDef) override;
     void prePhysics(Game* game) override;
     void handleMessage(const Message& msg) override;

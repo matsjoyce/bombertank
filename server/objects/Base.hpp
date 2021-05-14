@@ -12,12 +12,12 @@ enum class DamageType { IMPACT, PIERCING };
 class Game;
 
 struct BaseObjectState {
-    ObjectType type;
+    constants::ObjectType type;
     bool dirty = true, dead = false;
     b2Body* body = nullptr;
     float health, maxHealth;
 
-    BaseObjectState(ObjectType type_, float maxHealth_) : type(type_), health(maxHealth_), maxHealth(maxHealth_) {}
+    BaseObjectState(constants::ObjectType type_, float maxHealth_) : type(type_), health(maxHealth_), maxHealth(maxHealth_) {}
     virtual ~BaseObjectState();
     Message message() const;
     virtual void createBodies(b2World& world, b2BodyDef& bodyDef);
