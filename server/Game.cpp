@@ -82,7 +82,7 @@ void Game::mainloop() {
         }
 
         for (auto iter = _objects.begin(); iter != _objects.end(); ++iter) {
-            if (iter->second->dead) {
+            if (iter->second->dead()) {
                 iter->second->destroy(this);
                 Message msg = {{"cmd", "destroy_object"}, {"id", iter->first}};
                 for (auto c : _connections) {
@@ -93,14 +93,14 @@ void Game::mainloop() {
         }
 
         for (auto& [id, obj] : _objects) {
-            if (obj->dirty) {
+            if (obj->dirty()) {
                 // obj->state->dirty = false;
                 auto msg = obj->message();
                 msg["cmd"] = "object";
                 msg["id"] = id;
-                msg["x"] = obj->body->GetPosition().x;
-                msg["y"] = obj->body->GetPosition().y;
-                msg["rotation"] = obj->body->GetAngle();
+                msg["x"] = obj->body()->GetPosition().x;
+                msg["y"] = obj->body()->GetPosition().y;
+                msg["rotation"] = obj->body()->GetAngle();
                 for (auto c : _connections) {
                     emit sendMessage(c, msg);
                 }

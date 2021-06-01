@@ -5,7 +5,9 @@
 #include "../Game.hpp"
 #include "common/Constants.hpp"
 
-TankState::TankState(constants::ObjectType type_) : BaseObjectState(type_, 150) { _actions.resize(5); }
+TankState::TankState() { _actions.resize(5); }
+
+float TankState::maxHealth() const { return 150; }
 
 void TankState::createBodies(b2World& world, b2BodyDef& bodyDef) {
     bodyDef.type = b2_dynamicBody;
@@ -18,7 +20,7 @@ void TankState::createBodies(b2World& world, b2BodyDef& bodyDef) {
     // Half-size
     box.SetAsBox(3.0f, 3.0f);
 
-    body->CreateFixture(&box, 100.0);
+    body()->CreateFixture(&box, 100.0);
 
     b2BodyDef trackDef;
     trackDef.type = b2_kinematicBody;
@@ -26,10 +28,10 @@ void TankState::createBodies(b2World& world, b2BodyDef& bodyDef) {
 
     _leftTrackBody = world.CreateBody(&trackDef);
     b2FrictionJointDef frictionDef;
-    frictionDef.bodyA = body;
+    frictionDef.bodyA = body();
     frictionDef.localAnchorA = {0, 3};
     frictionDef.bodyB = _leftTrackBody;
-    frictionDef.maxForce = 10 * body->GetMass() * 2;
+    frictionDef.maxForce = 10 * body()->GetMass() * 2;
     _leftTrackJoint = world.CreateJoint(&frictionDef);
 
     _rightTrackBody = world.CreateBody(&trackDef);
@@ -59,22 +61,23 @@ void TankState::prePhysics(Game* game) {
     auto maxTrackSpeed = 20.0f;
     auto maxAccel = 5.0f;
 
-    auto forward = body->GetWorldVector({1, 0});
+    auto forward = body()->GetWorldVector({1, 0});
 
-    _leftTrackBody->SetTransform(body->GetWorldPoint({0, 3}), 0);
-    _leftTrackBody->SetLinearVelocity(speedDiff(body, {0, 3}, forward, _leftTrack, maxTrackSpeed, maxAccel) * forward);
+    _leftTrackBody->SetTransform(body()->GetWorldPoint({0, 3}), 0);
+    _leftTrackBody->SetLinearVelocity(speedDiff(body(), {0, 3}, forward, _leftTrack, maxTrackSpeed, maxAccel) *
+                                      forward);
 
-    _rightTrackBody->SetTransform(body->GetWorldPoint({0, -3}), 0);
-    _rightTrackBody->SetLinearVelocity(speedDiff(body, {0, -3}, forward, _rightTrack, maxTrackSpeed, maxAccel) *
+    _rightTrackBody->SetTransform(body()->GetWorldPoint({0, -3}), 0);
+    _rightTrackBody->SetLinearVelocity(speedDiff(body(), {0, -3}, forward, _rightTrack, maxTrackSpeed, maxAccel) *
                                        forward);
 
     if (_actions[0]) {
         // Shoot
         qDebug() << "Create shell";
-        auto shell =
-            game->addObject(constants::ObjectType::SHELL, body->GetPosition() + 3.5 * forward, body->GetAngle(), 40 * forward);
+        auto shell = game->addObject(constants::ObjectType::SHELL, body()->GetPosition() + 3.5 * forward,
+                                     body()->GetAngle(), 40 * forward);
         if (shell) {
-            body->ApplyLinearImpulseToCenter(-40 * shell->body->GetMass() * forward, true);
+            body()->ApplyLinearImpulseToCenter(-40 * shell->body()->GetMass() * forward, true);
         }
     }
 }

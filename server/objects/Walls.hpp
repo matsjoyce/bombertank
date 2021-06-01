@@ -11,12 +11,16 @@ class AbstractWallState : public BaseObjectState {
 
 class WallState : public AbstractWallState {
    public:
-    WallState(constants::ObjectType type_);
+    using AbstractWallState::AbstractWallState;
+    float maxHealth() const override;
+    constants::ObjectType type() const override { return constants::ObjectType::WALL; }
 };
 
 class IndestructableWallState : public AbstractWallState {
    public:
-    IndestructableWallState(constants::ObjectType type_);
+    using AbstractWallState::AbstractWallState;
+    float maxHealth() const override;
+    constants::ObjectType type() const override { return constants::ObjectType::INDESTRUCTABLE_WALL; }
     void damage(float amount, DamageType type) override {}
 };
 

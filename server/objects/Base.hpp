@@ -11,14 +11,20 @@ enum class DamageType { IMPACT, PIERCING };
 
 class Game;
 
-struct BaseObjectState {
-    constants::ObjectType type;
-    bool dirty = true, dead = false;
-    b2Body* body = nullptr;
-    float health, maxHealth;
+class BaseObjectState {
+    bool _dirty = true, _dead = false;
+    b2Body* _body = nullptr;
+    float _damageTaken = 0;
 
-    BaseObjectState(constants::ObjectType type_, float maxHealth_) : type(type_), health(maxHealth_), maxHealth(maxHealth_) {}
+   public:
+    BaseObjectState();
     virtual ~BaseObjectState();
+    virtual constants::ObjectType type() const = 0;
+    virtual float maxHealth() const = 0;
+    b2Body* body() const { return _body; }
+    float health() const { return maxHealth() - _damageTaken; }
+    bool dead() const { return _dead; }
+    bool dirty() const { return _dirty; }
     Message message() const;
     virtual void createBodies(b2World& world, b2BodyDef& bodyDef);
     virtual void prePhysics(Game* game);
@@ -28,6 +34,7 @@ struct BaseObjectState {
     virtual void damage(float amount, DamageType type);
     virtual void destroy(Game* game);
     virtual std::pair<float, DamageType> impactDamage(float baseDamage);
+    void die();
 };
 
 #endif  // OBJECTS_BASE_HPP

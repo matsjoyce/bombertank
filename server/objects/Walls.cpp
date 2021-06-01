@@ -9,11 +9,11 @@ void AbstractWallState::createBodies(b2World& world, b2BodyDef& bodyDef) {
 
     b2PolygonShape box;
     // Half-size
-    box.SetAsBox(3.0f, 3.0f);
+    box.SetAsBox(4.5f, 4.5f);
 
-    body->CreateFixture(&box, 1.0);
+    body()->CreateFixture(&box, 1.0);
 }
 
-WallState::WallState(constants::ObjectType type_) : AbstractWallState(type_, 100) {}
+float WallState::maxHealth() const { return 100; }
 
-IndestructableWallState::IndestructableWallState(constants::ObjectType type_) : AbstractWallState(type_, 1) {}
+float IndestructableWallState::maxHealth() const { return 1; }

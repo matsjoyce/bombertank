@@ -16,6 +16,7 @@
         <file>qml/Sprite/Shell.qml</file>
         <file>qml/Sprite/TankInput.qml</file>
         <file>data/images/tank1.png</file>
+        <file>data/images/tank_colored.png</file>
         <file>data/images/pwall.png</file>
         <file>data/images/wall.png</file>
         <file>data/images/iwall.png</file>

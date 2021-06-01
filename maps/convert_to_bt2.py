@@ -22,8 +22,8 @@ for infile in args["<infiles>"]:
             objects.append(
                 {
                     "type": type,
-                    "x": x * 6.0,
-                    "y": y * 6.0,
+                    "x": x * 9.0,
+                    "y": y * 9.0,
                     "team": tank_team if type == 3 else 0,
                 }
             )

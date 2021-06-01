@@ -5,10 +5,10 @@ Item {
 
     Image {
         source: "qrc:/data/images/wall.png"
-        x: -24
-        y: -24
-        width: 48
-        height: 48
+        x: -36
+        y: -36
+        width: 72
+        height: 72
         smooth: false
     }
 }
