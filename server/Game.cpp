@@ -114,7 +114,7 @@ void Game::mainloop() {
 
 void Game::addConnection(int id) {
     _connections.push_back(id);
-    emit sendMessage(id, {{"cmd", "attach"}, {"id", 1}});
+    emit playerConnected(id);
 }
 
 void Game::removeConnection(int id) {
@@ -122,3 +122,33 @@ void Game::removeConnection(int id) {
 }
 
 void Game::recieveMessage(int id, Message msg) { _messages.push_back(std::make_pair(id, msg)); }
+
+BaseObjectState* Game::object(int id) {
+    auto iter = _objects.find(id);
+    if (iter == _objects.end()) {
+        return nullptr;
+    }
+    return iter->second.get();
+}
+
+std::vector<int> Game::objectsOnTeam(int team) {
+    std::vector<int> res;
+    for (auto& obj : _objects) {
+        if (obj.second->team() == team) {
+            res.push_back(obj.first);
+        }
+    }
+    return res;
+}
+
+std::vector<int> Game::objectsOfType(constants::ObjectType type) {
+    std::vector<int> res;
+    for (auto& obj : _objects) {
+        if (obj.second->type() == type) {
+            res.push_back(obj.first);
+        }
+    }
+    return res;
+}
+
+void Game::attachPlayerToObject(int id, int objId) { emit sendMessage(id, {{"cmd", "attach"}, {"id", objId}}); }

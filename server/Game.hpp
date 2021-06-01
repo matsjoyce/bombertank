@@ -25,6 +25,10 @@ class Game : public QObject, public b2ContactListener {
     void mainloop();
     BaseObjectState *addObject(constants::ObjectType type, b2Vec2 position, float rotation, b2Vec2 velocity);
     void PostSolve(b2Contact *contact, const b2ContactImpulse *impulse) override;
+    BaseObjectState *object(int id);
+    std::vector<int> objectsOnTeam(int team);
+    std::vector<int> objectsOfType(constants::ObjectType type);
+    void attachPlayerToObject(int id, int objId);
 
    public slots:
     void addConnection(int id);
@@ -33,6 +37,8 @@ class Game : public QObject, public b2ContactListener {
 
    signals:
     void sendMessage(int id, Message msg);
+    void playerConnected(int id);
+    void playerAttachedObjectDied(int id);
 };
 
 #endif  // GAME_HPP

@@ -15,6 +15,7 @@ class BaseObjectState {
     bool _dirty = true, _dead = false;
     b2Body* _body = nullptr;
     float _damageTaken = 0;
+    int _team = 0;
 
    public:
     BaseObjectState();
@@ -25,6 +26,8 @@ class BaseObjectState {
     float health() const { return maxHealth() - _damageTaken; }
     bool dead() const { return _dead; }
     bool dirty() const { return _dirty; }
+    int team() const { return _team; }
+    void setTeam(int team) { _team = team; }
     Message message() const;
     virtual void createBodies(b2World& world, b2BodyDef& bodyDef);
     virtual void prePhysics(Game* game);

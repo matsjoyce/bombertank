@@ -27,6 +27,7 @@ class GameState : public QObject {
 
    signals:
     void sendMessage(Message msg);
+    void attachToObject(int id);
 };
 
 #endif  // GAME_STATE_HPP

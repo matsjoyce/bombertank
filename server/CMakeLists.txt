@@ -2,6 +2,7 @@ set(SOURCE
     main.cpp
     GameServer.cpp
     Game.cpp
+    GameMode.cpp
     objects/Base.cpp
     objects/Objects.cpp
     objects/Tank.cpp

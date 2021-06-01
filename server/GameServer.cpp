@@ -4,6 +4,7 @@
 #include <QThread>
 
 #include "Game.hpp"
+#include "GameMode.hpp"
 
 GameHandler::GameHandler(GameServer* gs,
                          std::vector<std::map<msgpack::type::variant, msgpack::type::variant>> startingObjects)
@@ -14,13 +15,21 @@ GameHandler::GameHandler(GameServer* gs,
         qInfo() << "Loading objects" << startingObjects.size();
 
         for (auto& obj : startingObjects) {
-            game->addObject(static_cast<constants::ObjectType>(obj.at("type").as_uint64_t()),
-                            {obj.at("x").as_double(), obj.at("y").as_double()}, 0, {});
+            auto go = game->addObject(static_cast<constants::ObjectType>(obj.at("type").as_uint64_t()),
+                                      {obj.at("x").as_double(), obj.at("y").as_double()}, 0, {});
+            if (go) {
+                go->setTeam(obj.at("team").as_uint64_t());
+            }
         }
         connect(game, &Game::sendMessage, gs, &GameServer::handleGameMessage);
         connect(this, &GameHandler::_addConnection, game, &Game::addConnection);
         connect(this, &GameHandler::_removeConnection, game, &Game::removeConnection);
         connect(this, &GameHandler::_sendMessage, game, &Game::recieveMessage, Qt::QueuedConnection);
+
+        auto gameMode = new IndividualDeathMatch();
+        gameMode->setGame(game);
+        connect(game, &Game::destroyed, gameMode, &GameMode::deleteLater);
+
         game->mainloop();
         game->deleteLater();
         thread->quit();
@@ -109,7 +118,9 @@ void GameServer::handleClientMessage(int id, Message msg) {
     else if (msg["cmd"].as_string() == "create_game") {
         qInfo() << "Creating new game";
         auto gameId = addGame(extractVectorOfMap(msg["starting_objects"]));
-        connInfo.connection->sendMessage({{"cmd", "game_created"}, {"id", gameId}});
+        for (auto& connInfo2 : _connections) {
+            connInfo2.second.connection->sendMessage({{"cmd", "game_created"}, {"id", gameId}});
+        }
     }
     else {
         qWarning() << "Unrecognised message from connection" << id;

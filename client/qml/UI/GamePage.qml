@@ -12,7 +12,13 @@ Item {
         id: gameView
         anchors.fill: page
         state: page.state
-        controlledObjectId: 1
+    }
+
+    Connections {
+        target: state
+        function onAttachToObject(id) {
+            gameView.controlledObjectId = id;
+        }
     }
 
     Keys.forwardTo: [gameView]
