@@ -13,8 +13,8 @@ void IndividualDeathMatch::setGame(Game* game) {
 }
 
 void IndividualDeathMatch::_onPlayerConnected(int id) {
-    auto team = _playerToTeam[id] = _nextTeamAssignment++;
-    auto objs = game()->objectsOnTeam(team);
+    auto side = _playerToSide[id] = _nextSideAssignment++;
+    auto objs = game()->objectsOnSide(side);
     if (!objs.size()) {
         return;
     }

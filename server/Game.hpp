@@ -26,7 +26,7 @@ class Game : public QObject, public b2ContactListener {
     BaseObjectState *addObject(constants::ObjectType type, b2Vec2 position, float rotation, b2Vec2 velocity);
     void PostSolve(b2Contact *contact, const b2ContactImpulse *impulse) override;
     BaseObjectState *object(int id);
-    std::vector<int> objectsOnTeam(int team);
+    std::vector<int> objectsOnSide(int side);
     std::vector<int> objectsOfType(constants::ObjectType type);
     void attachPlayerToObject(int id, int objId);
 

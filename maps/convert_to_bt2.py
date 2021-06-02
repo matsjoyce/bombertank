@@ -12,7 +12,7 @@ args = docopt.docopt(__doc__)
 
 for infile in args["<infiles>"]:
     objects = []
-    tank_team = 1
+    tank_side = 1
     infile = pathlib.Path(infile).resolve()
     print("Converting", infile.name)
 
@@ -24,11 +24,11 @@ for infile in args["<infiles>"]:
                     "type": type,
                     "x": x * 9.0,
                     "y": y * 9.0,
-                    "team": tank_team if type == 3 else 0,
+                    "side": tank_side if type == 3 else 0,
                 }
             )
             if type == 3:
-                tank_team += 1
+                tank_side += 1
 
     print(" ->", len(objects))
 

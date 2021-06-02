@@ -8,7 +8,7 @@ const float MIN_IMPULSE_DAMAGE = 2.0f;
 BaseObjectState::BaseObjectState() {}
 
 Message BaseObjectState::message() const {
-    return {{"type", static_cast<uint64_t>(type())}, {"health", health() / maxHealth()}};
+    return {{"type", static_cast<uint64_t>(type())}, {"health", health() / maxHealth()}, {"side", side()}};
 }
 
 void BaseObjectState::createBodies(b2World& world, b2BodyDef& bodyDef) {

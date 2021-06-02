@@ -131,10 +131,10 @@ BaseObjectState* Game::object(int id) {
     return iter->second.get();
 }
 
-std::vector<int> Game::objectsOnTeam(int team) {
+std::vector<int> Game::objectsOnSide(int side) {
     std::vector<int> res;
     for (auto& obj : _objects) {
-        if (obj.second->team() == team) {
+        if (obj.second->side() == side) {
             res.push_back(obj.first);
         }
     }

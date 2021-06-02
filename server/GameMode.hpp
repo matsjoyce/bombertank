@@ -20,8 +20,8 @@ class GameMode : public QObject {
 class IndividualDeathMatch : public GameMode {
     Q_OBJECT
 
-    std::map<int, int> _playerToTeam;
-    int _nextTeamAssignment = 1;
+    std::map<int, int> _playerToSide;
+    int _nextSideAssignment = 1;
    private slots:
     void _onPlayerConnected(int id);
     void _onPlayerAttachedObjectDied(int id);
