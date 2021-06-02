@@ -38,7 +38,7 @@ std::pair<float, DamageType> BaseObjectState::impactDamage(float baseDamage) {
 
 void BaseObjectState::damage(float amount, DamageType type) {
     // qInfo() << "Took" << amount << "of damage";
-    _damageTaken = std::max(maxHealth(), _damageTaken + amount);
+    _damageTaken = std::min(maxHealth(), _damageTaken + amount);
     if (_damageTaken == maxHealth()) {
         _dead = true;
     }
@@ -49,6 +49,4 @@ void BaseObjectState::destroy(Game* game) {
     _body->GetWorld()->DestroyBody(_body);
 }
 
-void BaseObjectState::die() {
-    _dead = true;
-}
+void BaseObjectState::die() { _dead = true; }
