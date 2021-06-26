@@ -8,22 +8,29 @@ class BaseObjectState : public QObject {
     Q_OBJECT
 
     Q_PROPERTY(float health READ health NOTIFY healthChanged)
+    Q_PROPERTY(int side READ side NOTIFY sideChanged)
 
     constants::ObjectType _type;
     float _x = 0, _y = 0, _rotation = 0, _health = 0;
+    int _side = 0;
 
    public:
     using QObject::QObject;
     void loadMessage(Message& msg);
 
+    // Used by the MapView, so does not need to be QML accessable
     constants::ObjectType type() { return _type; }
     float x() { return _x; }
     float y() { return _y; }
     float rotation() { return _rotation; }
-    float health() { return _health; }
+
+    // QML accessable
+    float health() const { return _health; }
+    int side() const { return _side; }
 
    signals:
     void healthChanged(float health);
+    void sideChanged(int side);
 };
 
 #endif  // OBJECTS_BASE_HPP

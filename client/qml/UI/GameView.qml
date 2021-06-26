@@ -18,25 +18,37 @@ Item {
 
     Rectangle {
         width: view.width
-        height: 40
+        height: topBar.height
         color: "black"
-        opacity: 0.5
+        opacity: 0.6
     }
 
-    Column {
-        padding: 2
+    Row {
+        id: topBar
         spacing: 4
+        padding: 2
 
-        StatusBar {
-            width: 400
-            value: controlledObject ? controlledObject.health : 0;
-            barImage: "qrc:/data/images/hp_bar_fg.png"
+        Column {
+            spacing: 4
+
+            StatusBar {
+                width: 400
+                value: controlledObject ? controlledObject.health : 0;
+                barImage: "qrc:/data/images/hp_bar_fg.png"
+            }
+
+            StatusBar {
+                width: 400
+                value: 0.25;
+                barImage: "qrc:/data/images/shield_bar_fg.png"
+            }
         }
 
-        StatusBar {
-            width: 400
-            value: 0.25;
-            barImage: "qrc:/data/images/shield_bar_fg.png"
+        Text {
+            text: controlledObject ? "Side %1".arg(controlledObject.side) : ""
+            color: "white"
+            font.pixelSize: 20
+            anchors.verticalCenter: parent.verticalCenter
         }
     }
 
@@ -46,7 +58,7 @@ Item {
         height: 60
         y: view.height - 60
         color: "black"
-        opacity: 0.5
+        opacity: 0.6
     }
 
     Keys.forwardTo: [map]
