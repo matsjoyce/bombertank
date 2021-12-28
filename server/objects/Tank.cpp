@@ -12,7 +12,7 @@ float TankState::maxHealth() const { return 150; }
 void TankState::createBodies(b2World& world, b2BodyDef& bodyDef) {
     bodyDef.type = b2_dynamicBody;
     // Prevent the tank spinning too fast
-    bodyDef.angularDamping = 10;
+    bodyDef.angularDamping = 7;
 
     BaseObjectState::createBodies(world, bodyDef);
 

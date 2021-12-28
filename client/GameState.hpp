@@ -24,6 +24,7 @@ class GameState : public QObject {
    public slots:
     void handleMessage(int id, Message msg);
     void setControlState(int objectId, TankControlState* controlState);
+    void exitGame();
 
    signals:
     void sendMessage(Message msg);

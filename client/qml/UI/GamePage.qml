@@ -8,6 +8,8 @@ Item {
     id: page
     required property GameState state
 
+    signal exitGame()
+
     GameView {
         id: gameView
         anchors.fill: page
@@ -21,6 +23,10 @@ Item {
         }
     }
 
+    Keys.onEscapePressed: {
+        state.exitGame()
+        exitGame()
+    }
     Keys.forwardTo: [gameView]
     focus: true
 }

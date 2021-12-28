@@ -92,14 +92,31 @@ std::vector<std::map<msgpack::type::variant, msgpack::type::variant>> extractVec
 void GameServer::handleClientMessage(int id, Message msg) {
     auto iter = _connections.find(id);
     if (iter == _connections.end()) {
-        qWarning() << "Message from non-existant connection" << id;
+        qWarning() << "Message from non-existent connection" << id;
         return;
     }
     auto& connInfo = iter->second;
-    if (connInfo.game > 0) {
+    if (msg["cmd"].as_string() == "exit_game") {
+        if (!connInfo.game) {
+            qWarning() << "Tried to exit a game when not in one";
+        }
+        else {
+            qInfo() << "Exiting game";
+            auto iter = _games.find(connInfo.game);
+            if (iter == _games.end()) {
+                qWarning() << "Tried to leave a non-existent game" << connInfo.game;
+            }
+            else {
+                qInfo() << "Removing connection" << id << "to game" << connInfo.game;
+                iter->second->removeConnection(id);
+                connInfo.game = 0;
+            }
+        }
+    }
+    else if (connInfo.game > 0) {
         auto gameIter = _games.find(connInfo.game);
         if (gameIter == _games.end()) {
-            qWarning() << "Connection" << id << "is attached to non-existant game" << connInfo.game;
+            qWarning() << "Connection" << id << "is attached to non-existent game" << connInfo.game;
             return;
         }
         gameIter->second->sendMessage(id, msg);
@@ -107,7 +124,7 @@ void GameServer::handleClientMessage(int id, Message msg) {
     else if (msg["cmd"].as_string() == "join_game") {
         auto iter = _games.find(msg["id"].as_uint64_t());
         if (iter == _games.end()) {
-            qWarning() << "Tried to join a non-existant game" << msg["id"].as_uint64_t();
+            qWarning() << "Tried to join a non-existent game" << msg["id"].as_uint64_t();
         }
         else {
             qInfo() << "Adding connection" << id << "to game" << msg["id"].as_uint64_t();
@@ -130,7 +147,7 @@ void GameServer::handleClientMessage(int id, Message msg) {
 void GameServer::handleGameMessage(int id, Message msg) {
     auto iter = _connections.find(id);
     if (iter == _connections.end()) {
-        qWarning() << "Message to non-existant connection" << id;
+        qWarning() << "Message to non-existent connection" << id;
         return;
     }
     iter->second.connection->sendMessage(msg);
@@ -142,7 +159,7 @@ void GameServer::handleDisconnection(int id) {
         if (iter->second.game > 0) {
             auto gameIter = _games.find(iter->second.game);
             if (gameIter == _games.end()) {
-                qWarning() << "Connection" << id << "is attached to non-existant game" << iter->second.game;
+                qWarning() << "Connection" << id << "is attached to non-existent game" << iter->second.game;
             }
             else {
                 gameIter->second->removeConnection(id);

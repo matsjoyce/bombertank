@@ -34,3 +34,8 @@ void GameState::setControlState(int objectId, TankControlState* controlState) {
     msg["id"] = objectId;
     emit sendMessage(msg);
 }
+
+void GameState::exitGame() {
+    Message msg = {{"cmd", "exit_game"}};
+    emit sendMessage(msg);
+}

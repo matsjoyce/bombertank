@@ -41,7 +41,6 @@ Item {
         function onStartGame(server, gameState) {
             gamePage.setSource(gamePage.source, {server: server, state: gameState})
             ui.state = "GAME";
-
         }
     }
 
@@ -55,12 +54,15 @@ Item {
     }
     Connections {
         target: gamePage.item
+        function onExitGame() {
+            ui.state = "LOBBY";
+        }
     }
 
     states: [
         State {
             name: "START"
-            PropertyChanges { 
+            PropertyChanges {
                 target: startPage
                 active: true
                 focus: true

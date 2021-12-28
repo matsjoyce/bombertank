@@ -6,12 +6,10 @@ import QtQuick.Layouts 1.11
 import "UI"
 
 ApplicationWindow {
-    id: window
-    width: 640
-    height: 480
-    minimumHeight: 300
-    minimumWidth: 300
+    minimumHeight: 640
+    minimumWidth: 480
     visible: true
+    visibility: Window.Maximized
     title: qsTr("Hello World")
 
     UI {
