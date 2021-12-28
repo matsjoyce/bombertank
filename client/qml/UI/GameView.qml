@@ -45,7 +45,7 @@ Item {
         }
 
         Text {
-            text: controlledObject ? "Side %1".arg(controlledObject.side) : ""
+            text: controlledObject ? "Side %1 Speed %2".arg(controlledObject.side).arg(controlledObject.speed) : ""
             color: "white"
             font.pixelSize: 20
             anchors.verticalCenter: parent.verticalCenter

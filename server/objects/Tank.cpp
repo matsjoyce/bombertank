@@ -31,7 +31,7 @@ void TankState::createBodies(b2World& world, b2BodyDef& bodyDef) {
     frictionDef.bodyA = body();
     frictionDef.localAnchorA = {0, 3};
     frictionDef.bodyB = _leftTrackBody;
-    frictionDef.maxForce = 10 * body()->GetMass() * 2;
+    frictionDef.maxForce = 20 * body()->GetMass() * 2;
     _leftTrackJoint = world.CreateJoint(&frictionDef);
 
     _rightTrackBody = world.CreateBody(&trackDef);
@@ -58,7 +58,7 @@ float speedDiff(b2Body* body, b2Vec2 offset, b2Vec2 forward, float power, float 
 }
 
 void TankState::prePhysics(Game* game) {
-    auto maxTrackSpeed = 20.0f;
+    auto maxTrackSpeed = 30.0f;
     auto maxAccel = 5.0f;
 
     auto forward = body()->GetWorldVector({1, 0});
@@ -75,9 +75,9 @@ void TankState::prePhysics(Game* game) {
         // Shoot
         qDebug() << "Create shell";
         auto shell = game->addObject(constants::ObjectType::SHELL, body()->GetPosition() + 3.5 * forward,
-                                     body()->GetAngle(), 40 * forward);
+                                     body()->GetAngle(), 80 * forward);
         if (shell) {
-            body()->ApplyLinearImpulseToCenter(-40 * shell->body()->GetMass() * forward, true);
+            body()->ApplyLinearImpulseToCenter(-80 * shell->body()->GetMass() * forward, true);
         }
     }
 }

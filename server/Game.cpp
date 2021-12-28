@@ -8,6 +8,9 @@
 
 #include "objects/Objects.hpp"
 
+constexpr float LOGIC_FPS = 20;
+constexpr float PHYSICS_FPS = 100;
+
 Game::Game() : _world(b2Vec2(0, 0)) { _world.SetContactListener(this); }
 
 BaseObjectState* Game::addObject(constants::ObjectType type, b2Vec2 position, float rotation, b2Vec2 velocity) {
@@ -48,6 +51,7 @@ void Game::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) {
 
 void Game::mainloop() {
     qDebug() << "Game mainloop start";
+    int physics_steps_per_logic_step = PHYSICS_FPS / LOGIC_FPS;
 
     while (true) {
         QElapsedTimer timer;
@@ -67,7 +71,6 @@ void Game::mainloop() {
             else {
                 qWarning() << "Game got unknown cmd" << m.second["cmd"].as_string().c_str();
             }
-            // emit sendMessage(m.first, {{"cmd", "ping"}});
         }
         _messages.clear();
 
@@ -75,7 +78,9 @@ void Game::mainloop() {
             obj->prePhysics(this);
         }
 
-        _world.Step(0.05, 8, 3);
+        for (auto i = 0; i < physics_steps_per_logic_step; ++i) {
+            _world.Step(1 / LOGIC_FPS / physics_steps_per_logic_step, 8, 3);
+        }
 
         for (auto& [id, obj] : _objects) {
             obj->postPhysics(this);
@@ -101,13 +106,15 @@ void Game::mainloop() {
                 msg["x"] = obj->body()->GetPosition().x;
                 msg["y"] = obj->body()->GetPosition().y;
                 msg["rotation"] = obj->body()->GetAngle();
+                msg["vx"] = obj->body()->GetLinearVelocity().x;
+                msg["vy"] = obj->body()->GetLinearVelocity().y;
                 for (auto c : _connections) {
                     emit sendMessage(c, msg);
                 }
             }
         }
         QCoreApplication::processEvents();
-        QThread::msleep(50);
+        QThread::msleep(1/LOGIC_FPS*1000);
         // qInfo() << timer.elapsed() << "ms in game loop";
     }
 }

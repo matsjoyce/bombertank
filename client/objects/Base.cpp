@@ -4,6 +4,9 @@ void BaseObjectState::loadMessage(Message& msg) {
     _type = static_cast<constants::ObjectType>(msg["type"].as_uint64_t());
     _x = msg["x"].as_double();
     _y = msg["y"].as_double();
+    _vx = msg["vx"].as_double();
+    _vy = msg["vy"].as_double();
+    emit speedChanged(speed());
     _rotation = msg["rotation"].as_double();
 
     auto health = msg["health"].as_double();

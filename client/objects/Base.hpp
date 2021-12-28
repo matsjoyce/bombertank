@@ -9,9 +9,10 @@ class BaseObjectState : public QObject {
 
     Q_PROPERTY(float health READ health NOTIFY healthChanged)
     Q_PROPERTY(int side READ side NOTIFY sideChanged)
+    Q_PROPERTY(float speed READ speed NOTIFY speedChanged)
 
     constants::ObjectType _type;
-    float _x = 0, _y = 0, _rotation = 0, _health = 0;
+    float _x = 0, _y = 0, _rotation = 0, _health = 0, _vx = 0, _vy = 0;
     int _side = 0;
 
    public:
@@ -27,10 +28,12 @@ class BaseObjectState : public QObject {
     // QML accessable
     float health() const { return _health; }
     int side() const { return _side; }
+    float speed() const { return std::hypot(_vx, _vy); }
 
    signals:
     void healthChanged(float health);
     void sideChanged(int side);
+    void speedChanged(float health);
 };
 
 #endif  // OBJECTS_BASE_HPP

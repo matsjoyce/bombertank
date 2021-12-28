@@ -11,7 +11,7 @@ set(SOURCE
 
 add_executable(bt_client ${SOURCE})
 target_link_libraries(
-    bt_client 
+    bt_client
     PRIVATE
     Qt${QT_VERSION_MAJOR}::Core
     Qt${QT_VERSION_MAJOR}::Network
@@ -19,5 +19,6 @@ target_link_libraries(
     Qt${QT_VERSION_MAJOR}::QuickControls2
     Qt${QT_VERSION_MAJOR}::Widgets # For file dialog support
     bt_common
+    docopt
 )
 add_dependencies(bt_client bt_server)

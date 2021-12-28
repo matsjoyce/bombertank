@@ -12,6 +12,21 @@
 #include "MapView.hpp"
 #include "common/TcpMessageSocket.hpp"
 #include "objects/TankControl.hpp"
+#include "docopt.h"
+
+static const char USAGE[] =
+    R"(BT Client
+
+    Usage:
+      bt_client [--server-exe=<path>]
+      bt_client (-h | --help)
+      bt_client --version
+
+    Options:
+      -h --help               Show this screen.
+      --version               Show version.
+      --server-exe=<-path>    Path to the server executable (for local games and hosting).
+)";
 
 int main(int argc, char *argv[]) {
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
@@ -25,6 +40,8 @@ int main(int argc, char *argv[]) {
     qmlRegisterType<MapView>("BT", 1, 0, "MapView");
     qmlRegisterType<TankControlState>("BT", 1, 0, "TankControlState");
     qmlRegisterUncreatableMetaObject(constants::staticMetaObject, "BT", 1, 0, "Constants", "Uncreatable!");
+
+    std::map<std::string, docopt::value> args = docopt::docopt(USAGE, {argv + 1, argv + argc}, true, "BT Client 2.0a");
 
     QQuickStyle::setStyle("Theme");
     QApplication app(argc, argv);
@@ -45,7 +62,7 @@ int main(int argc, char *argv[]) {
     QQmlApplicationEngine engine;
     engine.addImportPath("qrc:/qml/");
 
-    AppContext appContext;
+    AppContext appContext(args["--server-exe"].asString());
     engine.rootContext()->setContextProperty("context", &appContext);
 
     const QUrl url(QStringLiteral("qrc:/qml/main.qml"));

@@ -10,6 +10,7 @@
 class AppContext : public QObject {
     Q_OBJECT
 
+    std::string _serverExePath;
     QProcess _localServerProc;
     QTcpSocket _conn;
 
@@ -19,7 +20,7 @@ class AppContext : public QObject {
     void handleConnectionError();
 
    public:
-    AppContext();
+    AppContext(std::string serverExePath);
 
    public slots:
     void connectToServer();

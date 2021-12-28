@@ -5,7 +5,7 @@
 #include <QHostAddress>
 #include <QTimer>
 
-AppContext::AppContext() {
+AppContext::AppContext(std::string serverExePath) : _serverExePath(serverExePath) {
     _localServerProc.setProcessChannelMode(QProcess::ForwardedChannels);
 
     connect(&_localServerProc, &QProcess::started, this, &AppContext::handleLocalServerStarted);
@@ -42,15 +42,9 @@ void AppContext::connectToServer() {
 
 void AppContext::startLocalServer() {
     if (_localServerProc.state() == QProcess::NotRunning) {
-        std::vector<QString> paths = {
-            "../server/bt_server",
-            "./server/bt_server",
-        };
-        for (auto& path : paths) {
-            if (QFile::exists(path)) {
-                _localServerProc.start(path, QStringList() << "--quit-when-no-clients");
-                return;
-            }
+        if (QFile::exists(QString::fromStdString(_serverExePath))) {
+            _localServerProc.start(QString::fromStdString(_serverExePath), QStringList() << "--quit-when-no-clients");
+            return;
         }
         emit errorStartingLocalServer("Could not find server executable");
     }
