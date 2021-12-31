@@ -4,7 +4,7 @@
 
 #include "GameServer.hpp"
 
-GameState::GameState(GameServer* server) : QObject(server), _server(server) { qInfo() << "GameState started"; }
+GameState::GameState(GameServer* server) : BaseGameState(server), _server(server) { qInfo() << "GameState started"; }
 
 const std::map<int, std::unique_ptr<BaseObjectState>>& GameState::snapshot() const { return _objectStates; }
 
@@ -39,3 +39,19 @@ void GameState::exitGame() {
     Message msg = {{"cmd", "exit_game"}};
     emit sendMessage(msg);
 }
+
+
+const std::map<int, std::unique_ptr<BaseObjectState>>& EditorGameState::snapshot() const { return _objectStates; }
+
+void EditorGameState::clear() {
+    _objectStates.clear();
+    _nextId = 1;
+}
+
+int EditorGameState::addObject(int type, float x, float y) {
+    auto id = _nextId++;
+    _objectStates[id] = std::make_unique<BaseObjectState>();
+    _objectStates[id]->setFromEditor(static_cast<constants::ObjectType>(type), x, y);
+    return id;
+}
+

@@ -4,6 +4,8 @@
 #include <QQmlComponent>
 #include <QQuickItem>
 #include <QTimer>
+#include <QImage>
+#include <QQmlEngine>
 
 #include "GameState.hpp"
 #include "common/Constants.hpp"
@@ -11,15 +13,16 @@
 
 class MapView : public QQuickItem {
     Q_OBJECT
-    Q_PROPERTY(GameState* state READ state WRITE setState NOTIFY stateChanged)
+    Q_PROPERTY(BaseGameState* state READ state WRITE setState NOTIFY stateChanged)
     Q_PROPERTY(
         int controlledObjectId READ controlledObjectId WRITE setControlledObjectId NOTIFY controlledObjectIdChanged)
     Q_PROPERTY(BaseObjectState* controlledObject READ controlledObject NOTIFY controlledObjectChanged)
     Q_PROPERTY(bool rotateWithControlledObject READ rotateWithControlledObject WRITE setRotateWithControlledObject
                    NOTIFY rotateWithControlledObjectChanged)
+    QML_ELEMENT
 
     QTimer _timer;
-    GameState* _state = nullptr;
+    BaseGameState* _state = nullptr;
     std::map<constants::ObjectType, QQmlComponent*> _spriteComponents;
     std::map<constants::ObjectType, QQmlComponent*> _inputComponents;
     std::map<int, QQuickItem*> _sprites;
@@ -35,11 +38,12 @@ class MapView : public QQuickItem {
     void _checkComponentsLoaded();
     void _attachToObject(int id, constants::ObjectType type);
     void _controlledObjectDeleted();
+    QTransform _viewTransform();
 
    public:
     MapView();
-    GameState* state() { return _state; }
-    void setState(GameState* state);
+    BaseGameState* state() { return _state; }
+    void setState(BaseGameState* state);
 
     int controlledObjectId() { return _controllingId; }
     void setControlledObjectId(int controlledObjectId);
@@ -49,9 +53,11 @@ class MapView : public QQuickItem {
 
     void keyPressEvent(QKeyEvent* event) override;
     void keyReleaseEvent(QKeyEvent* event) override;
+    Q_INVOKABLE QPointF pixelsToPosition(QPointF pos);
+    Q_INVOKABLE QPointF positionToPixels(QPointF pos);
 
    signals:
-    void stateChanged(GameState* state);
+    void stateChanged(BaseGameState* state);
     void controlledObjectIdChanged(int controlledObjectId);
     void controlledObjectChanged(BaseObjectState* controlledObject);
     void controlStateChanged(int objectId, TankControlState* controlState);

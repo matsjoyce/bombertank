@@ -9,7 +9,7 @@ Item {
     id: ui
     implicitHeight: 640
     implicitWidth: 600
-    state: "START"
+    state: "EDITOR"
 
     Loader {
         id: startPage
@@ -24,6 +24,9 @@ Item {
         function onStartGame(server) {
             lobbyPage.setSource(lobbyPage.source, {server: server})
             ui.state = "LOBBY";
+        }
+        function onStartEditor(server) {
+            ui.state = "EDITOR";
         }
         function onExit() { close() }
     }
@@ -59,6 +62,21 @@ Item {
         }
     }
 
+    Loader {
+        id: editorPage
+        source: "EditorPage.qml"
+        active: false
+
+        visible: true
+        anchors.fill: parent
+    }
+    Connections {
+        target: editorPage.item
+        function onExit() {
+            ui.state = "LOBBY";
+        }
+    }
+
     states: [
         State {
             name: "START"
@@ -80,6 +98,14 @@ Item {
             name: "GAME"
             PropertyChanges {
                 target: gamePage
+                active: true
+                focus: true
+            }
+        },
+        State {
+            name: "EDITOR"
+            PropertyChanges {
+                target: editorPage
                 active: true
                 focus: true
             }

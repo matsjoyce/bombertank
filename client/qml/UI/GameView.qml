@@ -11,6 +11,17 @@ Item {
     property alias controlledObject: map.controlledObject
     id: view
 
+    Image {
+        source: "qrc:/data/images/tiles.png"
+        anchors.fill: view
+        smooth: false
+        fillMode: Image.Tile
+        transform: [
+            Scale { xScale: 2; yScale: 2},
+            Translate { x: controlledObject ? -controlledObject.x*8 % 48 : 0; y: controlledObject ? controlledObject.y*8 % 48 : 0}
+        ]
+    }
+
     MapView {
         id: map
         anchors.fill: view

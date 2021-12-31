@@ -94,4 +94,9 @@ void TankState::handleMessage(const Message& msg) {
     }
 }
 
-void TankState::damage(float amount, DamageType type) { BaseObjectState::damage(amount, type); }
+void TankState::damage(float amount, DamageType type) {
+    if (type == DamageType::IMPACT && amount < 10) {
+        return;
+    }
+    BaseObjectState::damage(amount, type);
+}

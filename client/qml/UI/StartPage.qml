@@ -9,6 +9,7 @@ Item {
     id: page
 
     signal startGame(GameServer server)
+    signal startEditor()
     signal exit()
 
     ColumnLayout {
@@ -19,7 +20,6 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
 
         Button {
-            id: button
             text: qsTr("Start local game")
             Layout.fillWidth: true
             onClicked: {
@@ -29,7 +29,6 @@ Item {
         }
 
         Button {
-            id: button1
             text: qsTr("Start network game")
             Layout.fillWidth: true
             onClicked: {
@@ -39,15 +38,12 @@ Item {
         }
 
         Button {
-            id: button2
             text: qsTr("Map editor")
             Layout.fillWidth: true
-            enabled: false
-            onClicked: startMapEditor()
+            onClicked: startEditor()
         }
 
         Button {
-            id: button3
             text: qsTr("Exit")
             Layout.fillWidth: true
             onClicked: exit()

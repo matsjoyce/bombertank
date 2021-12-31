@@ -2,6 +2,7 @@
 #define OBJECTS_TANK_CONTROL_HPP
 
 #include <QObject>
+#include <QQmlEngine>
 
 #include "common/TcpMessageSocket.hpp"
 
@@ -9,6 +10,7 @@ class TankControlState : public QObject {
     Q_OBJECT
     Q_PROPERTY(float leftTrack READ leftTrack WRITE setLeftTrack NOTIFY leftTrackChanged)
     Q_PROPERTY(float rightTrack READ rightTrack WRITE setRightTrack NOTIFY rightTrackChanged)
+    QML_ELEMENT
 
     float _leftTrack, _rightTrack;
     std::vector<bool> _actions;

@@ -4,11 +4,14 @@
 #include <QObject>
 #include <QProcess>
 #include <QTcpSocket>
+#include <QQmlEngine>
 
 #include "GameServer.hpp"
 
 class AppContext : public QObject {
     Q_OBJECT
+    QML_ELEMENT
+    QML_UNCREATABLE("Uncreatable!")
 
     std::string _serverExePath;
     QProcess _localServerProc;

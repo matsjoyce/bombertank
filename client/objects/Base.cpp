@@ -2,22 +2,16 @@
 
 void BaseObjectState::loadMessage(Message& msg) {
     _type = static_cast<constants::ObjectType>(msg["type"].as_uint64_t());
-    _x = msg["x"].as_double();
-    _y = msg["y"].as_double();
-    _vx = msg["vx"].as_double();
-    _vy = msg["vy"].as_double();
-    emit speedChanged(speed());
-    _rotation = msg["rotation"].as_double();
+    _xProp.setValue(msg["x"].as_double());
+    _yProp.setValue(msg["y"].as_double());
+    _rotationProp.setValue(msg["rotation"].as_double());
+    _healthProp.setValue(msg["health"].as_double());
+    _sideProp.setValue(msg["side"].as_uint64_t());
+    _speedProp.setValue(std::hypot(msg["vx"].as_double(), msg["vy"].as_double()));
+}
 
-    auto health = msg["health"].as_double();
-    if (health != _health) {
-        _health = health;
-        emit healthChanged(health);
-    }
-
-    auto side = msg["side"].as_uint64_t();
-    if (side != _side) {
-        _side = side;
-        emit sideChanged(side);
-    }
+void BaseObjectState::setFromEditor(constants::ObjectType type, float x, float y) {
+    _type = type;
+    _xProp.setValue(x);
+    _yProp.setValue(y);
 }

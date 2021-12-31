@@ -33,14 +33,6 @@ int main(int argc, char *argv[]) {
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif
 
-    qmlRegisterUncreatableType<AppContext>("BT", 1, 0, "AppContext", "Uncreatable!");
-    qmlRegisterUncreatableType<GameServer>("BT", 1, 0, "GameServer", "Uncreatable!");
-    qmlRegisterUncreatableType<ListedGame>("BT", 1, 0, "ListedGame", "Uncreatable!");
-    qmlRegisterUncreatableType<GameState>("BT", 1, 0, "GameState", "Uncreatable!");
-    qmlRegisterType<MapView>("BT", 1, 0, "MapView");
-    qmlRegisterType<TankControlState>("BT", 1, 0, "TankControlState");
-    qmlRegisterUncreatableMetaObject(constants::staticMetaObject, "BT", 1, 0, "Constants", "Uncreatable!");
-
     std::map<std::string, docopt::value> args = docopt::docopt(USAGE, {argv + 1, argv + argc}, true, "BT Client 2.0a");
 
     QQuickStyle::setStyle("Theme");

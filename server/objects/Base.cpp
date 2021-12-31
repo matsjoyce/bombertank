@@ -3,7 +3,7 @@
 #include <QDebug>
 
 const float IMPULSE_TO_DAMAGE = 10000.0f;
-const float MIN_IMPULSE_DAMAGE = 2.0f;
+const float MIN_IMPULSE_DAMAGE = 1.0f;
 
 BaseObjectState::BaseObjectState() {}
 
@@ -25,8 +25,8 @@ void BaseObjectState::postPhysics(Game* game) {}
 void BaseObjectState::handleMessage(const Message& msg) {}
 
 void BaseObjectState::collision(BaseObjectState* other, float impulse) {
-    // qInfo() << "Impulse of" << impulse;
-    auto [damage_, type] = other->impactDamage(impactDamage(impulse / IMPULSE_TO_DAMAGE).first);
+    qInfo() << "Impulse of" << impulse / IMPULSE_TO_DAMAGE;
+    auto [damage_, type] = other->impactDamage(impulse / IMPULSE_TO_DAMAGE);
     if (damage_ >= MIN_IMPULSE_DAMAGE) {
         damage(damage_, type);
     }

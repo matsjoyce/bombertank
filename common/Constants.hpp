@@ -2,9 +2,11 @@
 #define CONSTANTS_HPP
 
 #include <QObject>
+#include <QQmlEngine>
 
 namespace constants {
 Q_NAMESPACE
+QML_NAMED_ELEMENT(Constants)
 enum class ObjectType {
     WALL = 0,
     INDESTRUCTABLE_WALL = 1,

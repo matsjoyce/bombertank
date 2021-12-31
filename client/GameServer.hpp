@@ -4,6 +4,7 @@
 #include <QAbstractListModel>
 #include <QObject>
 #include <QUrl>
+#include <QQmlEngine>
 
 #include "GameState.hpp"
 #include "common/TcpMessageSocket.hpp"
@@ -18,6 +19,8 @@ struct ListedGame {
 
 class ListedGameModel : public QAbstractListModel {
     Q_OBJECT
+    QML_ELEMENT
+    QML_UNCREATABLE("Uncreatable!")
 
     std::vector<ListedGame> _listedGames;
 
@@ -36,6 +39,8 @@ class ListedGameModel : public QAbstractListModel {
 class GameServer : public QObject {
     Q_OBJECT
     Q_PROPERTY(ListedGameModel* listedGamesModel READ listedGamesModel CONSTANT)
+    QML_ELEMENT
+    QML_UNCREATABLE("Uncreatable!")
 
     TcpMessageSocket* _msgconn;
     ListedGameModel* _listedGamesModel;

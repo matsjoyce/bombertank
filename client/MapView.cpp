@@ -6,6 +6,8 @@
 #include <QTransform>
 #include <QtMath>
 #include <QtQml>
+#include <QQuickWindow>
+#include <QSGImageNode>
 
 std::map<constants::ObjectType, QUrl> spriteFilesForObjectType = {
     {constants::ObjectType::TANK, QUrl(QStringLiteral("qrc:/qml/Sprite/Tank.qml"))},
@@ -78,16 +80,16 @@ void MapView::_attachToObject(int id, constants::ObjectType type) {
     connect(controlsState, &TankControlState::actionChanged, this, &MapView::_handleControlsUpdated);
 }
 
-void MapView::setState(GameState* state) {
+void MapView::setState(BaseGameState* state) {
     _checkComponentsLoaded();
 
-    if (_state) {
-        disconnect(this, &MapView::controlStateChanged, _state, &GameState::setControlState);
+    if (auto controllableState = dynamic_cast<GameState*>(_state)) {
+        disconnect(this, &MapView::controlStateChanged, controllableState, &GameState::setControlState);
     }
     _state = state;
     qInfo() << "State set";
-    if (_state) {
-        connect(this, &MapView::controlStateChanged, _state, &GameState::setControlState);
+    if (auto controllableState = dynamic_cast<GameState*>(_state)) {
+        connect(this, &MapView::controlStateChanged, controllableState, &GameState::setControlState);
     }
 
     emit stateChanged(_state);
@@ -118,6 +120,12 @@ void MapView::keyReleaseEvent(QKeyEvent* event) {
     }
 }
 
+QTransform MapView::_viewTransform() {
+    QTransform viewTransform;
+    viewTransform.scale(8, 8).rotateRadians(-_viewRotation + M_PI_2).translate(-_viewCenterX, -_viewCenterY);
+    return viewTransform;
+}
+
 void MapView::_doUpdate() {
     QElapsedTimer timer;
     timer.start();
@@ -136,8 +144,7 @@ void MapView::_doUpdate() {
         }
     }
 
-    QTransform viewTransform;
-    viewTransform.scale(8, 8).rotateRadians(-_viewRotation + M_PI_2).translate(-_viewCenterX, -_viewCenterY);
+    QTransform viewTransform = _viewTransform();
 
     while (snapshot_iter != snapshot.end() || sprites_iter != _sprites.end()) {
         if (snapshot_iter != snapshot.end() &&
@@ -193,4 +200,18 @@ void MapView::_doUpdate() {
         _controlsUpdated = false;
     }
     // qInfo() << timer.elapsed() << "ms in game loop";
+}
+
+QPointF MapView::pixelsToPosition(QPointF pos) {
+    bool invertible;
+    auto conv = _viewTransform().inverted(&invertible).map(QPointF(pos.x() - width() / 2, -pos.y() + height() / 2));
+    if (!invertible) {
+        throw std::runtime_error("Cannot invert view matrix???");
+    }
+    return {conv.x(), conv.y()};
+}
+
+QPointF MapView::positionToPixels(QPointF pos) {
+    auto conv = _viewTransform().map(pos);
+    return {conv.x() + width() / 2, -conv.y() + height() / 2};
 }
