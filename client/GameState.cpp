@@ -1,8 +1,10 @@
 #include "GameState.hpp"
 
 #include <QDebug>
+#include <QFile>
 
 #include "GameServer.hpp"
+#include "common/MsgpackUtils.hpp"
 
 GameState::GameState(GameServer* server) : BaseGameState(server), _server(server) { qInfo() << "GameState started"; }
 
@@ -53,5 +55,42 @@ int EditorGameState::addObject(int type, float x, float y) {
     _objectStates[id] = std::make_unique<BaseObjectState>();
     _objectStates[id]->setFromEditor(static_cast<constants::ObjectType>(type), x, y);
     return id;
+}
+
+void EditorGameState::save(QUrl fname) const {
+    QFile mapFile(fname.toLocalFile());
+    if (!mapFile.open(QIODevice::WriteOnly)) {
+        qWarning() << "Could not open map file" << fname;
+        return;
+    }
+    std::vector<std::map<std::string, msgpack::type::variant>> objs;
+    for (auto& obj : _objectStates) {
+        objs.emplace_back(std::map<std::string, msgpack::type::variant>{
+            {"type", static_cast<int>(obj.second->type())},
+            {"x", obj.second->x()},
+            {"y", obj.second->y()},
+            {"rotation", obj.second->rotation()},
+            {"side", 0}
+        });
+    }
+    msgpack::pack(mapFile, objs);
+}
+
+EditorGameState* EditorGameState::load(QUrl fname) {
+    auto state = new EditorGameState();
+    QFile mapFile(fname.toLocalFile());
+    if (!mapFile.open(QIODevice::ReadOnly)) {
+        qWarning() << "Could not open map file" << fname;
+        return state;
+    }
+    QByteArray mapData = mapFile.readAll();
+    msgpack::object_handle oh = msgpack::unpack(mapData.constData(), mapData.size());
+    auto objs = extractVectorOfMap(oh.get().as<msgpack::type::variant>());
+
+    for (auto& obj : objs) {
+        state->addObject(obj["type"].as_uint64_t(), obj["x"].as_double(), obj["y"].as_double());
+    }
+
+    return state;
 }
 

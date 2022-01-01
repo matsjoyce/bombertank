@@ -5,6 +5,7 @@
 
 #include "Game.hpp"
 #include "GameMode.hpp"
+#include "common/MsgpackUtils.hpp"
 
 GameHandler::GameHandler(GameServer* gs,
                          std::vector<std::map<msgpack::type::variant, msgpack::type::variant>> startingObjects)
@@ -74,19 +75,6 @@ void GameServer::handleConnection() {
     for (auto game : _games) {
         msgconn->sendMessage({{"cmd", "game_updated"}, {"id", game.first}});
     }
-}
-
-std::vector<std::map<msgpack::type::variant, msgpack::type::variant>> extractVectorOfMap(msgpack::type::variant obj) {
-    std::vector<std::map<msgpack::type::variant, msgpack::type::variant>> res;
-    auto vec = obj.as_vector();
-    std::transform(vec.begin(), vec.end(), std::back_inserter(res), [](auto& o) {
-        std::map<msgpack::type::variant, msgpack::type::variant> m;
-        for (auto& p : o.as_multimap()) {
-            m.insert(p);
-        }
-        return m;
-    });
-    return res;
 }
 
 void GameServer::handleClientMessage(int id, Message msg) {

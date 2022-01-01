@@ -8,7 +8,6 @@
         <file>qml/UI/GamePage.qml</file>
         <file>qml/UI/GameView.qml</file>
         <file>qml/UI/EditorPage.qml</file>
-        <file>qml/UI/EditorView.qml</file>
         <file>qml/UI/editorUtils.js</file>
         <file>qml/UI/StatusBar.qml</file>
         <file>qml/UI/UI.qml</file>
@@ -27,5 +26,6 @@
         <file>data/images/hp_bar_fg.png</file>
         <file>data/images/shield_bar_fg.png</file>
         <file>data/images/tiles.png</file>
+        <file>data/images/grid.png</file>
     </qresource>
 </RCC>

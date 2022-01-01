@@ -21,7 +21,7 @@ BaseObjectState* Game::addObject(constants::ObjectType type, b2Vec2 position, fl
     }
     auto id = _nextId++;
     auto& obj = _objects[id] = std::move(objmove);
-    qInfo() << "Created object" << id << "of type" << static_cast<int>(type);
+    qInfo() << "Created object" << id << "of type" << static_cast<int>(type) << "at" << position.x << position.y;
 
     b2BodyDef bodyDef;
     bodyDef.position = position;

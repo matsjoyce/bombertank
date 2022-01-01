@@ -21,6 +21,7 @@ std::map<constants::ObjectType, QUrl> inputFilesForObjectType = {
 
 MapView::MapView() {
     _timer.start(16);
+    _viewRotProp.setValue(M_PI_2);
 
     connect(&_timer, &QTimer::timeout, this, &MapView::_doUpdate);
 }
@@ -122,7 +123,7 @@ void MapView::keyReleaseEvent(QKeyEvent* event) {
 
 QTransform MapView::_viewTransform() {
     QTransform viewTransform;
-    viewTransform.scale(8, 8).rotateRadians(-_viewRotation + M_PI_2).translate(-_viewCenterX, -_viewCenterY);
+    viewTransform.scale(8, 8).rotateRadians(-_viewRotProp.value() + M_PI_2).translate(-_viewCenterProp.value().x(), -_viewCenterProp.value().y());
     return viewTransform;
 }
 
@@ -134,13 +135,9 @@ void MapView::_doUpdate() {
     auto sprites_iter = _sprites.begin();
 
     if (_controlledObject) {
-        _viewCenterX = _controlledObject->x();
-        _viewCenterY = _controlledObject->y();
+        _viewCenterProp.setValue({_controlledObject->x(), _controlledObject->y()});
         if (_rotateWithControlledObject) {
-            _viewRotation = _controlledObject->rotation();
-        }
-        else {
-            _viewRotation = M_PI_2;
+            _viewRotProp.setValue(_controlledObject->rotation());
         }
     }
 
@@ -152,8 +149,8 @@ void MapView::_doUpdate() {
             // Added
             auto iter = _spriteComponents.find(snapshot_iter->second->type());
             if (iter == _spriteComponents.end() || !iter->second->isReady()) {
-                qWarning() << "Could not create item for" << snapshot_iter->first << "since its type"
-                           << static_cast<int>(snapshot_iter->second->type()) << "is not loaded or does not exist";
+//                 qWarning() << "Could not create item for" << snapshot_iter->first << "since its type"
+//                            << static_cast<int>(snapshot_iter->second->type()) << "is not loaded or does not exist";
             }
             else {
                 auto a = iter->second->create();
@@ -188,7 +185,7 @@ void MapView::_doUpdate() {
             sprite->setX(point.x() + width() / 2);
             // Translate to pixel coords and angles
             sprite->setY(-point.y() + height() / 2);
-            sprite->setRotation(qRadiansToDegrees(-state->rotation() + _viewRotation));
+            sprite->setRotation(qRadiansToDegrees(-state->rotation() + _viewRotProp.value()));
             ++snapshot_iter;
             ++sprites_iter;
         }

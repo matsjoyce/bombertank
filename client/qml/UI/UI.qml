@@ -73,7 +73,7 @@ Item {
     Connections {
         target: editorPage.item
         function onExit() {
-            ui.state = "LOBBY";
+            ui.state = "START";
         }
     }
 

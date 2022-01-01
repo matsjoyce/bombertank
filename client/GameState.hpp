@@ -59,6 +59,8 @@ class EditorGameState : public BaseGameState {
     const std::map<int, std::unique_ptr<BaseObjectState>>& snapshot() const override;
     Q_INVOKABLE void clear();
     Q_INVOKABLE int addObject(int type, float x, float y);
+    Q_INVOKABLE void save(QUrl fname) const;
+    Q_INVOKABLE static EditorGameState* load(QUrl fname);
 };
 
 #endif  // GAME_STATE_HPP

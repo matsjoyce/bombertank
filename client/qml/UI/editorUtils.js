@@ -1,3 +1,7 @@
+function roundToGrid(pos, gridSize) {
+    return Qt.point(Math.round(pos.x / gridSize) * gridSize, Math.round(pos.y / gridSize) * gridSize);
+}
+
 function rectFromDragPoints(startPixelPos, endPixelPos, gridSize, map) {
     var startPos = map.pixelsToPosition(startPixelPos);
     var endPos = map.pixelsToPosition(endPixelPos);
