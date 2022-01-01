@@ -9,7 +9,7 @@ Item {
     id: ui
     implicitHeight: 640
     implicitWidth: 600
-    state: "EDITOR"
+    state: "START"
 
     Loader {
         id: startPage

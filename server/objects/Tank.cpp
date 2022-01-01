@@ -1,6 +1,7 @@
 #include "Tank.hpp"
 
 #include <QDebug>
+#include <random>
 
 #include "../Game.hpp"
 #include "common/Constants.hpp"
@@ -74,8 +75,11 @@ void TankState::prePhysics(Game* game) {
     if (_actions[0]) {
         // Shoot
         qDebug() << "Create shell";
+        auto sideways = body()->GetWorldVector({0, 1});
+
+        std::uniform_real_distribution<float> distribution(-2, 2);
         auto shell = game->addObject(constants::ObjectType::SHELL, body()->GetPosition() + 3.5 * forward,
-                                     body()->GetAngle(), 80 * forward);
+                                     body()->GetAngle(), 80 * forward + distribution(game->randomGenerator()) * sideways);
         if (shell) {
             body()->ApplyLinearImpulseToCenter(-80 * shell->body()->GetMass() * forward, true);
         }

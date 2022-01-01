@@ -4,6 +4,7 @@
 #include <QObject>
 #include <memory>
 #include <vector>
+#include <random>
 
 #include "box2d/box2d.h"
 #include "common/Constants.hpp"
@@ -16,6 +17,7 @@ class Game : public QObject, public b2ContactListener {
     std::vector<int> _connections;
     std::vector<std::pair<int, Message>> _messages;
     std::map<int, std::unique_ptr<BaseObjectState>> _objects;
+    std::mt19937 _randomGen;
     int _nextId = 1;
 
     b2World _world;
@@ -29,6 +31,7 @@ class Game : public QObject, public b2ContactListener {
     std::vector<int> objectsOnSide(int side);
     std::vector<int> objectsOfType(constants::ObjectType type);
     void attachPlayerToObject(int id, int objId);
+    std::mt19937& randomGenerator() { return _randomGen; }
 
    public slots:
     void addConnection(int id);

@@ -11,7 +11,7 @@
 constexpr float LOGIC_FPS = 20;
 constexpr float PHYSICS_FPS = 100;
 
-Game::Game() : _world(b2Vec2(0, 0)) { _world.SetContactListener(this); }
+Game::Game() : _randomGen(std::random_device()()), _world(b2Vec2(0, 0)) { _world.SetContactListener(this); }
 
 BaseObjectState* Game::addObject(constants::ObjectType type, b2Vec2 position, float rotation, b2Vec2 velocity) {
     auto objmove = createObjectFromType(type);
