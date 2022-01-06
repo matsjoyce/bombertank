@@ -5,7 +5,7 @@
 #include <QHostAddress>
 #include <QTimer>
 
-AppContext::AppContext(std::string serverExePath) : _serverExePath(serverExePath) {
+AppContext::AppContext(std::string serverExePath) : _serverExePath(serverExePath), _objectTypeData(loadObjectTypeData(":/data/objects.json")) {
     _localServerProc.setProcessChannelMode(QProcess::ForwardedChannels);
 
     connect(&_localServerProc, &QProcess::started, this, &AppContext::handleLocalServerStarted);

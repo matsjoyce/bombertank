@@ -1,0 +1,130 @@
+[
+    {
+        "id": 0,
+        "name": "Wall",
+        "client": {
+            "image": "images/wall.png",
+            "editor_placable": true
+        }
+    },
+    {
+        "id": 1,
+        "name": "Indestructable_Wall",
+        "client": {
+            "image": "images/iwall.png",
+            "editor_placable": true
+        }
+    },
+    {
+        "id": 2,
+        "name": "Crate",
+        "client": {
+            "image": "images/pwall.png",
+            "editor_placable": true
+        }
+    },
+    {
+        "id": 3,
+        "name": "Tank",
+        "client": {
+            "image": "images/tank1.png",
+            "editor_placable": true
+        }
+    },
+    {
+        "id": 4,
+        "name": "Lava",
+        "client": {
+            "image": "images/lava.png"
+        }
+    },
+    {
+        "id": 5,
+        "name": "Static_Bomb",
+        "client": {
+            "image": "images/charge.png",
+            "editor_placable": true
+        }
+    },
+    {
+        "id": 6,
+        "name": "Timed_Bomb",
+        "client": {
+            "image": "images/bomb.png"
+        }
+    },
+    {
+        "id": 7,
+        "name": "Robo_Bomb",
+        "client": {
+            "image": "images/robobomb.png"
+        }
+    },
+    {
+        "id": 8,
+        "name": "Chest",
+        "client": {
+            "image": "images/chest.png",
+            "editor_placable": true
+        }
+    },
+    {
+        "id": 9,
+        "name": "Mine",
+        "client": {
+            "image": "images/mine.png",
+            "editor_placable": true
+        }
+    },
+    {
+        "id": 10,
+        "name": "Rocket",
+        "client": {
+            "image": "images/rocket.png"
+        }
+    },
+    {
+        "id": 11,
+        "name": "Mini_Rocket",
+        "client": {
+            "image": "images/rocket.png"
+        }
+    },
+    {
+        "id": 12,
+        "name": "Shell",
+        "client": {
+            "image": "images/bomb.png"
+        }
+    },
+    {
+        "id": 13,
+        "name": "Laser_Robo",
+        "client": {
+            "image": "images/laserrobo.png",
+            "editor_placable": true
+        }
+    },
+    {
+        "id": 14,
+        "name": "Laser_Turret",
+        "client": {
+            "image": "images/laserturret.png",
+            "editor_placable": true
+        }
+    },
+    {
+        "id": 15,
+        "name": "Health_Drop_Item",
+        "client": {
+            "image": "images/health_box.png"
+        }
+    },
+    {
+        "id": 16,
+        "name": "Speed_Drop_Item",
+        "client": {
+            "image": "images/speed_box.png"
+        }
+    }
+]

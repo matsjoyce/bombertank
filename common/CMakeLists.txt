@@ -2,6 +2,7 @@ set(SOURCE
     TcpMessageSocket.cpp
     Constants.cpp
     MsgpackUtils.cpp
+    ObjectTypeData.cpp
 )
 
 add_library(bt_common STATIC ${SOURCE})

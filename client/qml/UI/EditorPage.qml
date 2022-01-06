@@ -10,9 +10,10 @@ import "editorUtils.js" as EditorUtils
 
 Item {
     property EditorGameState state: EditorGameState {}
-    readonly property var gridSizes: [1, 2, 3, 6, 9]
+    readonly property var gridSizes: [2, 3, 6, 9]
     property double gridSize: 9
     property url fname: ""
+    property int selectedObjectType: objectList.model[objectList.currentIndex].id
 
     signal exit()
 
@@ -73,7 +74,7 @@ Item {
 
                 for (var x = dragRect.dragRectPoints.startX; x <= dragRect.dragRectPoints.endX; ++x) {
                     for (var y = dragRect.dragRectPoints.startY; y <= dragRect.dragRectPoints.endY; ++y) {
-                        view.state.addObject(0, x * view.gridSize, y * view.gridSize);
+                        view.state.addObject(selectedObjectType, x * view.gridSize, y * view.gridSize);
                     }
                 }
 
@@ -245,7 +246,7 @@ Item {
 
         ListView {
             id: objectList
-            model: [1, 2, 3]
+            model: context.objectTypeData
             clip: true
             orientation: Qt.Horizontal
             spacing: 2
@@ -259,7 +260,7 @@ Item {
                 border.color: ListView.isCurrentItem ? "red" : "white"
 
                 Image {
-                    source: "qrc:/data/images/wall.png"
+                    source: "qrc:/data/" + modelData.client.image
                     x: 2
                     y: 2
                     width: 72

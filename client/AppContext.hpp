@@ -7,15 +7,19 @@
 #include <QQmlEngine>
 
 #include "GameServer.hpp"
+#include "common/ObjectTypeData.hpp"
 
 class AppContext : public QObject {
     Q_OBJECT
     QML_ELEMENT
     QML_UNCREATABLE("Uncreatable!")
 
+    Q_PROPERTY(std::vector<ObjectTypeData> objectTypeData READ objectTypeData CONSTANT)
+
     std::string _serverExePath;
     QProcess _localServerProc;
     QTcpSocket _conn;
+    std::vector<ObjectTypeData> _objectTypeData;
 
     void handleLocalServerStarted();
     void handleLocalServerError();
@@ -24,6 +28,7 @@ class AppContext : public QObject {
 
    public:
     AppContext(std::string serverExePath);
+    const std::vector<ObjectTypeData>& objectTypeData() const { return _objectTypeData; }
 
    public slots:
     void connectToServer();

@@ -64,13 +64,14 @@ void EditorGameState::save(QUrl fname) const {
         return;
     }
     std::vector<std::map<std::string, msgpack::type::variant>> objs;
+    int tankSide = 1;
     for (auto& obj : _objectStates) {
         objs.emplace_back(std::map<std::string, msgpack::type::variant>{
             {"type", static_cast<int>(obj.second->type())},
             {"x", obj.second->x()},
             {"y", obj.second->y()},
             {"rotation", obj.second->rotation()},
-            {"side", 0}
+            {"side", obj.second->type() == constants::ObjectType::TANK ? tankSide++ : 0}
         });
     }
     msgpack::pack(mapFile, objs);

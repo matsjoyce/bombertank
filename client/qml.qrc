@@ -27,5 +27,6 @@
         <file>data/images/shield_bar_fg.png</file>
         <file>data/images/tiles.png</file>
         <file>data/images/grid.png</file>
+        <file>data/objects.json</file>
     </qresource>
 </RCC>
