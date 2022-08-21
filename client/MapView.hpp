@@ -27,7 +27,13 @@ class MapView : public QQuickItem {
     BaseGameState* _state = nullptr;
     std::map<constants::ObjectType, QQmlComponent*> _spriteComponents;
     std::map<constants::ObjectType, QQmlComponent*> _inputComponents;
-    std::map<int, QQuickItem*> _sprites;
+
+    struct SpriteDetails {
+        QQuickItem* item;
+        std::shared_ptr<BaseObjectState> object;
+    };
+
+    std::map<int, SpriteDetails> _sprites;
     QQuickItem* _controls = nullptr;
     BaseObjectState* _controlledObject = nullptr;
     bool _controlsUpdated = false;

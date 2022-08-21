@@ -4,11 +4,9 @@
 #include "Base.hpp"
 
 class TankState : public BaseObjectState {
-    float _leftTrack, _rightTrack;
+    float _angle, _power;
     std::vector<bool> _actions;
-
-    b2Body *_leftTrackBody = nullptr, *_rightTrackBody = nullptr;
-    b2Joint *_leftTrackJoint = nullptr, *_rightTrackJoint = nullptr;
+    int _reload = 0;
 
    public:
     TankState();

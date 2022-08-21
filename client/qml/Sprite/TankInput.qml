@@ -3,17 +3,20 @@ import BT 1.0
 
 Item {
     readonly property TankControlState controls: TankControlState {}
-    property bool forwardKey: false
-    property bool backwardKey: false
+    property bool upKey: false
+    property bool downKey: false
     property bool leftKey: false
     property bool rightKey: false
     property bool action0Key: false
 
     function updateControls() {
-        var lr = (leftKey ? -1 : 0) + (rightKey ? 1 : 0);
-        var fb = (forwardKey ? 1 : 0) + (backwardKey ? -1 : 0);
-        controls.leftTrack = fb == 0 ? lr : Math.max(-1, Math.min(1, lr * 0.5 + fb));
-        controls.rightTrack = fb == 0 ? -lr : Math.max(-1, Math.min(1, -lr * 0.5 + fb));
+        var pi = 3.14;
+        var lr = leftKey - rightKey;
+        var ud = upKey - downKey;
+        var lra = pi/2 + lr * pi/2;
+        var uda = ud * pi/2;
+        controls.angle = (lr && ud) ? (lra + uda/2 * -lr) : (lr ? lra : uda);
+        controls.power = !!lr || !!ud;
         controls.setAction(0, action0Key);
     }
 
@@ -22,10 +25,10 @@ Item {
             return;
         }
         if (event.key == Qt.Key_Up) {
-            forwardKey = true;
+            upKey = true;
         }
         else if (event.key == Qt.Key_Down) {
-            backwardKey = true;
+            downKey = true;
         }
         else if (event.key == Qt.Key_Left) {
             leftKey = true;
@@ -48,10 +51,10 @@ Item {
             return;
         }
         if (event.key == Qt.Key_Up) {
-            forwardKey = false;
+            upKey = false;
         }
         else if (event.key == Qt.Key_Down) {
-            backwardKey = false;
+            downKey = false;
         }
         else if (event.key == Qt.Key_Left) {
             leftKey = false;

@@ -19,6 +19,7 @@ std::map<constants::ObjectType, QUrl> spriteFilesForObjectType = {
 std::map<constants::ObjectType, QUrl> inputFilesForObjectType = {
     {constants::ObjectType::TANK, QUrl(QStringLiteral("qrc:/qml/Sprite/TankInput.qml"))}};
 
+
 MapView::MapView() {
     _timer.start(16);
     _viewRotProp.setValue(M_PI_2);
@@ -76,9 +77,7 @@ void MapView::_attachToObject(int id, constants::ObjectType type) {
         qWarning() << "Input does not have a valid controls property";
         return;
     }
-    connect(controlsState, &TankControlState::leftTrackChanged, this, &MapView::_handleControlsUpdated);
-    connect(controlsState, &TankControlState::rightTrackChanged, this, &MapView::_handleControlsUpdated);
-    connect(controlsState, &TankControlState::actionChanged, this, &MapView::_handleControlsUpdated);
+    connect(controlsState, &TankControlState::controlsChanged, this, &MapView::_handleControlsUpdated);
 }
 
 void MapView::setState(BaseGameState* state) {
@@ -130,6 +129,7 @@ QTransform MapView::_viewTransform() {
 void MapView::_doUpdate() {
     QElapsedTimer timer;
     timer.start();
+    auto engine = qmlEngine(this);
     auto& snapshot = _state->snapshot();
     auto snapshot_iter = snapshot.begin();
     auto sprites_iter = _sprites.begin();
@@ -153,17 +153,35 @@ void MapView::_doUpdate() {
 //                            << static_cast<int>(snapshot_iter->second->type()) << "is not loaded or does not exist";
             }
             else {
-                auto a = iter->second->create();
-                auto sprite = _sprites[snapshot_iter->first] = qobject_cast<QQuickItem*>(a);
-                sprite->setParentItem(this);
+                auto context = new QQmlContext(engine->rootContext(), this);
+                context->setContextProperty("object", snapshot_iter->second.get());
+                auto a = qobject_cast<QQuickItem*>(iter->second->create(context));
+                if (!a) {
+                    qWarning() << "Could not create item, null was returned";
+                }
+                else {
+//                 auto a = iter->second->beginCreate(context);
+//                 QObject* obj = snapshot_iter->second.get();
+//                 engine->rootContext()->setContextProperty();
+//                 a->setc
+//                 a->setContextProperty("object", QVariant::fromValue(obj));
+//                 iter->second->completeCreate();
+                    _sprites.emplace(snapshot_iter->first, MapView::SpriteDetails{a, snapshot_iter->second});
+                    a->setParentItem(this);
+                }
             }
             ++snapshot_iter;
         }
         else if (sprites_iter != _sprites.end() &&
                  (snapshot_iter == snapshot.end() || sprites_iter->first < snapshot_iter->first)) {
             // Removed
-            delete sprites_iter->second;
-            sprites_iter = _sprites.erase(sprites_iter);
+            if (sprites_iter->second.item->property("removable").toBool()) {
+                delete sprites_iter->second.item;
+                sprites_iter = _sprites.erase(sprites_iter);
+            }
+            else {
+                ++sprites_iter;
+            }
         }
         else {
             // Check if we need a controller
@@ -178,17 +196,22 @@ void MapView::_doUpdate() {
                 }
             }
 
-            // Update
-            auto& state = snapshot_iter->second;
-            auto sprite = sprites_iter->second;
-            auto point = viewTransform.map(QPointF(state->x(), state->y()));
-            sprite->setX(point.x() + width() / 2);
-            // Translate to pixel coords and angles
-            sprite->setY(-point.y() + height() / 2);
-            sprite->setRotation(qRadiansToDegrees(-state->rotation() + _viewRotProp.value()));
+            if (snapshot_iter->second != sprites_iter->second.object) {
+                qWarning() << "Item object is not the object from the snapshot!";
+            }
             ++snapshot_iter;
             ++sprites_iter;
         }
+    }
+    for (auto& spriteDetails : _sprites) {
+        // Update
+        auto& state = spriteDetails.second.object;
+        auto sprite = spriteDetails.second.item;
+        auto point = viewTransform.map(QPointF(state->x(), state->y()));
+        sprite->setX(point.x() + width() / 2);
+        // Translate to pixel coords and angles
+        sprite->setY(-point.y() + height() / 2);
+        sprite->setRotation(qRadiansToDegrees(-state->rotation() + _viewRotProp.value()));
     }
     if (_controls && _controlsUpdated) {
         if (_controllingId) {

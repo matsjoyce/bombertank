@@ -8,7 +8,16 @@ const float MIN_IMPULSE_DAMAGE = 1.0f;
 BaseObjectState::BaseObjectState() {}
 
 Message BaseObjectState::message() const {
-    return {{"type", static_cast<uint64_t>(type())}, {"health", health() / maxHealth()}, {"side", side()}};
+    return {
+        {"type", static_cast<uint64_t>(type())},
+        {"health", health() / maxHealth()},
+        {"side", side()},
+        {"x", _dead ? _deathPosition.x : body()->GetPosition().x},
+        {"y", _dead ? _deathPosition.y : body()->GetPosition().y},
+        {"rotation", _dead ? _deathAngle : body()->GetAngle()},
+        {"vx", _dead ? 0 : body()->GetLinearVelocity().x},
+        {"vy", _dead ? 0 : body()->GetLinearVelocity().y},
+    };
 }
 
 void BaseObjectState::createBodies(b2World& world, b2BodyDef& bodyDef) {
@@ -24,13 +33,7 @@ void BaseObjectState::postPhysics(Game* game) {}
 
 void BaseObjectState::handleMessage(const Message& msg) {}
 
-void BaseObjectState::collision(BaseObjectState* other, float impulse) {
-    qInfo() << "Impulse of" << impulse / IMPULSE_TO_DAMAGE;
-    auto [damage_, type] = other->impactDamage(impulse / IMPULSE_TO_DAMAGE);
-    if (damage_ >= MIN_IMPULSE_DAMAGE) {
-        damage(damage_, type);
-    }
-}
+void BaseObjectState::collision(BaseObjectState* other, float impulse) {}
 
 std::pair<float, DamageType> BaseObjectState::impactDamage(float baseDamage) {
     return {baseDamage, DamageType::IMPACT};
@@ -49,4 +52,8 @@ void BaseObjectState::destroy(Game* game) {
     _body->GetWorld()->DestroyBody(_body);
 }
 
-void BaseObjectState::die() { _dead = true; }
+void BaseObjectState::die() {
+    _dead = true;
+    _deathPosition = body()->GetPosition();
+    _deathAngle = body()->GetAngle();
+}

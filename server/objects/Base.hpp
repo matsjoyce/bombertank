@@ -16,6 +16,8 @@ class BaseObjectState {
     b2Body* _body = nullptr;
     float _damageTaken = 0;
     int _side = 0;
+    b2Vec2 _deathPosition;
+    float _deathAngle;
 
    public:
     BaseObjectState();

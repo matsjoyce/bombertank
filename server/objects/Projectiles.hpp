@@ -13,6 +13,7 @@ class ShellState : public BaseObjectState {
     void createBodies(b2World& world, b2BodyDef& bodyDef) override;
     void prePhysics(Game* game) override;
     std::pair<float, DamageType> impactDamage(float baseDamage) override;
+    void collision(BaseObjectState * other, float impulse) override;
 };
 
 #endif  // OBJECTS_PROJECTILES_HPP

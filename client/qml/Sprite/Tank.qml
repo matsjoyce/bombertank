@@ -1,7 +1,7 @@
 import QtQuick 2.15
 import Qt5Compat.GraphicalEffects
 
-Item {
+BaseSprite {
     id: base
 
     Image {

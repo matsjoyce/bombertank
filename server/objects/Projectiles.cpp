@@ -24,3 +24,9 @@ void ShellState::prePhysics(Game* game) {
 std::pair<float, DamageType> ShellState::impactDamage(float baseDamage) {
     return {baseDamage * 100, DamageType::PIERCING};
 }
+
+
+void ShellState::collision(BaseObjectState* other, float impulse) {
+    other->damage(impulse, DamageType::PIERCING);
+    die();
+}

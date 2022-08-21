@@ -12,84 +12,53 @@ float TankState::maxHealth() const { return 150; }
 
 void TankState::createBodies(b2World& world, b2BodyDef& bodyDef) {
     bodyDef.type = b2_dynamicBody;
-    // Prevent the tank spinning too fast
-    bodyDef.angularDamping = 7;
 
     BaseObjectState::createBodies(world, bodyDef);
 
-    b2PolygonShape box;
+    b2CircleShape box;
     // Half-size
-    box.SetAsBox(3.0f, 3.0f);
+    box.m_radius = 3.0f;
 
     body()->CreateFixture(&box, 100.0);
-
-    b2BodyDef trackDef;
-    trackDef.type = b2_kinematicBody;
-    trackDef.position = bodyDef.position;
-
-    _leftTrackBody = world.CreateBody(&trackDef);
-    b2FrictionJointDef frictionDef;
-    frictionDef.bodyA = body();
-    frictionDef.localAnchorA = {0, 3};
-    frictionDef.bodyB = _leftTrackBody;
-    frictionDef.maxForce = 20 * body()->GetMass() * 2;
-    _leftTrackJoint = world.CreateJoint(&frictionDef);
-
-    _rightTrackBody = world.CreateBody(&trackDef);
-    frictionDef.localAnchorA = {0, -3};
-    frictionDef.bodyB = _rightTrackBody;
-    _rightTrackJoint = world.CreateJoint(&frictionDef);
-}
-
-constexpr float sign(float a) { return a > 0 ? 1 : (a < 0 ? -1 : 0); }
-
-float speedDiff(b2Body* body, b2Vec2 offset, b2Vec2 forward, float power, float maxTrackSpeed, float maxChange) {
-    auto speed = b2Dot(body->GetLinearVelocityFromLocalPoint(offset), forward);
-    auto wantedSpeed = maxTrackSpeed * power;
-    auto speedDiff = maxTrackSpeed * power - speed;
-    if (sign(speed) != sign(wantedSpeed)) {
-        // Decelerating
-        speedDiff = std::min(std::abs(speedDiff), maxChange) * sign(speedDiff);
-    }
-    else {
-        // Accelerating
-        speedDiff = std::min(std::abs(speedDiff), maxChange * std::abs(power)) * sign(speedDiff);
-    }
-    return speedDiff + speed;
+    body()->SetFixedRotation(true);
 }
 
 void TankState::prePhysics(Game* game) {
-    auto maxTrackSpeed = 30.0f;
-    auto maxAccel = 5.0f;
-
     auto forward = body()->GetWorldVector({1, 0});
+    if (_power) {
+        body()->SetTransform(body()->GetPosition(), _angle);
+        body()->SetLinearVelocity(50.0f * _power * body()->GetWorldVector({1, 0}));
+    }
+    else {
+        body()->SetLinearVelocity({0,0});
+    }
 
-    _leftTrackBody->SetTransform(body()->GetWorldPoint({0, 3}), 0);
-    _leftTrackBody->SetLinearVelocity(speedDiff(body(), {0, 3}, forward, _leftTrack, maxTrackSpeed, maxAccel) *
-                                      forward);
+    if (_reload) {
+        --_reload;
+    }
 
-    _rightTrackBody->SetTransform(body()->GetWorldPoint({0, -3}), 0);
-    _rightTrackBody->SetLinearVelocity(speedDiff(body(), {0, -3}, forward, _rightTrack, maxTrackSpeed, maxAccel) *
-                                       forward);
-
-    if (_actions[0]) {
+    if (_actions[0] && !_reload) {
         // Shoot
         qDebug() << "Create shell";
         auto sideways = body()->GetWorldVector({0, 1});
 
-        std::uniform_real_distribution<float> distribution(-2, 2);
+        const auto speed = 200;
+        const auto maxSidewaysVelocity = speed / 20;
+        std::uniform_real_distribution<float> distribution(-maxSidewaysVelocity, maxSidewaysVelocity);
+        auto velocity = speed * forward + distribution(game->randomGenerator()) * sideways;
         auto shell = game->addObject(constants::ObjectType::SHELL, body()->GetPosition() + 3.5 * forward,
-                                     body()->GetAngle(), 80 * forward + distribution(game->randomGenerator()) * sideways);
+                                     std::atan2(velocity.y, velocity.x), velocity);
         if (shell) {
-            body()->ApplyLinearImpulseToCenter(-80 * shell->body()->GetMass() * forward, true);
+            body()->ApplyLinearImpulseToCenter(-velocity.Length() * shell->body()->GetMass() * forward, true);
         }
+        _reload = 2;
     }
 }
 
 void TankState::handleMessage(const Message& msg) {
     if (msg.at("cmd").as_string() == "control_state") {
-        _leftTrack = msg.at("left_track").as_double();
-        _rightTrack = msg.at("right_track").as_double();
+        _angle = msg.at("angle").as_double();
+        _power = msg.at("power").as_double();
         _actions.clear();
         auto actionsVec = msg.at("actions").as_vector();
         std::transform(actionsVec.begin(), actionsVec.end(), std::back_inserter(_actions),
@@ -102,5 +71,5 @@ void TankState::damage(float amount, DamageType type) {
     if (type == DamageType::IMPACT && amount < 10) {
         return;
     }
-    BaseObjectState::damage(amount, type);
+//     BaseObjectState::damage(amount, type);
 }
