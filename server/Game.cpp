@@ -13,11 +13,11 @@ constexpr float PHYSICS_FPS = 100;
 
 Game::Game() : _randomGen(std::random_device()()), _world(b2Vec2(0, 0)) { _world.SetContactListener(this); }
 
-BaseObjectState* Game::addObject(constants::ObjectType type, b2Vec2 position, float rotation, b2Vec2 velocity) {
+std::optional<std::pair<int, BaseObjectState*>> Game::addObject(constants::ObjectType type, b2Vec2 position, float rotation, b2Vec2 velocity) {
     auto objmove = createObjectFromType(type);
     if (!objmove) {
         qWarning() << "Could not create object of type" << static_cast<int>(type);
-        return nullptr;
+        return {};
     }
     auto id = _nextId++;
     auto& obj = _objects[id] = std::move(objmove);
@@ -29,7 +29,17 @@ BaseObjectState* Game::addObject(constants::ObjectType type, b2Vec2 position, fl
     bodyDef.linearVelocity = velocity;
 
     obj->createBodies(_world, bodyDef);
-    return obj.get();
+    return {{id, obj.get()}};
+}
+
+void Game::PreSolve(b2Contact *contact, const b2Manifold* oldManifold) {
+    auto bodyA = contact->GetFixtureA()->GetBody();
+    auto bodyB = contact->GetFixtureB()->GetBody();
+    auto objA = reinterpret_cast<BaseObjectState*>(bodyA->GetUserData().pointer);
+    auto objB = reinterpret_cast<BaseObjectState*>(bodyB->GetUserData().pointer);
+    if (objA->dead() || objB->dead()) {
+        contact->SetEnabled(false);
+    }
 }
 
 void Game::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse) {
@@ -156,4 +166,6 @@ std::vector<int> Game::objectsOfType(constants::ObjectType type) {
     return res;
 }
 
-void Game::attachPlayerToObject(int id, int objId) { emit sendMessage(id, {{"cmd", "attach"}, {"id", objId}}); }
+void Game::attachPlayerToObject(int id, int objId) {
+    emit sendMessage(id, {{"cmd", "attach"}, {"id", objId}});
+}

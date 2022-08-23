@@ -5,6 +5,8 @@
 #include <memory>
 #include <vector>
 #include <random>
+#include <utility>
+#include <optional>
 
 #include "box2d/box2d.h"
 #include "common/Constants.hpp"
@@ -25,7 +27,8 @@ class Game : public QObject, public b2ContactListener {
    public:
     Game();
     void mainloop();
-    BaseObjectState *addObject(constants::ObjectType type, b2Vec2 position, float rotation, b2Vec2 velocity);
+    std::optional<std::pair<int, BaseObjectState*>> addObject(constants::ObjectType type, b2Vec2 position, float rotation, b2Vec2 velocity);
+    void PreSolve(b2Contact *contact, const b2Manifold* oldManifold) override;
     void PostSolve(b2Contact *contact, const b2ContactImpulse *impulse) override;
     BaseObjectState *object(int id);
     std::vector<int> objectsOnSide(int side);

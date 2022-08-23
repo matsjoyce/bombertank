@@ -46,20 +46,12 @@
     },
     {
         "id": 3,
-        "name": "Tank",
+        "name": "Start zone",
         "client": {
-            "image": "images/tank1.png",
+            "image": "images/start_zone.png",
             "editor_placable": true,
             "editor_grid": [6, 6],
             "renderer": "Tank"
-        },
-        "server": {
-            "class": "Tank",
-            "geometry": {
-                "type": "box",
-                "hw": 4.5,
-                "hh": 4.5
-            }
         }
     },
     {

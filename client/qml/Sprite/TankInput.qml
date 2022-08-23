@@ -3,72 +3,43 @@ import BT 1.0
 
 Item {
     readonly property TankControlState controls: TankControlState {}
-    property bool upKey: false
-    property bool downKey: false
-    property bool leftKey: false
-    property bool rightKey: false
-    property bool action0Key: false
+    property var keys: { return {}; }
+    property var interestingKeys: [Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right, Qt.Key_Space, Qt.Key_1, Qt.Key_2, Qt.Key_3, Qt.Key_4, Qt.Key_5]
 
     function updateControls() {
         var pi = 3.14;
-        var lr = leftKey - rightKey;
-        var ud = upKey - downKey;
+        var lr = keys[Qt.Key_Left] - keys[Qt.Key_Right];
+        var ud = keys[Qt.Key_Up] - keys[Qt.Key_Down];
         var lra = pi/2 + lr * pi/2;
         var uda = ud * pi/2;
         controls.angle = (lr && ud) ? (lra + uda/2 * -lr) : (lr ? lra : uda);
         controls.power = !!lr || !!ud;
-        controls.setAction(0, action0Key);
+        controls.setAction(0, keys[Qt.Key_Space] || keys[Qt.Key_1]);
+        controls.setAction(1, keys[Qt.Key_2]);
+        controls.setAction(2, keys[Qt.Key_3]);
+        controls.setAction(3, keys[Qt.Key_4]);
+        controls.setAction(4, keys[Qt.Key_5]);
     }
 
     Keys.onPressed: {
         if (event.modifiers != Qt.NoModifier || event.isAutoRepeat) {
             return;
         }
-        if (event.key == Qt.Key_Up) {
-            upKey = true;
+        if (interestingKeys.includes(event.key)) {
+            keys[event.key] = true;
+            event.accepted = true;
+            updateControls();
         }
-        else if (event.key == Qt.Key_Down) {
-            downKey = true;
-        }
-        else if (event.key == Qt.Key_Left) {
-            leftKey = true;
-        }
-        else if (event.key == Qt.Key_Right) {
-            rightKey = true;
-        }
-        else if (event.key == Qt.Key_Space) {
-            action0Key = true;
-        }
-        else {
-            return;
-        }
-        event.accepted = true;
-        updateControls();
     }
 
     Keys.onReleased: {
         if (event.isAutoRepeat) {
             return;
         }
-        if (event.key == Qt.Key_Up) {
-            upKey = false;
+        if (interestingKeys.includes(event.key)) {
+            keys[event.key] = false;
+            event.accepted = true;
+            updateControls();
         }
-        else if (event.key == Qt.Key_Down) {
-            downKey = false;
-        }
-        else if (event.key == Qt.Key_Left) {
-            leftKey = false;
-        }
-        else if (event.key == Qt.Key_Right) {
-            rightKey = false;
-        }
-        else if (event.key == Qt.Key_Space) {
-            action0Key = false;
-        }
-        else {
-            return;
-        }
-        event.accepted = true;
-        updateControls();
     }
 }

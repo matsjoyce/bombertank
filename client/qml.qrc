@@ -17,6 +17,9 @@
         <file>qml/Sprite/Wall.qml</file>
         <file>qml/Sprite/IndestructableWall.qml</file>
         <file>qml/Sprite/Shell.qml</file>
+        <file>qml/Sprite/MGShell.qml</file>
+        <file>qml/Sprite/Rocket.qml</file>
+        <file>qml/Sprite/StartZone.qml</file>
         <file>qml/Sprite/TankInput.qml</file>
         <file>data/images/tank1.png</file>
         <file>data/images/tank_colored.png</file>
@@ -27,9 +30,13 @@
         <file>data/images/hp_bar_fg.png</file>
         <file>data/images/shield_bar_fg.png</file>
         <file>data/images/tiles.png</file>
+        <file>data/images/rocket.png</file>
         <file>data/images/grid.png</file>
+        <file>data/images/start_zone.png</file>
         <file>data/sounds/laser-small.wav</file>
         <file>data/sounds/gun.wav</file>
+        <file>data/sounds/small-gun.wav</file>
+        <file>data/sounds/missile.wav</file>
         <file>data/objects.json</file>
     </qresource>
 </RCC>

@@ -1,5 +1,7 @@
 #include "GameMode.hpp"
 
+#include<QDebug>
+
 void GameMode::setGame(Game* game) { _game = game; }
 
 void IndividualDeathMatch::setGame(Game* game) {
@@ -13,12 +15,20 @@ void IndividualDeathMatch::setGame(Game* game) {
 }
 
 void IndividualDeathMatch::_onPlayerConnected(int id) {
-    auto side = _playerToSide[id] = _nextSideAssignment++;
-    auto objs = game()->objectsOnSide(side);
-    if (!objs.size()) {
+    auto startZones = game()->objectsOfType(constants::ObjectType::START_ZONE);
+
+    if (!startZones.size()) {
+        qWarning() << "No start zones";
         return;
     }
-    game()->attachPlayerToObject(id, objs.front());
+    auto side = _playerToSide[id] = _nextSideAssignment++ % startZones.size();
+    auto startZone = game()->object(startZones[side]);
+    auto tank = game()->addObject(constants::ObjectType::TANK, startZone->body()->GetPosition(), startZone->body()->GetAngle(), {});
+    if (tank) {
+        auto [tankId, tankObj] = *tank;
+        tankObj->setSide(side);
+        game()->attachPlayerToObject(id, tankId);
+    }
 }
 
 void IndividualDeathMatch::_onPlayerAttachedObjectDied(int id) {}

@@ -14,10 +14,15 @@ std::map<constants::ObjectType, QUrl> spriteFilesForObjectType = {
     {constants::ObjectType::CRATE, QUrl(QStringLiteral("qrc:/qml/Sprite/Crate.qml"))},
     {constants::ObjectType::WALL, QUrl(QStringLiteral("qrc:/qml/Sprite/Wall.qml"))},
     {constants::ObjectType::INDESTRUCTABLE_WALL, QUrl(QStringLiteral("qrc:/qml/Sprite/IndestructableWall.qml"))},
-    {constants::ObjectType::SHELL, QUrl(QStringLiteral("qrc:/qml/Sprite/Shell.qml"))}};
+    {constants::ObjectType::SHELL, QUrl(QStringLiteral("qrc:/qml/Sprite/Shell.qml"))},
+    {constants::ObjectType::MG_SHELL, QUrl(QStringLiteral("qrc:/qml/Sprite/MGShell.qml"))},
+    {constants::ObjectType::ROCKET, QUrl(QStringLiteral("qrc:/qml/Sprite/Rocket.qml"))},
+    {constants::ObjectType::START_ZONE, QUrl(QStringLiteral("qrc:/qml/Sprite/StartZone.qml"))}
+};
 
 std::map<constants::ObjectType, QUrl> inputFilesForObjectType = {
-    {constants::ObjectType::TANK, QUrl(QStringLiteral("qrc:/qml/Sprite/TankInput.qml"))}};
+    {constants::ObjectType::TANK, QUrl(QStringLiteral("qrc:/qml/Sprite/TankInput.qml"))}
+};
 
 
 MapView::MapView() {
@@ -149,8 +154,8 @@ void MapView::_doUpdate() {
             // Added
             auto iter = _spriteComponents.find(snapshot_iter->second->type());
             if (iter == _spriteComponents.end() || !iter->second->isReady()) {
-//                 qWarning() << "Could not create item for" << snapshot_iter->first << "since its type"
-//                            << static_cast<int>(snapshot_iter->second->type()) << "is not loaded or does not exist";
+                qWarning() << "Could not create item for" << snapshot_iter->first << "since its type"
+                           << static_cast<int>(snapshot_iter->second->type()) << "is not loaded or does not exist";
             }
             else {
                 auto context = new QQmlContext(engine->rootContext(), this);
@@ -160,12 +165,6 @@ void MapView::_doUpdate() {
                     qWarning() << "Could not create item, null was returned";
                 }
                 else {
-//                 auto a = iter->second->beginCreate(context);
-//                 QObject* obj = snapshot_iter->second.get();
-//                 engine->rootContext()->setContextProperty();
-//                 a->setc
-//                 a->setContextProperty("object", QVariant::fromValue(obj));
-//                 iter->second->completeCreate();
                     _sprites.emplace(snapshot_iter->first, MapView::SpriteDetails{a, snapshot_iter->second});
                     a->setParentItem(this);
                 }

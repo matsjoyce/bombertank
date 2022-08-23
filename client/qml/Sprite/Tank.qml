@@ -28,16 +28,7 @@ BaseSprite {
         id: color
         anchors.fill: overlay
         source: overlay
-        hue: 0.0
+        hue: object.side / 4
         lightness: -0.5
-    }
-
-    Timer {
-        interval: 50
-        running: true
-        repeat: true
-        onTriggered: {
-            color.hue += 0.01
-        }
     }
 }

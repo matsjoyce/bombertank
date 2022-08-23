@@ -5,8 +5,15 @@
 
 #include "../Game.hpp"
 #include "common/Constants.hpp"
+#include "actions/MainGun.hpp"
+#include "actions/MachineGun.hpp"
+#include "actions/RocketLauncher.hpp"
 
-TankState::TankState() { _actions.resize(5); }
+TankState::TankState() {
+    _actions.emplace_back(std::make_unique<MainGun>());
+    _actions.emplace_back(std::make_unique<MachineGun>());
+    _actions.emplace_back(std::make_unique<RocketLauncher>());
+}
 
 float TankState::maxHealth() const { return 150; }
 
@@ -24,52 +31,40 @@ void TankState::createBodies(b2World& world, b2BodyDef& bodyDef) {
 }
 
 void TankState::prePhysics(Game* game) {
-    auto forward = body()->GetWorldVector({1, 0});
     if (_power) {
         body()->SetTransform(body()->GetPosition(), _angle);
         body()->SetLinearVelocity(50.0f * _power * body()->GetWorldVector({1, 0}));
     }
     else {
-        body()->SetLinearVelocity({0,0});
+        body()->SetLinearVelocity({0, 0});
     }
-
-    if (_reload) {
-        --_reload;
-    }
-
-    if (_actions[0] && !_reload) {
-        // Shoot
-        qDebug() << "Create shell";
-        auto sideways = body()->GetWorldVector({0, 1});
-
-        const auto speed = 200;
-        const auto maxSidewaysVelocity = speed / 20;
-        std::uniform_real_distribution<float> distribution(-maxSidewaysVelocity, maxSidewaysVelocity);
-        auto velocity = speed * forward + distribution(game->randomGenerator()) * sideways;
-        auto shell = game->addObject(constants::ObjectType::SHELL, body()->GetPosition() + 3.5 * forward,
-                                     std::atan2(velocity.y, velocity.x), velocity);
-        if (shell) {
-            body()->ApplyLinearImpulseToCenter(-velocity.Length() * shell->body()->GetMass() * forward, true);
-        }
-        _reload = 2;
+    for (auto& action : _actions) {
+        action->prePhysics(game, this);
     }
 }
+
+void TankState::postPhysics(Game* game) {
+    for (auto& action : _actions) {
+        action->postPhysics(game, this);
+    }
+}
+
 
 void TankState::handleMessage(const Message& msg) {
     if (msg.at("cmd").as_string() == "control_state") {
         _angle = msg.at("angle").as_double();
         _power = msg.at("power").as_double();
-        _actions.clear();
+
         auto actionsVec = msg.at("actions").as_vector();
-        std::transform(actionsVec.begin(), actionsVec.end(), std::back_inserter(_actions),
-                       [](auto& o) { return o.as_bool(); });
-        _actions.resize(5);
+        auto actionVecIter = actionsVec.begin();
+        auto actionsIter = _actions.begin();
+        for (; actionVecIter != actionsVec.end() && actionsIter != _actions.end(); ++actionVecIter, ++actionsIter) {
+            (*actionsIter)->setActive(actionVecIter->as_bool());
+        }
+
     }
 }
 
 void TankState::damage(float amount, DamageType type) {
-    if (type == DamageType::IMPACT && amount < 10) {
-        return;
-    }
-//     BaseObjectState::damage(amount, type);
+    BaseObjectState::damage(amount, type);
 }

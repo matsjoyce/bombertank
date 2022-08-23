@@ -11,7 +11,7 @@ enum class ObjectType {
     WALL = 0,
     INDESTRUCTABLE_WALL = 1,
     CRATE = 2,
-    TANK = 3,
+    START_ZONE = 3,
     LAVA = 4,
     STATIC_BOMB = 5,
     TIMED_BOMB = 6,
@@ -24,7 +24,9 @@ enum class ObjectType {
     LASER_ROBO = 13,
     LASER_TURRET = 14,
     HEALTH_DROP_ITEM = 15,
-    SPEED_DROP_ITEM = 16
+    SPEED_DROP_ITEM = 16,
+    MG_SHELL = 17,
+    TANK = 18,
 };
 Q_ENUM_NS(ObjectType)
 }  // namespace constants

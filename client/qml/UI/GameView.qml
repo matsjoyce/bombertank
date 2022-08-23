@@ -18,7 +18,7 @@ Item {
         fillMode: Image.Tile
         transform: [
             Scale { xScale: 2; yScale: 2},
-            Translate { x: controlledObject ? -controlledObject.x*8 % 48 : 0; y: controlledObject ? controlledObject.y*8 % 48 : 0}
+            Translate { x: map.viewCenter && (map.positionToPixels(Qt.point(0, 0)).x - width) % 48 - 48; y: map.viewCenter && (map.positionToPixels(Qt.point(0, 0)).y - height) % 48 - 48}
         ]
     }
 
