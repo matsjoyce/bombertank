@@ -4,7 +4,7 @@ BaseSprite {
     id: base
 
     Image {
-        source: "qrc:/data/images/wall.png"
+        source: object.health > 0.5 ? "qrc:/data/images/wall.png" : "qrc:/data/images/damaged_wall.png"
         x: -36
         y: -36
         width: 72

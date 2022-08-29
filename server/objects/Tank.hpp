@@ -6,7 +6,7 @@
 #include "actions/TankModule.hpp"
 
 class TankState : public BaseObjectState {
-    float _angle, _power;
+    float _angle = 0, _power = 0;
     std::vector<std::unique_ptr<TankModule>> _actions;
 
    public:

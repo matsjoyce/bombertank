@@ -6,7 +6,7 @@ float CrateState::maxHealth() const { return 50; }
 
 void CrateState::createBodies(b2World& world, b2BodyDef& bodyDef) {
     bodyDef.type = b2_dynamicBody;
-    // Prevent the tank spinning too fast
+    // Prevent the crate spinning endlessly
     bodyDef.angularDamping = 30;
 
     BaseObjectState::createBodies(world, bodyDef);

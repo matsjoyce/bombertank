@@ -25,6 +25,7 @@
         <file>data/images/tank_colored.png</file>
         <file>data/images/pwall.png</file>
         <file>data/images/wall.png</file>
+        <file>data/images/damaged_wall.png</file>
         <file>data/images/iwall.png</file>
         <file>data/images/bar_bg.png</file>
         <file>data/images/hp_bar_fg.png</file>

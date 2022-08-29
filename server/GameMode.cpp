@@ -23,7 +23,7 @@ void IndividualDeathMatch::_onPlayerConnected(int id) {
     }
     auto side = _playerToSide[id] = _nextSideAssignment++ % startZones.size();
     auto startZone = game()->object(startZones[side]);
-    auto tank = game()->addObject(constants::ObjectType::TANK, startZone->body()->GetPosition(), startZone->body()->GetAngle(), {});
+    auto tank = game()->addObject(constants::ObjectType::TANK, startZone->body()->GetPosition(), startZone->body()->GetAngle(), {0, 0});
     if (tank) {
         auto [tankId, tankObj] = *tank;
         tankObj->setSide(side);

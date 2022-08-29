@@ -17,7 +17,7 @@ GameHandler::GameHandler(GameServer* gs,
 
         for (auto& obj : startingObjects) {
             auto go = game->addObject(static_cast<constants::ObjectType>(obj.at("type").as_uint64_t()),
-                                      {obj.at("x").as_double(), obj.at("y").as_double()}, 0, {});
+                                      {obj.at("x").as_double(), obj.at("y").as_double()}, 0, {0, 0});
             if (go) {
                 go->second->setSide(obj.at("side").as_uint64_t());
             }
