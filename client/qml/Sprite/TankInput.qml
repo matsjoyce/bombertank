@@ -3,15 +3,18 @@ import BT 1.0
 
 Item {
     readonly property TankControlState controls: TankControlState {}
-    property var keys: { return {}; }
     property var interestingKeys: [Qt.Key_Up, Qt.Key_Down, Qt.Key_Left, Qt.Key_Right, Qt.Key_Space, Qt.Key_1, Qt.Key_2, Qt.Key_3, Qt.Key_4, Qt.Key_5]
+    property var keys: {
+        let initialKeys = {};
+        interestingKeys.forEach(k => { initialKeys[k] = false });
+        return initialKeys;
+    }
 
     function updateControls() {
-        var pi = 3.14;
         var lr = keys[Qt.Key_Left] - keys[Qt.Key_Right];
         var ud = keys[Qt.Key_Up] - keys[Qt.Key_Down];
-        var lra = pi/2 + lr * pi/2;
-        var uda = ud * pi/2;
+        var lra = Math.PI/2 + lr * Math.PI/2;
+        var uda = ud * Math.PI/2;
         controls.angle = (lr && ud) ? (lra + uda/2 * -lr) : (lr ? lra : uda);
         controls.power = !!lr || !!ud;
         controls.setAction(0, keys[Qt.Key_Space] || keys[Qt.Key_1]);

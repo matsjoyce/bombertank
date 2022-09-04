@@ -3,7 +3,6 @@ import QtMultimedia
 
 BaseSprite {
     id: base
-    removable: !fireSound.playing
 
     SoundEffect {
         id: fireSound
