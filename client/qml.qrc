@@ -10,6 +10,7 @@
         <file>qml/UI/EditorPage.qml</file>
         <file>qml/UI/editorUtils.js</file>
         <file>qml/UI/StatusBar.qml</file>
+        <file>qml/UI/TankSetup.qml</file>
         <file>qml/UI/UI.qml</file>
         <file>qml/Sprite/Tank.qml</file>
         <file>qml/Sprite/BaseSprite.qml</file>
@@ -21,6 +22,8 @@
         <file>qml/Sprite/Rocket.qml</file>
         <file>qml/Sprite/StartZone.qml</file>
         <file>qml/Sprite/TankInput.qml</file>
+        <file>qml/Sprite/Explosion.qml</file>
+        <file>qml/Sprite/Bomb.qml</file>
         <file>data/images/tank1.png</file>
         <file>data/images/tank_colored.png</file>
         <file>data/images/pwall.png</file>
@@ -32,12 +35,22 @@
         <file>data/images/shield_bar_fg.png</file>
         <file>data/images/tiles.png</file>
         <file>data/images/rocket.png</file>
+        <file>data/images/health_box.png</file>
+        <file>data/images/speed_box.png</file>
+        <file>data/images/shield_box.png</file>
         <file>data/images/grid.png</file>
         <file>data/images/start_zone.png</file>
+        <file>data/images/charge.png</file>
+        <file>data/images/rocket_icon.png</file>
+        <file>data/images/shell_icon.png</file>
+        <file>data/images/mg_icon.png</file>
         <file>data/sounds/laser-small.wav</file>
         <file>data/sounds/gun.wav</file>
         <file>data/sounds/small-gun.wav</file>
+        <file>data/sounds/bomb-2.wav</file>
         <file>data/sounds/missile.wav</file>
+        <file>data/sounds/start.wav</file>
         <file>data/objects.json</file>
+        <file>data/tank_modules.json</file>
     </qresource>
 </RCC>

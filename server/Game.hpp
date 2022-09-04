@@ -35,15 +35,16 @@ class Game : public QObject, public b2ContactListener {
     std::vector<int> objectsOfType(constants::ObjectType type);
     void attachPlayerToObject(int id, int objId);
     std::mt19937& randomGenerator() { return _randomGen; }
+    const b2World* world() const { return &_world; }
 
    public slots:
-    void addConnection(int id);
+    void addConnection(int id, Message msg);
     void removeConnection(int id);
     void recieveMessage(int id, Message msg);
 
    signals:
     void sendMessage(int id, Message msg);
-    void playerConnected(int id);
+    void playerConnected(int id, Message msg);
     void playerAttachedObjectDied(int id);
 };
 

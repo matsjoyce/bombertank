@@ -10,9 +10,6 @@
 #include "actions/RocketLauncher.hpp"
 
 TankState::TankState() {
-    _actions.emplace_back(std::make_unique<MainGun>());
-    _actions.emplace_back(std::make_unique<MachineGun>());
-    _actions.emplace_back(std::make_unique<RocketLauncher>());
 }
 
 float TankState::maxHealth() const { return 150; }
@@ -39,16 +36,28 @@ void TankState::prePhysics(Game* game) {
         body()->SetLinearVelocity({0, 0});
     }
     for (auto& action : _actions) {
-        action->prePhysics(game, this);
+        if (action) {
+            action->prePhysics(game, this);
+        }
     }
 }
 
 void TankState::postPhysics(Game* game) {
     for (auto& action : _actions) {
-        action->postPhysics(game, this);
+        if (action) {
+            action->postPhysics(game, this);
+        }
     }
 }
 
+std::unique_ptr<TankModule> createModule(int type) {
+    switch (type) {
+        case 0: return std::make_unique<MainGun>();
+        case 1: return std::make_unique<RocketLauncher>();
+        case 2: return std::make_unique<MachineGun>();
+    }
+    return {};
+}
 
 void TankState::handleMessage(const Message& msg) {
     if (msg.at("cmd").as_string() == "control_state") {
@@ -59,9 +68,16 @@ void TankState::handleMessage(const Message& msg) {
         auto actionVecIter = actionsVec.begin();
         auto actionsIter = _actions.begin();
         for (; actionVecIter != actionsVec.end() && actionsIter != _actions.end(); ++actionVecIter, ++actionsIter) {
-            (*actionsIter)->setActive(actionVecIter->as_bool());
+            if (*actionsIter) {
+                (*actionsIter)->setActive(actionVecIter->as_bool());
+            }
         }
-
+    }
+    else if (msg.at("cmd").as_string() == "join_game" && msg.at("tank_modules").is_vector()) {
+        auto modulesVec = msg.at("tank_modules").as_vector();
+        for (auto module : modulesVec) {
+            _actions.emplace_back(createModule(module.is_uint64_t() ? module.as_uint64_t() : module.as_int64_t()));
+        }
     }
 }
 

@@ -39,7 +39,7 @@ GameHandler::GameHandler(GameServer* gs,
     thread->start();
 }
 
-void GameHandler::addConnection(int id) { emit _addConnection(id); }
+void GameHandler::addConnection(int id, Message msg) { emit _addConnection(id, msg); }
 
 void GameHandler::removeConnection(int id) { emit _removeConnection(id); }
 
@@ -116,7 +116,7 @@ void GameServer::handleClientMessage(int id, Message msg) {
         }
         else {
             qInfo() << "Adding connection" << id << "to game" << msg["id"].as_uint64_t();
-            iter->second->addConnection(id);
+            iter->second->addConnection(id, msg);
             connInfo.game = msg["id"].as_uint64_t();
         }
     }

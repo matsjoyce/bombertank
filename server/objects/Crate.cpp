@@ -1,4 +1,5 @@
 #include "Crate.hpp"
+#include "../Game.hpp"
 
 #include <QDebug>
 
@@ -28,3 +29,13 @@ void CrateState::createBodies(b2World& world, b2BodyDef& bodyDef) {
     frictionDef.maxForce = 10 * body()->GetMass() * 2;
     world.CreateJoint(&frictionDef);
 }
+
+void BombState::destroy(Game* game) {
+    game->addObject(constants::ObjectType::EXPLOSION, body()->GetPosition(), 0, {0, 0});
+    CrateState::destroy(game);
+}
+
+float BombState::maxHealth() const {
+    return 10;
+}
+

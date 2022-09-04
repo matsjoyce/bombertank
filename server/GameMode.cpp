@@ -14,19 +14,23 @@ void IndividualDeathMatch::setGame(Game* game) {
     }
 }
 
-void IndividualDeathMatch::_onPlayerConnected(int id) {
+void IndividualDeathMatch::_onPlayerConnected(int id, Message msg) {
     auto startZones = game()->objectsOfType(constants::ObjectType::START_ZONE);
 
     if (!startZones.size()) {
         qWarning() << "No start zones";
         return;
     }
-    auto side = _playerToSide[id] = _nextSideAssignment++ % startZones.size();
+    if (!_playerToSide.count(id)) {
+        _playerToSide[id] = _nextSideAssignment++ % startZones.size();
+    }
+    auto side = _playerToSide[id];
     auto startZone = game()->object(startZones[side]);
     auto tank = game()->addObject(constants::ObjectType::TANK, startZone->body()->GetPosition(), startZone->body()->GetAngle(), {0, 0});
     if (tank) {
         auto [tankId, tankObj] = *tank;
         tankObj->setSide(side);
+        tankObj->handleMessage(msg);
         game()->attachPlayerToObject(id, tankId);
     }
 }

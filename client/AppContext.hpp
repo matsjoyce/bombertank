@@ -15,11 +15,13 @@ class AppContext : public QObject {
     QML_UNCREATABLE("Uncreatable!")
 
     Q_PROPERTY(std::vector<ObjectTypeData> objectTypeData READ objectTypeData CONSTANT)
+    Q_PROPERTY(std::vector<TankModuleData> tankModuleData READ tankModuleData CONSTANT)
 
     std::string _serverExePath;
     QProcess _localServerProc;
     QTcpSocket _conn;
     std::vector<ObjectTypeData> _objectTypeData;
+    std::vector<TankModuleData> _tankModuleData;
 
     void handleLocalServerStarted();
     void handleLocalServerError();
@@ -29,6 +31,7 @@ class AppContext : public QObject {
    public:
     AppContext(std::string serverExePath);
     const std::vector<ObjectTypeData>& objectTypeData() const { return _objectTypeData; }
+    const std::vector<TankModuleData>& tankModuleData() const { return _tankModuleData; }
 
    public slots:
     void connectToServer();

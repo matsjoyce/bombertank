@@ -52,7 +52,7 @@ class GameServer : public QObject {
     GameServer(TcpMessageSocket* msgconn, QObject* parent);
     ListedGameModel* listedGamesModel() const { return _listedGamesModel; }
 
-    Q_INVOKABLE GameState* joinGame(int id);
+    Q_INVOKABLE GameState* joinGame(int id, std::vector<int> modulesForSlots);
     Q_INVOKABLE void createGame(QUrl mapFilePath);
 };
 

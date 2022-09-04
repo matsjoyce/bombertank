@@ -15,7 +15,7 @@ void TcpMessageSocket::sendMessage(const Message message) {
     msgpack::pack(buffer, message);
     auto data = buffer.str();
     auto offset = 0u;
-    // FIXME Don;t assume it works?
+    // FIXME Don't assume it works?
     auto nsize = htonl(data.size());
     _socket->write(reinterpret_cast<const char*>(&nsize), MESSAGE_SIZE_SIZE);
     while (offset < data.size()) {

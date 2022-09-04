@@ -13,7 +13,7 @@ enum class ObjectType {
     CRATE = 2,
     START_ZONE = 3,
     LAVA = 4,
-    STATIC_BOMB = 5,
+    BOMB = 5,
     TIMED_BOMB = 6,
     ROBO_BOMB = 7,
     CHEST = 8,
@@ -27,6 +27,7 @@ enum class ObjectType {
     SPEED_DROP_ITEM = 16,
     MG_SHELL = 17,
     TANK = 18,
+    EXPLOSION = 19,
 };
 Q_ENUM_NS(ObjectType)
 }  // namespace constants

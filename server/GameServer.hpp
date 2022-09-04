@@ -12,12 +12,12 @@ class GameHandler : public QObject {
 
    public:
     GameHandler(GameServer* gs, std::vector<std::map<msgpack::type::variant, msgpack::type::variant>> startingObjects);
-    void addConnection(int id);
+    void addConnection(int id, Message msg);
     void removeConnection(int id);
     void sendMessage(int id, Message msg);
 
    signals:
-    void _addConnection(int id);
+    void _addConnection(int id, Message msg);
     void _removeConnection(int id);
     void _sendMessage(int id, Message msg);
 };

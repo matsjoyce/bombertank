@@ -1,0 +1,38 @@
+[
+    {
+        "id": 0,
+        "name": "Autocannon",
+        "image": "images/shell_icon.png",
+        "for_slots": [0]
+    },
+    {
+        "id": 1,
+        "name": "Missile",
+        "image": "images/rocket_icon.png",
+        "for_slots": [0]
+    },
+    {
+        "id": 2,
+        "name": "Machine gun",
+        "image": "images/mg_icon.png",
+        "for_slots": [1]
+    },
+    {
+        "id": 3,
+        "name": "Speed module",
+        "image": "images/speed_box.png",
+        "for_slots": [3, 4]
+    },
+    {
+        "id": 4,
+        "name": "Health module",
+        "image": "images/health_box.png",
+        "for_slots": [3, 4]
+    },
+    {
+        "id": 5,
+        "name": "Shield module",
+        "image": "images/shield_box.png",
+        "for_slots": [3, 4]
+    }
+]

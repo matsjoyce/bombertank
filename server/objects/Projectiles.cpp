@@ -1,4 +1,5 @@
 #include "Projectiles.hpp"
+#include "../Game.hpp"
 
 const float IMPULSE_TO_DAMAGE = 1000.0f;
 
@@ -43,4 +44,38 @@ void MGShellState::collision(BaseObjectState* other, float impulse) {
 void RocketState::prePhysics(Game* game) {
     ShellState::prePhysics(game);
     body()->ApplyLinearImpulseToCenter(body()->GetMass() * 10 * body()->GetWorldVector({1, 0}), true);
+}
+
+void RocketState::destroy(Game* game) {
+    game->addObject(constants::ObjectType::EXPLOSION, body()->GetPosition(), 0, {0, 0});
+    ShellState::destroy(game);
+}
+
+
+class ExplosionRaycastCallback : public b2RayCastCallback {
+    std::vector<BaseObjectState*> _objs;
+public:
+    float ReportFixture(b2Fixture * fixture, const b2Vec2 & point, const b2Vec2 & normal, float fraction) override {
+        _objs.push_back(reinterpret_cast<BaseObjectState*>(fixture->GetBody()->GetUserData().pointer));
+        return 1;
+    }
+    const std::vector<BaseObjectState*>& objs() const {return _objs;}
+};
+
+void ExplosionState::prePhysics(Game* game) {
+    auto center = body()->GetPosition();
+    const int numRays=50;
+    const float radius = 15;
+    for (int i = 0; i < numRays; i++) {
+      float angle =  M_PI * 2 * i / numRays;
+      b2Vec2 rayDir( sinf(angle), cosf(angle) );
+      b2Vec2 rayEnd = center + radius * rayDir;
+
+      ExplosionRaycastCallback callback;
+      game->world()->RayCast(&callback, center, rayEnd);
+      for (auto& obj : callback.objs()) {
+          obj->damage(4, DamageType::IMPACT);
+      }
+  }
+    die();
 }

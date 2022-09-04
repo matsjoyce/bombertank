@@ -35,6 +35,14 @@ public:
     using ShellState::ShellState;
     constants::ObjectType type() const override { return constants::ObjectType::ROCKET; }
     void prePhysics(Game* game) override;
+    void destroy(Game * game) override;
+};
+
+class ExplosionState : public BaseObjectState {
+public:
+    float maxHealth() const override { return 0; }
+    constants::ObjectType type() const override { return constants::ObjectType::EXPLOSION; }
+    void prePhysics(Game* game) override;
 };
 
 #endif  // OBJECTS_PROJECTILES_HPP

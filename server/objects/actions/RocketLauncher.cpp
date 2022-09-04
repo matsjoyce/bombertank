@@ -20,7 +20,7 @@ void RocketLauncher::prePhysics(Game* game, BaseObjectState* tank) {
         auto velocity = speed * forward + tank->body()->GetLinearVelocity();
         game->addObject(constants::ObjectType::ROCKET, tank->body()->GetPosition() + 3.5 * forward,
                                      std::atan2(velocity.y, velocity.x), velocity);
-        _reload = 20;
+        _reload = 30;
     }
 }
 

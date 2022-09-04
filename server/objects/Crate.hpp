@@ -13,4 +13,12 @@ class CrateState : public BaseObjectState {
     void createBodies(b2World& world, b2BodyDef& bodyDef) override;
 };
 
+class BombState : public CrateState {
+public:
+    using CrateState::CrateState;
+    float maxHealth() const override;
+    constants::ObjectType type() const override { return constants::ObjectType::BOMB; }
+    void destroy(Game * game) override;
+};
+
 #endif  // OBJECTS_CRATE_HPP

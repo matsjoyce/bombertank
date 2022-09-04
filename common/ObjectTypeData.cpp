@@ -36,3 +36,31 @@ std::vector<ObjectTypeData> loadObjectTypeData(QString fname) {
     }
     return ret;
 }
+
+
+std::vector<TankModuleData> loadTankModuleData(QString fname) {
+     std::vector<TankModuleData> ret;
+     QFile f(fname);
+
+    if (!f.open(QIODevice::ReadOnly)) {
+        qWarning("Couldn't open type data file");
+        return ret;
+    }
+
+    QJsonDocument loadDoc(QJsonDocument::fromJson(f.readAll()));
+
+    for (auto item : loadDoc.array()) {
+        auto obj = item.toObject();
+        std::vector<int> forSlots;
+        for (auto slot : obj["for_slots"].toArray()) {
+            forSlots.push_back(slot.toInt());
+        }
+        ret.emplace_back(TankModuleData{
+            obj["id"].toInt(),
+            obj["name"].toString(),
+            obj["image"].toString(),
+            forSlots
+        });
+    }
+    return ret;
+}

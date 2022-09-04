@@ -25,8 +25,8 @@ void GameServer::_handleMessage(int id, const Message& msg) {
     }
 }
 
-GameState* GameServer::joinGame(int id) {
-    _msgconn->sendMessage({{"cmd", "join_game"}, {"id", id}});
+GameState* GameServer::joinGame(int id, std::vector<int> modulesForSlots) {
+    _msgconn->sendMessage({{"cmd", "join_game"}, {"id", id}, {"tank_modules", std::vector<msgpack::type::variant>(modulesForSlots.begin(), modulesForSlots.end())}});
 
     _gameState = new GameState(this);
     connect(_gameState, &GameState::sendMessage, _msgconn, &TcpMessageSocket::sendMessage);

@@ -49,4 +49,23 @@ public:
 
 std::vector<ObjectTypeData> loadObjectTypeData(QString fname);
 
+struct TankModuleData {
+    Q_GADGET
+    QML_ELEMENT
+    QML_UNCREATABLE("Uncreatable!")
+
+    Q_PROPERTY(int id MEMBER id CONSTANT)
+    Q_PROPERTY(QString name MEMBER name CONSTANT)
+    Q_PROPERTY(QString image MEMBER image CONSTANT)
+    Q_PROPERTY(std::vector<int> forSlots MEMBER forSlots CONSTANT)
+
+public:
+    int id;
+    QString name;
+    QString image;
+    std::vector<int> forSlots;
+};
+
+std::vector<TankModuleData> loadTankModuleData(QString fname);
+
 # endif // OBJECT_TYPE_DATA_HPP

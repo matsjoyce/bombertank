@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Window 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
+import QtMultimedia
 import BT 1.0
 
 Item {
@@ -20,7 +21,13 @@ Item {
         target: state
         function onAttachToObject(id) {
             gameView.controlledObjectId = id;
+            startSound.play();
         }
+    }
+
+    SoundEffect {
+        id: startSound
+        source: "qrc:/data/sounds/start.wav"
     }
 
     Keys.onEscapePressed: {

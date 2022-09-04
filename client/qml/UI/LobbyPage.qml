@@ -24,7 +24,7 @@ Item {
             text: "Join Game"
             enabled: gameList.currentIndex >= 0
 
-            onClicked: startGame(page.server, page.server.joinGame(gameList.currentItem.id))
+            onClicked: tankSetupDialog.open()
         }
 
         Button {
@@ -67,6 +67,20 @@ Item {
                     }
                 }
             }
+        }
+    }
+
+    TankSetup {
+        id: tankSetupDialog
+        anchors.centerIn: parent
+        onRejected: tankSetupDialog.close()
+        onAccepted: {
+            tankSetupDialog.close();
+            console.log(page.server.joinGame);
+            console.log(gameList.currentItem.id, tankSetupDialog.itemsForSlots)
+            console.log(page.server.joinGame(gameList.currentItem.id, tankSetupDialog.itemsForSlots))
+            startGame(page.server, page.server.joinGame(gameList.currentItem.id, tankSetupDialog.itemsForSlots));
+
         }
     }
 }

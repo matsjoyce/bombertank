@@ -23,7 +23,7 @@ class IndividualDeathMatch : public GameMode {
     std::map<int, int> _playerToSide;
     int _nextSideAssignment = 1;
    private slots:
-    void _onPlayerConnected(int id);
+    void _onPlayerConnected(int id, Message msg);
     void _onPlayerAttachedObjectDied(int id);
 
    public:

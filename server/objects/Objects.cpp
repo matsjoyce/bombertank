@@ -34,6 +34,12 @@ std::unique_ptr<BaseObjectState> createObjectFromType(constants::ObjectType type
         case constants::ObjectType::START_ZONE: {
             return std::make_unique<StartZoneState>();
         }
+        case constants::ObjectType::EXPLOSION: {
+            return std::make_unique<ExplosionState>();
+        }
+        case constants::ObjectType::BOMB: {
+            return std::make_unique<BombState>();
+        }
     }
     return {};
 }

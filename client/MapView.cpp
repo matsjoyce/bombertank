@@ -17,7 +17,9 @@ std::map<constants::ObjectType, QUrl> spriteFilesForObjectType = {
     {constants::ObjectType::SHELL, QUrl(QStringLiteral("qrc:/qml/Sprite/Shell.qml"))},
     {constants::ObjectType::MG_SHELL, QUrl(QStringLiteral("qrc:/qml/Sprite/MGShell.qml"))},
     {constants::ObjectType::ROCKET, QUrl(QStringLiteral("qrc:/qml/Sprite/Rocket.qml"))},
-    {constants::ObjectType::START_ZONE, QUrl(QStringLiteral("qrc:/qml/Sprite/StartZone.qml"))}
+    {constants::ObjectType::START_ZONE, QUrl(QStringLiteral("qrc:/qml/Sprite/StartZone.qml"))},
+    {constants::ObjectType::EXPLOSION, QUrl(QStringLiteral("qrc:/qml/Sprite/Explosion.qml"))},
+    {constants::ObjectType::BOMB, QUrl(QStringLiteral("qrc:/qml/Sprite/Bomb.qml"))}
 };
 
 std::map<constants::ObjectType, QUrl> inputFilesForObjectType = {

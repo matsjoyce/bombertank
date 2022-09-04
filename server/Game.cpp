@@ -127,9 +127,9 @@ void Game::mainloop() {
     }
 }
 
-void Game::addConnection(int id) {
+void Game::addConnection(int id, Message msg) {
     _connections.push_back(id);
-    emit playerConnected(id);
+    emit playerConnected(id, msg);
 }
 
 void Game::removeConnection(int id) {
