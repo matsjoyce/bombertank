@@ -45,6 +45,9 @@ Item {
             gamePage.setSource(gamePage.source, {server: server, state: gameState})
             ui.state = "GAME";
         }
+        function onLeaveServer() {
+            ui.state = "START";
+        }
     }
 
     Loader {

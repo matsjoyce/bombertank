@@ -50,7 +50,7 @@ Item {
 
             StatusBar {
                 width: 400
-                value: 0.25;
+                value: console.log(controlledObject, controlledObject.shield) || controlledObject ? controlledObject.shield : 0;
                 barImage: "qrc:/data/images/shield_bar_fg.png"
             }
         }

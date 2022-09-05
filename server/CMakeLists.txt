@@ -13,6 +13,7 @@ set(SOURCE
     objects/actions/MainGun.cpp
     objects/actions/MachineGun.cpp
     objects/actions/RocketLauncher.cpp
+    objects/actions/StatBoostModules.cpp
 )
 
 add_executable(bt_server ${SOURCE})

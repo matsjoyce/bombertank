@@ -23,7 +23,7 @@ class BaseObjectState : public QObject {
 
    public:
     using QObject::QObject;
-    void loadMessage(Message& msg);
+    virtual void loadMessage(Message& msg);
     void setFromEditor(constants::ObjectType type, float x, float y);
 
     constants::ObjectType type() { return _type; }

@@ -30,7 +30,7 @@ class BaseObjectState {
     bool dirty() const { return _dirty; }
     int side() const { return _side; }
     void setSide(int side) { _side = side; }
-    Message message() const;
+    virtual Message message() const;
     virtual void createBodies(b2World& world, b2BodyDef& bodyDef);
     virtual void prePhysics(Game* game);
     virtual void postPhysics(Game* game);

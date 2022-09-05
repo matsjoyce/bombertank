@@ -20,6 +20,8 @@ class TcpMessageSocket : public QObject {
    public:
     TcpMessageSocket(QTcpSocket* socket, int id, QObject* parent);
     int id() const { return _id; }
+    void close();
+    void check() { readData(); }
 
    public slots:
     void sendMessage(const Message message);

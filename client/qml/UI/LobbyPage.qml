@@ -10,6 +10,11 @@ Item {
     required property GameServer server
 
     signal startGame(GameServer server, GameState gameState)
+    signal leaveServer()
+
+    Component.onCompleted: {
+        console.log(page.server);
+    }
 
     FileDialog {
         id: mapOpenDialog
@@ -21,22 +26,31 @@ Item {
         anchors.fill: parent
 
         Button {
-            text: "Join Game"
+            text: "Join game"
             enabled: gameList.currentIndex >= 0
 
             onClicked: tankSetupDialog.open()
         }
 
         Button {
-            text: "Create Game"
+            text: "Create game"
 
             onClicked: mapOpenDialog.visible = true
+        }
+
+        Button {
+            text: "Leave server"
+
+            onClicked: {
+                page.server.disconnect();
+                leaveServer();
+            }
         }
 
         ListView {
             id: gameList
             Layout.row: 1
-            Layout.columnSpan: 2
+            Layout.columnSpan: 3
             Layout.minimumWidth: 100
             Layout.minimumHeight: 100
             Layout.fillWidth: true
@@ -68,6 +82,13 @@ Item {
                 }
             }
         }
+
+        Text {
+            Layout.row: 2
+            Layout.columnSpan: 3
+            padding: 2
+            text: "Connected players: %1".arg(page.server.connectedCount)
+        }
     }
 
     TankSetup {
@@ -76,11 +97,7 @@ Item {
         onRejected: tankSetupDialog.close()
         onAccepted: {
             tankSetupDialog.close();
-            console.log(page.server.joinGame);
-            console.log(gameList.currentItem.id, tankSetupDialog.itemsForSlots)
-            console.log(page.server.joinGame(gameList.currentItem.id, tankSetupDialog.itemsForSlots))
             startGame(page.server, page.server.joinGame(gameList.currentItem.id, tankSetupDialog.itemsForSlots));
-
         }
     }
 }

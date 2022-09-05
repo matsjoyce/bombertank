@@ -35,6 +35,8 @@ class GameServer : public QObject {
     std::map<int, ConnectionInfo> _connections;
     std::map<int, GameHandler*> _games;
 
+    void _sendStats();
+
    private slots:
     void handleConnection();
     void handleDisconnection(int id);

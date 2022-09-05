@@ -10,6 +10,13 @@ TcpMessageSocket::TcpMessageSocket(QTcpSocket* socket, int id, QObject* parent) 
     connect(_socket, &QTcpSocket::disconnected, this, &TcpMessageSocket::handleDisconnected);
 }
 
+void TcpMessageSocket::close() {
+    _socket->disconnectFromHost();
+    disconnect(_socket, &QTcpSocket::readyRead, this, &TcpMessageSocket::readData);
+    disconnect(_socket, &QTcpSocket::disconnected, this, &TcpMessageSocket::handleDisconnected);
+}
+
+
 void TcpMessageSocket::sendMessage(const Message message) {
     std::stringstream buffer;
     msgpack::pack(buffer, message);

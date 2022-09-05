@@ -4,9 +4,10 @@
 #include <random>
 
 #include "../../Game.hpp"
+#include "../Tank.hpp"
 #include "common/Constants.hpp"
 
-void RocketLauncher::prePhysics(Game* game, BaseObjectState* tank) {
+void RocketLauncher::prePhysics(Game* game, TankState* tank) {
     if (_reload) {
         --_reload;
     }

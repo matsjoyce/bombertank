@@ -62,6 +62,12 @@ int GameServer::addGame(const std::vector<std::map<msgpack::type::variant, msgpa
     return id;
 }
 
+void GameServer::_sendStats() {
+    for (auto& conn : _connections) {
+        conn.second.connection->sendMessage({{"cmd", "server_stats"}, {"connected", _connections.size()}});
+    }
+}
+
 void GameServer::handleConnection() {
     auto conn = _server->nextPendingConnection();
     auto msgconn = new TcpMessageSocket(conn, _nextConnectionId++, this);
@@ -75,6 +81,7 @@ void GameServer::handleConnection() {
     for (auto game : _games) {
         msgconn->sendMessage({{"cmd", "game_updated"}, {"id", game.first}});
     }
+    _sendStats();
 }
 
 void GameServer::handleClientMessage(int id, Message msg) {
@@ -155,6 +162,7 @@ void GameServer::handleDisconnection(int id) {
         }
     }
     _connections.erase(id);
+    _sendStats();
     if (!_connections.size()) {
         qInfo() << "Last client disconnected";
         emit lastClientDisconnected();

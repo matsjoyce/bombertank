@@ -25,6 +25,7 @@ void AppContext::handleServerConnection() {
     qInfo() << "Connected to server";
     auto msgconn = new TcpMessageSocket(&_conn, 0, this);
     emit connectedToServer(new GameServer(msgconn, this));
+    msgconn->check();
 }
 
 void AppContext::handleConnectionError() {

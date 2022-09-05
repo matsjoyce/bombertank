@@ -4,11 +4,10 @@
 #include "TankModule.hpp"
 
 class RocketLauncher : public TankModule {
-    bool _active;
     int _reload = 0;
 
 public:
-    void prePhysics(Game* game, BaseObjectState* tank);
+    void prePhysics(Game* game, TankState* tank);
 };
 
 #endif // OBJECTS_ACTIONS_ROCKET_LAUNCHER_HPP

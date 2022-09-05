@@ -8,11 +8,40 @@
 #include "actions/MainGun.hpp"
 #include "actions/MachineGun.hpp"
 #include "actions/RocketLauncher.hpp"
+#include "actions/StatBoostModules.hpp"
 
 TankState::TankState() {
 }
 
-float TankState::maxHealth() const { return 150; }
+float TankState::maxHealth() const {
+    float total = 50;
+    for (auto& action : _actions) {
+        if (action) {
+            total += action->healthContribution();
+        }
+    }
+    return total;
+}
+
+float TankState::maxSpeed() const {
+    float total = 30;
+    for (auto& action : _actions) {
+        if (action) {
+            total += action->speedContribution();
+        }
+    }
+    return total;
+}
+
+float TankState::maxShield() const {
+    float total = 0;
+    for (auto& action : _actions) {
+        if (action) {
+            total += action->maxShieldContribution();
+        }
+    }
+    return total;
+}
 
 void TankState::createBodies(b2World& world, b2BodyDef& bodyDef) {
     bodyDef.type = b2_dynamicBody;
@@ -30,7 +59,7 @@ void TankState::createBodies(b2World& world, b2BodyDef& bodyDef) {
 void TankState::prePhysics(Game* game) {
     if (_power) {
         body()->SetTransform(body()->GetPosition(), _angle);
-        body()->SetLinearVelocity(50.0f * _power * body()->GetWorldVector({1, 0}));
+        body()->SetLinearVelocity(maxSpeed() * _power * body()->GetWorldVector({1, 0}));
     }
     else {
         body()->SetLinearVelocity({0, 0});
@@ -55,6 +84,9 @@ std::unique_ptr<TankModule> createModule(int type) {
         case 0: return std::make_unique<MainGun>();
         case 1: return std::make_unique<RocketLauncher>();
         case 2: return std::make_unique<MachineGun>();
+        case 3: return std::make_unique<SpeedModule>();
+        case 4: return std::make_unique<HealthModule>();
+        case 5: return std::make_unique<ShieldModule>();
     }
     return {};
 }
@@ -78,9 +110,34 @@ void TankState::handleMessage(const Message& msg) {
         for (auto module : modulesVec) {
             _actions.emplace_back(createModule(module.is_uint64_t() ? module.as_uint64_t() : module.as_int64_t()));
         }
+        _shield = maxShield();
     }
 }
 
 void TankState::damage(float amount, DamageType type) {
+    switch (type) {
+        case DamageType::IMPACT: {
+            auto shieldDeduction = std::min(amount, _shield);
+            _shield -= shieldDeduction;
+            amount -= shieldDeduction;
+            break;
+        }
+        case DamageType::PIERCING: {
+            auto shieldDeduction = std::min(amount / 2, _shield);
+            _shield -= shieldDeduction;
+            amount -= shieldDeduction;
+            break;
+        }
+    }
     BaseObjectState::damage(amount, type);
+}
+
+void TankState::addShield(float amount) {
+    _shield = std::max(0.0f, _shield + amount);
+}
+
+Message TankState::message() const {
+    auto msg = BaseObjectState::message();
+    msg["shield"] = _shield / maxShield();
+    return msg;
 }

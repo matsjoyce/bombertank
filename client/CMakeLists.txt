@@ -7,6 +7,7 @@ set(SOURCE
     MapView.cpp
     objects/Base.cpp
     objects/TankControl.cpp
+    objects/TankState.cpp
 )
 
 add_executable(bt_client ${SOURCE})

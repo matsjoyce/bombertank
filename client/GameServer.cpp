@@ -13,12 +13,21 @@ GameServer::GameServer(TcpMessageSocket* msgconn, QObject* parent)
     connect(_msgconn, &TcpMessageSocket::messageRecieved, this, &GameServer::_handleMessage);
 }
 
+void GameServer::disconnect() {
+    _msgconn->close();
+    QObject::disconnect(_msgconn, &TcpMessageSocket::messageRecieved, this, &GameServer::_handleMessage);
+}
+
+
 void GameServer::_handleMessage(int id, const Message& msg) {
     if (msg.at("cmd").as_string() == "game_created") {
         _listedGamesModel->_updateGame(msg.at("id").as_uint64_t(), "New game");
     }
     if (msg.at("cmd").as_string() == "game_updated") {
         _listedGamesModel->_updateGame(msg.at("id").as_uint64_t(), "New game");
+    }
+    if (msg.at("cmd").as_string() == "server_stats") {
+        _connectedCountProp.setValue(msg.at("connected").as_uint64_t());
     }
     else if (_gameState) {
         _gameState->handleMessage(id, msg);

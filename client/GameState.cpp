@@ -5,6 +5,7 @@
 
 #include "GameServer.hpp"
 #include "common/MsgpackUtils.hpp"
+#include "objects/TankState.hpp"
 
 GameState::GameState(GameServer* server) : BaseGameState(server), _server(server) { qInfo() << "GameState started"; }
 
@@ -15,7 +16,17 @@ void GameState::handleMessage(int id, Message msg) {
         auto id = msg["id"].as_uint64_t();
         auto iter = _objectStates.find(id);
         if (iter == _objectStates.end()) {
-            iter = _objectStates.insert(std::make_pair(id, std::make_shared<BaseObjectState>())).first;
+            std::shared_ptr<BaseObjectState> objState;
+            qInfo() << "hai" << msg["type"].as_uint64_t() << (static_cast<constants::ObjectType>(msg["type"].as_uint64_t()) == constants::ObjectType::TANK);
+            if (static_cast<constants::ObjectType>(msg["type"].as_uint64_t()) == constants::ObjectType::TANK) {
+                qInfo() << "Tank";
+                objState = std::make_shared<TankState>();
+                qInfo() << objState.get();
+            }
+            else {
+                objState = std::make_shared<BaseObjectState>();
+            }
+            iter = _objectStates.insert(std::make_pair(id, std::move(objState))).first;
         }
         iter->second->loadMessage(msg);
     }

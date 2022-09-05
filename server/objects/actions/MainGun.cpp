@@ -4,9 +4,10 @@
 #include <random>
 
 #include "../../Game.hpp"
+#include "../Tank.hpp"
 #include "common/Constants.hpp"
 
-void MainGun::prePhysics(Game* game, BaseObjectState* tank) {
+void MainGun::prePhysics(Game* game, TankState* tank) {
     if (_reload) {
         --_reload;
     }
@@ -28,4 +29,8 @@ void MainGun::prePhysics(Game* game, BaseObjectState* tank) {
         }
         _reload = 15;
     }
+}
+
+float MainGun::healthContribution() {
+    return 50;
 }
