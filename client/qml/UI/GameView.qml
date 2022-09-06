@@ -50,7 +50,7 @@ Item {
 
             StatusBar {
                 width: 400
-                value: console.log(controlledObject, controlledObject.shield) || controlledObject ? controlledObject.shield : 0;
+                value: controlledObject ? controlledObject.shield : 0;
                 barImage: "qrc:/data/images/shield_bar_fg.png"
             }
         }
@@ -65,11 +65,36 @@ Item {
 
 
     Rectangle {
+        id: bottomBg
         width: view.width
         height: 60
         y: view.height - 60
         color: "black"
         opacity: 0.6
+    }
+
+    Row {
+        anchors.fill: bottomBg
+        spacing: 4
+        padding: 2
+        Repeater {
+            model: controlledObject ? controlledObject.modules : [];
+            Rectangle {
+                width: 50
+                height: 50
+                color: "grey"
+
+                Rectangle {
+                    height: 50
+                    width: 50 * modelData.reload
+                    color: "white"
+                }
+                Text {
+                    anchors.fill: parent
+                    text: "%1: %2".arg(index).arg(modelData.type)
+                }
+            }
+        }
     }
 
     Keys.forwardTo: [map]

@@ -139,5 +139,20 @@ void TankState::addShield(float amount) {
 Message TankState::message() const {
     auto msg = BaseObjectState::message();
     msg["shield"] = _shield / maxShield();
+    std::vector<msgpack::type::variant> moduleMsgs;
+    for (auto& action : _actions) {
+        if (action) {
+            auto msg = action->message();
+            std::map<msgpack::type::variant, msgpack::type::variant> convertedMsg;
+            for (auto& item : msg) {
+                convertedMsg.emplace(item);
+            }
+            moduleMsgs.emplace_back(convertedMsg);
+        }
+        else {
+            moduleMsgs.emplace_back(std::map<msgpack::type::variant, msgpack::type::variant>{{"type", -1}});
+        }
+    }
+    msg["modules"] = moduleMsgs;
     return msg;
 }

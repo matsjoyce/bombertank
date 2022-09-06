@@ -4,10 +4,10 @@
 #include "TankModule.hpp"
 
 class MainGun : public TankModule {
-    int _reload = 0;
-
 public:
-    void prePhysics(Game* game, TankState* tank);
+    int type() override { return 0; }
+    void act(Game* game, TankState* tank) override;
+    float maxReload() override;
     float healthContribution() override;
 };
 

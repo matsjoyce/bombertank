@@ -16,14 +16,15 @@ float SpeedModule::speedContribution() {
 
 void ShieldModule::prePhysics(Game* game, TankState* tank) {
     tank->addShield(-1);
-    if (_reload) {
-        --_reload;
-    }
+    TankModule::prePhysics(game, tank);
+}
 
-    if (active() && !_reload) {
-        tank->addShield(maxShieldContribution());
-        _reload = 100;
-    }
+void ShieldModule::act(Game* game, TankState* tank) {
+    tank->addShield(maxShieldContribution());
+}
+
+float ShieldModule::maxReload() {
+    return 100;
 }
 
 float ShieldModule::maxShieldContribution() {
