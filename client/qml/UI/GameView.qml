@@ -2,6 +2,7 @@ import QtQuick 2.15
 import QtQuick.Window 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
+import QtQuick.Shapes 1.2
 import BT 1.0
 
 
@@ -28,16 +29,19 @@ Item {
     }
 
     Rectangle {
+        id: topBg
         width: view.width
-        height: topBar.height
+        height: topBar.height + 8
         color: "black"
         opacity: 0.6
     }
 
-    Row {
+    RowLayout {
         id: topBar
         spacing: 4
-        padding: 2
+        x: 4
+        y: 4
+        width: view.width - 8
 
         Column {
             spacing: 4
@@ -59,39 +63,58 @@ Item {
             text: controlledObject ? "Side %1 Speed %2".arg(controlledObject.side).arg(controlledObject.speed) : ""
             color: "white"
             font.pixelSize: 20
-            anchors.verticalCenter: parent.verticalCenter
         }
-    }
 
+        Item {
+            Layout.fillWidth: true
+        }
 
-    Rectangle {
-        id: bottomBg
-        width: view.width
-        height: 60
-        y: view.height - 60
-        color: "black"
-        opacity: 0.6
-    }
-
-    Row {
-        anchors.fill: bottomBg
-        spacing: 4
-        padding: 2
         Repeater {
             model: controlledObject ? controlledObject.modules : [];
-            Rectangle {
-                width: 50
-                height: 50
-                color: "grey"
+            Item {
+                id: moduleImg
+                width: 52
+                height: 52
 
                 Rectangle {
-                    height: 50
-                    width: 50 * modelData.reload
-                    color: "white"
-                }
-                Text {
                     anchors.fill: parent
-                    text: "%1: %2".arg(index).arg(modelData.type)
+                    color: "white"
+                    border.color: "black"
+                    border.width: 2
+                }
+                Image {
+                    source: modelData.type == -1 ? "" : "qrc:/data/" + context.tankModuleData[modelData.type].image
+                    anchors.fill: parent
+                    anchors.margins: 2
+                    smooth: false
+                }
+                Shape {
+                    width: moduleImg.width
+                    height: moduleImg.height
+                    opacity: 0.5
+                    layer.enabled: true
+                    ShapePath {
+                        fillColor: "black"
+                        strokeColor: "transparent"
+                        startX: moduleImg.width / 2
+                        startY: moduleImg.height / 2
+                        PathAngleArc {
+                            radiusX: moduleImg.width
+                            radiusY: moduleImg.height
+                            centerX: moduleImg.width / 2
+                            centerY: moduleImg.height / 2
+                            startAngle: -90
+                            sweepAngle: -360 * (1-modelData.reload)
+                        }
+                        PathLine { x: moduleImg.width / 2; y: moduleImg.height / 2 }
+                    }
+                }
+                Rectangle {
+                    height: moduleImg.height
+                    width: moduleImg.width
+                    color: "black"
+                    opacity: 0.5
+                    visible: modelData.reload < 1.0
                 }
             }
         }

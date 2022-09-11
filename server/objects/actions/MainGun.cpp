@@ -25,7 +25,7 @@ void MainGun::act(Game* game, TankState* tank) {
 }
 
 float MainGun::maxReload() {
-    return 15;
+    return 20;
 }
 
 

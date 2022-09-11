@@ -19,7 +19,7 @@ void RocketLauncher::act(Game* game, TankState* tank) {
 }
 
 float RocketLauncher::maxReload() {
-    return 30;
+    return 100;
 }
 
 
