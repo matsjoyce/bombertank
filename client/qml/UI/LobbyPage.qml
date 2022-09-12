@@ -12,10 +12,6 @@ Item {
     signal startGame(GameServer server, GameState gameState)
     signal leaveServer()
 
-    Component.onCompleted: {
-        console.log(page.server);
-    }
-
     FileDialog {
         id: mapOpenDialog
         nameFilters: ["BT Maps (*.btm2)"]

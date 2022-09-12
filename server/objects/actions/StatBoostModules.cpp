@@ -15,7 +15,7 @@ float SpeedModule::speedContribution() {
 }
 
 void ShieldModule::prePhysics(Game* game, TankState* tank) {
-    tank->addShield(-1);
+//     tank->addShield(-1);
     TankModule::prePhysics(game, tank);
 }
 

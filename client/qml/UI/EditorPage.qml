@@ -24,16 +24,16 @@ Item {
         exit()
     }
     Keys.onLeftPressed: {
-        map.viewCenter = Qt.point(map.viewCenter.x - 1, map.viewCenter.y);
+        map.viewCenter = Qt.point(map.viewCenter.x - 4, map.viewCenter.y);
     }
     Keys.onRightPressed: {
-        map.viewCenter = Qt.point(map.viewCenter.x + 1, map.viewCenter.y);
+        map.viewCenter = Qt.point(map.viewCenter.x + 4, map.viewCenter.y);
     }
     Keys.onUpPressed: {
-        map.viewCenter = Qt.point(map.viewCenter.x, map.viewCenter.y + 1);
+        map.viewCenter = Qt.point(map.viewCenter.x, map.viewCenter.y + 4);
     }
     Keys.onDownPressed: {
-        map.viewCenter = Qt.point(map.viewCenter.x, map.viewCenter.y - 1);
+        map.viewCenter = Qt.point(map.viewCenter.x, map.viewCenter.y - 4);
     }
 
     Image {

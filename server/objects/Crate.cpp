@@ -26,7 +26,7 @@ void CrateState::createBodies(b2World& world, b2BodyDef& bodyDef) {
     b2FrictionJointDef frictionDef;
     frictionDef.bodyA = body();
     frictionDef.bodyB = _groundBody;
-    frictionDef.maxForce = 10 * body()->GetMass() * 2;
+    frictionDef.maxForce = 100 * body()->GetMass();
     world.CreateJoint(&frictionDef);
 }
 

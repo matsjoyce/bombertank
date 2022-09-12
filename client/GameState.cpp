@@ -17,11 +17,8 @@ void GameState::handleMessage(int id, Message msg) {
         auto iter = _objectStates.find(id);
         if (iter == _objectStates.end()) {
             std::shared_ptr<BaseObjectState> objState;
-            qInfo() << "hai" << msg["type"].as_uint64_t() << (static_cast<constants::ObjectType>(msg["type"].as_uint64_t()) == constants::ObjectType::TANK);
             if (static_cast<constants::ObjectType>(msg["type"].as_uint64_t()) == constants::ObjectType::TANK) {
-                qInfo() << "Tank";
                 objState = std::make_shared<TankState>();
-                qInfo() << objState.get();
             }
             else {
                 objState = std::make_shared<BaseObjectState>();
