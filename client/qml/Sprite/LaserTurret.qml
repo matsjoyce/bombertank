@@ -5,7 +5,7 @@ BaseSprite {
     id: base
 
     Image {
-        source: "qrc:/data/images/tank1.png"
+        source: "qrc:/data/images/turret_base.png"
         x: -24
         y: -24
         width: 48
@@ -15,20 +15,12 @@ BaseSprite {
 
     Image {
         id: overlay
-        source: "qrc:/data/images/tank_colored.png"
+        source: "qrc:/data/images/laser_turret.png"
         x: -24
         y: -24
         width: 48
         height: 48
         smooth: false
-        visible: false
-    }
-
-    Colorize {
-        id: color
-        anchors.fill: overlay
-        source: overlay
-        hue: (object.side - 1) / 4
-        lightness: -0.5
+        rotation: -object.turretAngle / Math.PI * 180;
     }
 }

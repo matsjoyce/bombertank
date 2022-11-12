@@ -27,6 +27,7 @@ class AppContext : public QObject {
     void handleLocalServerError();
     void handleServerConnection();
     void handleConnectionError();
+    void connectToHost(QHostAddress address);
 
    public:
     AppContext(std::string serverExePath);
@@ -34,7 +35,7 @@ class AppContext : public QObject {
     const std::vector<TankModuleData>& tankModuleData() const { return _tankModuleData; }
 
    public slots:
-    void connectToServer();
+    void connectToServer(QString address);
     void startLocalServer();
 
    signals:

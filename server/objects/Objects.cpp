@@ -7,6 +7,7 @@
 #include "Tank.hpp"
 #include "Walls.hpp"
 #include "Markers.hpp"
+#include "Turret.hpp"
 
 std::unique_ptr<BaseObjectState> createObjectFromType(constants::ObjectType type) {
     switch (type) {
@@ -39,6 +40,9 @@ std::unique_ptr<BaseObjectState> createObjectFromType(constants::ObjectType type
         }
         case constants::ObjectType::BOMB: {
             return std::make_unique<BombState>();
+        }
+        case constants::ObjectType::LASER_TURRET: {
+            return std::make_unique<TurretState>();
         }
     }
     return {};

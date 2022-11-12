@@ -32,8 +32,7 @@ Item {
             text: qsTr("Start network game")
             Layout.fillWidth: true
             onClicked: {
-                context.connectToServer();
-                page.state = "CONNECTING";
+                serverAddressDialog.open();
             }
         }
 
@@ -47,6 +46,31 @@ Item {
             text: qsTr("Exit")
             Layout.fillWidth: true
             onClicked: exit()
+        }
+    }
+
+    Dialog {
+        id: serverAddressDialog
+        title: "Server address"
+        modal: true
+        anchors.centerIn: parent
+        standardButtons: Dialog.Ok | Dialog.Cancel
+
+        TextField {
+            id: adddressInput
+            selectByMouse: true
+            placeholderText: "IP address (XXX.XXX.XXX.XXX)"
+        }
+
+        onAccepted: {
+            serverAddressDialog.close();
+            page.state = "CONNECTING";
+            context.connectToServer(adddressInput.text);
+            adddressInput.clear();
+        }
+        onRejected: {
+            serverAddressDialog.close();
+            adddressInput.clear();
         }
     }
 

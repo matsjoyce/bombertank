@@ -8,6 +8,7 @@ set(SOURCE
     objects/Base.cpp
     objects/TankControl.cpp
     objects/TankState.cpp
+    objects/TurretState.cpp
 )
 
 add_executable(bt_client ${SOURCE})

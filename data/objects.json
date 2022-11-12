@@ -132,7 +132,7 @@
         "id": 14,
         "name": "Laser_Turret",
         "client": {
-            "image": "images/laserturret.png",
+            "image": "images/laser_turret_icon.png",
             "editor_placable": true
         }
     },

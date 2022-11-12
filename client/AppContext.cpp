@@ -14,7 +14,7 @@ AppContext::AppContext(std::string serverExePath) : _serverExePath(serverExePath
     connect(&_conn, &QTcpSocket::errorOccurred, this, &AppContext::handleConnectionError);
 }
 
-void AppContext::handleLocalServerStarted() { QTimer::singleShot(1000, this, &AppContext::connectToServer); }
+void AppContext::handleLocalServerStarted() { QTimer::singleShot(1000, this, [this](){ connectToHost(QHostAddress::LocalHost); }); }
 
 void AppContext::handleLocalServerError() {
     qInfo() << "Error starting local server" << _localServerProc.errorString();
@@ -33,12 +33,16 @@ void AppContext::handleConnectionError() {
     emit errorConnectingToServer(_conn.errorString());
 }
 
-void AppContext::connectToServer() {
-    qInfo() << "Connecting to server";
+void AppContext::connectToServer(QString address) {
+    connectToHost(QHostAddress(address));
+}
+
+void AppContext::connectToHost(QHostAddress address) {
+    qInfo() << "Connecting to server" << address;
     if (_conn.state() != QTcpSocket::UnconnectedState) {
         _conn.disconnect();
     }
-    _conn.connectToHost(QHostAddress::LocalHost, 3000);
+    _conn.connectToHost(address, 3000);
 }
 
 void AppContext::startLocalServer() {
@@ -50,6 +54,6 @@ void AppContext::startLocalServer() {
         emit errorStartingLocalServer("Could not find server executable");
     }
     else {
-        connectToServer();
+        connectToHost(QHostAddress::LocalHost);
     }
 }

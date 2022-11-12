@@ -6,6 +6,7 @@
 #include "GameServer.hpp"
 #include "common/MsgpackUtils.hpp"
 #include "objects/TankState.hpp"
+#include "objects/TurretState.hpp"
 
 GameState::GameState(GameServer* server) : BaseGameState(server), _server(server) { qInfo() << "GameState started"; }
 
@@ -17,8 +18,12 @@ void GameState::handleMessage(int id, Message msg) {
         auto iter = _objectStates.find(id);
         if (iter == _objectStates.end()) {
             std::shared_ptr<BaseObjectState> objState;
-            if (static_cast<constants::ObjectType>(msg["type"].as_uint64_t()) == constants::ObjectType::TANK) {
+            auto objType = static_cast<constants::ObjectType>(msg["type"].as_uint64_t());
+            if (objType == constants::ObjectType::TANK) {
                 objState = std::make_shared<TankState>();
+            }
+            else if (objType == constants::ObjectType::LASER_TURRET) {
+                objState = std::make_shared<TurretState>();
             }
             else {
                 objState = std::make_shared<BaseObjectState>();
@@ -84,7 +89,7 @@ void EditorGameState::save(QUrl fname) const {
             {"x", obj.second->x()},
             {"y", obj.second->y()},
             {"rotation", obj.second->rotation()},
-            {"side", obj.second->type() == constants::ObjectType::TANK ? tankSide++ : 0}
+            {"side", obj.second->type() == constants::ObjectType::START_ZONE ? tankSide++ : 0}
         });
     }
     msgpack::pack(mapFile, objs);

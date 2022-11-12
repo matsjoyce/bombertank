@@ -2,6 +2,7 @@
     <qresource prefix="/">
         <file>qml/main.qml</file>
         <file>qml/Theme/Button.qml</file>
+        <file>qml/Theme/TextInput.qml</file>
         <file>qml/Theme/qmldir</file>
         <file>qml/UI/StartPage.qml</file>
         <file>qml/UI/LobbyPage.qml</file>
@@ -24,6 +25,7 @@
         <file>qml/Sprite/TankInput.qml</file>
         <file>qml/Sprite/Explosion.qml</file>
         <file>qml/Sprite/Bomb.qml</file>
+        <file>qml/Sprite/LaserTurret.qml</file>
         <file>data/images/tank1.png</file>
         <file>data/images/tank_colored.png</file>
         <file>data/images/pwall.png</file>
@@ -44,6 +46,9 @@
         <file>data/images/rocket_icon.png</file>
         <file>data/images/shell_icon.png</file>
         <file>data/images/mg_icon.png</file>
+        <file>data/images/laser_turret_icon.png</file>
+        <file>data/images/laser_turret.png</file>
+        <file>data/images/turret_base.png</file>
         <file>data/sounds/laser-small.wav</file>
         <file>data/sounds/gun.wav</file>
         <file>data/sounds/small-gun.wav</file>
