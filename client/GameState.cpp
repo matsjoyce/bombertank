@@ -22,8 +22,11 @@ void GameState::handleMessage(int id, Message msg) {
             if (objType == constants::ObjectType::TANK) {
                 objState = std::make_shared<TankState>();
             }
-            else if (objType == constants::ObjectType::LASER_TURRET) {
+            else if (objType == constants::ObjectType::LASER_TURRET || objType == constants::ObjectType::MG_TURRET) {
                 objState = std::make_shared<TurretState>();
+            }
+            else if (objType == constants::ObjectType::LASER) {
+                objState = std::make_shared<LaserState>();
             }
             else {
                 objState = std::make_shared<BaseObjectState>();

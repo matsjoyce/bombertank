@@ -29,7 +29,7 @@ void IndividualDeathMatch::_onPlayerConnected(int id, Message msg) {
     auto tank = game()->addObject(constants::ObjectType::TANK, startZone->body()->GetPosition(), startZone->body()->GetAngle(), {0, 0});
     if (tank) {
         auto [tankId, tankObj] = *tank;
-        tankObj->setSide(side);
+        tankObj->setSide(side + 1);
         tankObj->handleMessage(msg);
         game()->attachPlayerToObject(id, tankId);
     }

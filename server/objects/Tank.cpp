@@ -116,7 +116,7 @@ void TankState::handleMessage(const Message& msg) {
 
 void TankState::damage(float amount, DamageType type) {
     switch (type) {
-        case DamageType::IMPACT: {
+        case DamageType::IMPACT: case DamageType::THERMAL: {
             auto shieldDeduction = std::min(amount, _shield);
             _shield -= shieldDeduction;
             amount -= shieldDeduction;

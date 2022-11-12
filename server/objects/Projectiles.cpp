@@ -67,15 +67,51 @@ void ExplosionState::prePhysics(Game* game) {
     const int numRays=50;
     const float radius = 15;
     for (int i = 0; i < numRays; i++) {
-      float angle =  M_PI * 2 * i / numRays;
-      b2Vec2 rayDir( sinf(angle), cosf(angle) );
-      b2Vec2 rayEnd = center + radius * rayDir;
+        float angle =  M_PI * 2 * i / numRays;
+        b2Vec2 rayDir(std::cos(angle), std::sin(angle));
+        b2Vec2 rayEnd = center + radius * rayDir;
 
-      ExplosionRaycastCallback callback;
-      game->world()->RayCast(&callback, center, rayEnd);
-      for (auto& obj : callback.objs()) {
-          obj->damage(4, DamageType::IMPACT);
-      }
-  }
+        ExplosionRaycastCallback callback;
+        game->world()->RayCast(&callback, center, rayEnd);
+        for (auto& obj : callback.objs()) {
+            obj->damage(4, DamageType::IMPACT);
+        }
+    }
     die();
+}
+
+class LaserRaycastCallback : public b2RayCastCallback {
+    BaseObjectState* _obj = nullptr;
+    float _dist = INFINITY;
+public:
+    float ReportFixture(b2Fixture * fixture, const b2Vec2 & point, const b2Vec2 & normal, float fraction) override {
+        if (fraction < _dist) {
+            _obj = reinterpret_cast<BaseObjectState*>(fixture->GetBody()->GetUserData().pointer);
+            _dist = fraction;
+        }
+        return _dist;
+    }
+    BaseObjectState* obj() const {return _obj;}
+    float fraction() const {return _dist;}
+};
+
+void LaserState::prePhysics(Game* game) {
+    _length = _maxLength;
+    if (_length) {
+        auto center = body()->GetPosition();
+        b2Vec2 rayDir(std::cos(body()->GetAngle()), std::sin(body()->GetAngle()));
+        b2Vec2 rayEnd = center + _length * rayDir;
+        LaserRaycastCallback callback;
+        game->world()->RayCast(&callback, center, rayEnd);
+        if (callback.obj()) {
+            callback.obj()->damage(1, DamageType::THERMAL);
+            _length *= callback.fraction();
+        }
+    }
+}
+
+Message LaserState::message() const {
+    auto msg = BaseObjectState::message();
+    msg["length"] = _length;
+    return msg;
 }

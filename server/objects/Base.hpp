@@ -7,7 +7,7 @@
 #include "common/Constants.hpp"
 #include "common/TcpMessageSocket.hpp"
 
-enum class DamageType { IMPACT, PIERCING };
+enum class DamageType { IMPACT, PIERCING, THERMAL };
 
 class Game;
 

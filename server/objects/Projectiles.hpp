@@ -45,4 +45,14 @@ public:
     void prePhysics(Game* game) override;
 };
 
+class LaserState : public BaseObjectState {
+    float _length = 0, _maxLength = 0;
+public:
+    float maxHealth() const override { return 0; }
+    constants::ObjectType type() const override { return constants::ObjectType::LASER; }
+    void prePhysics(Game* game) override;
+    Message message() const override;
+    void setMaxLength(float maxLength) { _maxLength = maxLength; }
+};
+
 #endif  // OBJECTS_PROJECTILES_HPP

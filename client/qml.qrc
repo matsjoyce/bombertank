@@ -26,6 +26,8 @@
         <file>qml/Sprite/Explosion.qml</file>
         <file>qml/Sprite/Bomb.qml</file>
         <file>qml/Sprite/LaserTurret.qml</file>
+        <file>qml/Sprite/MGTurret.qml</file>
+        <file>qml/Sprite/Laser.qml</file>
         <file>data/images/tank1.png</file>
         <file>data/images/tank_colored.png</file>
         <file>data/images/pwall.png</file>
@@ -49,12 +51,15 @@
         <file>data/images/laser_turret_icon.png</file>
         <file>data/images/laser_turret.png</file>
         <file>data/images/turret_base.png</file>
+        <file>data/images/mg_turret_icon.png</file>
+        <file>data/images/mg_turret.png</file>
         <file>data/sounds/laser-small.wav</file>
         <file>data/sounds/gun.wav</file>
         <file>data/sounds/small-gun.wav</file>
         <file>data/sounds/bomb-2.wav</file>
         <file>data/sounds/missile.wav</file>
         <file>data/sounds/start.wav</file>
+        <file>data/sounds/buzz.wav</file>
         <file>data/objects.json</file>
         <file>data/tank_modules.json</file>
     </qresource>

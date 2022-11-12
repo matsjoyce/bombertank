@@ -130,9 +130,9 @@
     },
     {
         "id": 14,
-        "name": "Laser_Turret",
+        "name": "Machine Gun Turret",
         "client": {
-            "image": "images/laser_turret_icon.png",
+            "image": "images/mg_turret_icon.png",
             "editor_placable": true
         }
     },
@@ -167,6 +167,14 @@
                 "hh": 1.125
             },
             "indestructable": true
+        }
+    },
+    {
+        "id": 20,
+        "name": "Laser Turret",
+        "client": {
+            "image": "images/laser_turret_icon.png",
+            "editor_placable": true
         }
     }
 ]

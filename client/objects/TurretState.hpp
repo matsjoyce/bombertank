@@ -17,5 +17,22 @@ private:
     Q_OBJECT_BINDABLE_PROPERTY(TurretState, float, _turretAngleProp)
 };
 
+class LaserState : public BaseObjectState {
+    Q_OBJECT
+    Q_PROPERTY(float length READ length BINDABLE bindableLength)
+    QML_ELEMENT
+
+public:
+    float length() { return _lengthProp.value(); }
+    QBindable<float> bindableLength() { return &_lengthProp; }
+    void loadMessage(Message& msg) override;
+
+signals:
+    void lengthChanged(float value);
+
+private:
+    Q_OBJECT_BINDABLE_PROPERTY(LaserState, float, _lengthProp, &LaserState::lengthChanged)
+};
+
 #endif // OBJECTS_TURRET_STATE_HPP
 

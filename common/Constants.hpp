@@ -22,12 +22,14 @@ enum class ObjectType {
     MINI_ROCKET = 11,
     SHELL = 12,
     LASER_ROBO = 13,
-    LASER_TURRET = 14,
+    MG_TURRET = 14,
     HEALTH_DROP_ITEM = 15,
     SPEED_DROP_ITEM = 16,
     MG_SHELL = 17,
     TANK = 18,
     EXPLOSION = 19,
+    LASER_TURRET = 20,
+    LASER = 21,
 };
 Q_ENUM_NS(ObjectType)
 }  // namespace constants

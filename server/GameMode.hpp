@@ -21,7 +21,7 @@ class IndividualDeathMatch : public GameMode {
     Q_OBJECT
 
     std::map<int, int> _playerToSide;
-    int _nextSideAssignment = 1;
+    int _nextSideAssignment = 0;
    private slots:
     void _onPlayerConnected(int id, Message msg);
     void _onPlayerAttachedObjectDied(int id);

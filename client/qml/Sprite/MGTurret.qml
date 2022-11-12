@@ -15,7 +15,7 @@ BaseSprite {
 
     Image {
         id: overlay
-        source: "qrc:/data/images/laser_turret.png"
+        source: "qrc:/data/images/mg_turret.png"
         x: -24
         y: -24
         width: 48
@@ -24,3 +24,4 @@ BaseSprite {
         rotation: -(object.turretAngle || 0) / Math.PI * 180;
     }
 }
+

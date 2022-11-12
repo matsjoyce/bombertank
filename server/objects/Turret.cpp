@@ -5,6 +5,7 @@
 
 #include "../Game.hpp"
 #include "common/Constants.hpp"
+#include "Projectiles.hpp"
 
 TurretState::TurretState() {
 }
@@ -44,10 +45,6 @@ public:
 };
 
 void TurretState::prePhysics(Game* game) {
-    if (_reload) {
-        --_reload;
-    }
-
     b2AABB aabb;
     auto center = body()->GetPosition();
     TargettingRaycastCallback queryCallback(_targettingRange, center);
@@ -70,18 +67,8 @@ void TurretState::prePhysics(Game* game) {
     }
     _turretAngle += std::min(_slewRate, std::max(-_slewRate, angleDiff));
 
-    if (hasTarget && !_reload && std::abs(angleDiff) < 0.1) {
-        auto forward = b2Vec2{std::cos(_turretAngle), std::sin(_turretAngle)};
-        auto sideways = b2Vec2{forward.y, forward.x};
-
-        const auto speed = 100;
-        const auto maxSidewaysVelocity = speed / 20;
-        std::uniform_real_distribution<float> distribution(-maxSidewaysVelocity, maxSidewaysVelocity);
-        auto velocity = speed * forward + distribution(game->randomGenerator()) * sideways;
-        game->addObject(constants::ObjectType::MG_SHELL, center + 5 * forward,
-                                        std::atan2(velocity.y, velocity.x), velocity);
-        _reload = 2;
-        return;
+    if (hasTarget && std::abs(angleDiff) < 0.1) {
+        fire(_turretAngle, game);
     }
 }
 
@@ -89,4 +76,57 @@ Message TurretState::message() const {
     auto msg = BaseObjectState::message();
     msg["turretAngle"] = _turretAngle;
     return msg;
+}
+
+void LaserTurretState::prePhysics(Game* game) {
+    if (!_laser) {
+        auto obj = game->addObject(constants::ObjectType::LASER, body()->GetPosition(), 0, {0, 0});
+        if (obj) {
+            _laser = dynamic_cast<LaserState*>(obj->second);
+        }
+    }
+    if (_energy < 20) {
+        ++_energy;
+    }
+    else {
+        _armed = true;
+    }
+    _laser->setMaxLength(0);
+    TurretState::prePhysics(game);
+}
+
+void LaserTurretState::fire(float angle, Game* game) {
+    auto forward = b2Vec2{std::cos(angle), std::sin(angle)};
+    _laser->body()->SetTransform(body()->GetPosition() + 3 * forward, angle);
+    if (_energy > 2 && _armed) {
+        _laser->setMaxLength(100);
+        _energy -= 2;
+        return;
+    }
+    else {
+        _armed = false;
+    }
+}
+
+void MachineGunTurretState::prePhysics(Game* game) {
+    if (_reload) {
+        --_reload;
+    }
+    TurretState::prePhysics(game);
+}
+
+void MachineGunTurretState::fire(float angle, Game* game) {
+    if (!_reload) {
+        auto forward = b2Vec2{std::cos(angle), std::sin(angle)};
+        auto sideways = b2Vec2{forward.y, forward.x};
+
+        const auto speed = 100;
+        const auto maxSidewaysVelocity = speed / 20;
+        std::uniform_real_distribution<float> distribution(-maxSidewaysVelocity, maxSidewaysVelocity);
+        auto velocity = speed * forward + distribution(game->randomGenerator()) * sideways;
+        game->addObject(constants::ObjectType::MG_SHELL, body()->GetPosition() + 5 * forward,
+                                        std::atan2(velocity.y, velocity.x), velocity);
+        _reload = 2;
+        return;
+    }
 }
