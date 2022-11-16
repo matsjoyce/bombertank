@@ -10,6 +10,7 @@
 class TankControlState : public QObject {
     Q_OBJECT
     Q_PROPERTY(float angle READ angle WRITE setAngle BINDABLE bindableAngle)
+    Q_PROPERTY(float turretAngle READ turretAngle WRITE setTurretAngle BINDABLE bindableTurretAngle)
     Q_PROPERTY(float power READ power WRITE setPower BINDABLE bindablePower)
     QML_ELEMENT
 
@@ -29,8 +30,13 @@ class TankControlState : public QObject {
     Message message() const;
 
     float angle() const { return _angleProp.value(); }
-    void setAngle(float value) { _angleProp.setValue(value); }
-    QBindable<float> bindableAngle() { return &_angleProp; emit controlsChanged(); }
+    void setAngle(float value) { _angleProp.setValue(value); emit controlsChanged(); }
+    QBindable<float> bindableAngle() { return &_angleProp; }
+
+    float turretAngle() const { return _turretAngleProp.value(); }
+    void setTurretAngle(float value) { _turretAngleProp.setValue(value); emit controlsChanged(); }
+    QBindable<float> bindableTurretAngle() { return &_turretAngleProp; }
+
     float power() const { return _powerProp.value(); }
     void setPower(float value) { _powerProp.setValue(value); emit controlsChanged(); }
     QBindable<float> bindablePower() { return &_powerProp; }
@@ -41,6 +47,7 @@ class TankControlState : public QObject {
 
    private:
     Q_OBJECT_BINDABLE_PROPERTY(TankControlState, float, _angleProp)
+    Q_OBJECT_BINDABLE_PROPERTY(TankControlState, float, _turretAngleProp)
     Q_OBJECT_BINDABLE_PROPERTY(TankControlState, float, _powerProp)
 
 };

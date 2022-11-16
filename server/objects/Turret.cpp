@@ -95,6 +95,12 @@ void LaserTurretState::prePhysics(Game* game) {
     TurretState::prePhysics(game);
 }
 
+void LaserTurretState::postPhysics(Game* game) {
+    if (dead() && _laser) {
+        _laser->die();
+    }
+}
+
 void LaserTurretState::fire(float angle, Game* game) {
     auto forward = b2Vec2{std::cos(angle), std::sin(angle)};
     _laser->body()->SetTransform(body()->GetPosition() + 3 * forward, angle);

@@ -10,7 +10,7 @@
 void RocketLauncher::act(Game* game, TankState* tank) {
     // Shoot
     qDebug() << "Create shell";
-    auto forward = tank->body()->GetWorldVector({1, 0});
+    auto forward = tank->turretVector();
 
     const auto speed = 20;
     auto velocity = speed * forward + tank->body()->GetLinearVelocity();

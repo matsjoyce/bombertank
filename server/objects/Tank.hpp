@@ -6,7 +6,7 @@
 #include "actions/TankModule.hpp"
 
 class TankState : public BaseObjectState {
-    float _angle = 0, _power = 0;
+    float _angle = 0, _turretAngle = 0, _targetTurretAngle = 0, _power = 0, _slewRate = 0.15;
     std::vector<std::unique_ptr<TankModule>> _actions;
     float _shield = 0;
 
@@ -23,6 +23,8 @@ class TankState : public BaseObjectState {
     void damage(float amount, DamageType type) override;
     void addShield(float amount);
     Message message() const override;
+    float turretAngle() const { return _turretAngle; }
+    b2Vec2 turretVector() const { return {std::cos(_turretAngle), std::sin(_turretAngle)}; }
 };
 
 #endif  // OBJECTS_TANK_HPP

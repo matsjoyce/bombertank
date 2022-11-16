@@ -74,14 +74,22 @@ void MapView::setControlledObjectId(int controlledObjectId) {
     }
 }
 
-void MapView::_attachToObject(int id, constants::ObjectType type) {
-    qDebug() << "Preparing controller for" << id << "of type" << static_cast<int>(type);
-    auto iter = _inputComponents.find(type);
+void MapView::_attachToObject(int id, BaseObjectState* obj) {
+    qDebug() << "Preparing controller for" << id << "of type" << static_cast<int>(obj->type());
+    auto iter = _inputComponents.find(obj->type());
     if (iter == _inputComponents.end() || !iter->second->isReady()) {
         qWarning() << "Could not load input for type since it is not loaded yet or does not exist";
         return;
     }
-    _controls = qobject_cast<QQuickItem*>(iter->second->create());
+    auto engine = qmlEngine(this);
+    auto context = new QQmlContext(engine->rootContext(), this);
+    context->setContextProperty("object", obj);
+    _controls = qobject_cast<QQuickItem*>(iter->second->create(context));
+    if (!_controls) {
+        qWarning() << "Could not create input";
+        return;
+    }
+    _controls->setParentItem(this);
     auto controlsState = qvariant_cast<TankControlState*>(_controls->property("controls"));
     if (!controlsState) {
         qWarning() << "Input does not have a valid controls property";
@@ -191,7 +199,7 @@ void MapView::_doUpdate() {
             // Check if we need a controller
             if (_controllingId == snapshot_iter->first) {
                 if (!_controls) {
-                    _attachToObject(_controllingId, snapshot_iter->second->type());
+                    _attachToObject(_controllingId, snapshot_iter->second.get());
                 }
                 if (!_controlledObject) {
                     _controlledObject = snapshot_iter->second.get();

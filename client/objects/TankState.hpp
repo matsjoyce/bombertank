@@ -26,6 +26,7 @@ private:
 class TankState : public BaseObjectState {
     Q_OBJECT
     Q_PROPERTY(float shield READ shield BINDABLE bindableShield)
+    Q_PROPERTY(float turretAngle READ turretAngle BINDABLE bindableTurretAngle)
     Q_PROPERTY(std::vector<TankModuleState*> modules READ modules BINDABLE bindableModules)
     QML_ELEMENT
 
@@ -34,12 +35,15 @@ class TankState : public BaseObjectState {
 public:
     float shield() { return _shieldProp.value(); }
     QBindable<float> bindableShield() { return &_shieldProp; }
+    float turretAngle() const { return _turretAngleProp.value(); }
+    QBindable<float> bindableTurretAngle() { return &_turretAngleProp; }
     const std::vector<TankModuleState*> modules() { return _modulesProp.value(); }
     QBindable<std::vector<TankModuleState*>> bindableModules() { return &_modulesProp; }
     void loadMessage(Message& msg) override;
 
 private:
     Q_OBJECT_BINDABLE_PROPERTY(TankState, float, _shieldProp)
+    Q_OBJECT_BINDABLE_PROPERTY(TankState, float, _turretAngleProp)
     Q_OBJECT_BINDABLE_PROPERTY(TankState, std::vector<TankModuleState*>, _modulesProp)
 };
 

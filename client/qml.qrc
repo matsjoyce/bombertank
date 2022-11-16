@@ -28,8 +28,9 @@
         <file>qml/Sprite/LaserTurret.qml</file>
         <file>qml/Sprite/MGTurret.qml</file>
         <file>qml/Sprite/Laser.qml</file>
-        <file>data/images/tank1.png</file>
-        <file>data/images/tank_colored.png</file>
+        <file>data/images/tank_base.png</file>
+        <file>data/images/tank_color.png</file>
+        <file>data/images/tank_turret.png</file>
         <file>data/images/pwall.png</file>
         <file>data/images/wall.png</file>
         <file>data/images/damaged_wall.png</file>

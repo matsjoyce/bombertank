@@ -43,7 +43,7 @@ class MapView : public QQuickItem {
     void _doUpdate();
     void _handleControlsUpdated();
     void _checkComponentsLoaded();
-    void _attachToObject(int id, constants::ObjectType type);
+    void _attachToObject(int id, BaseObjectState* obj);
     void _controlledObjectDeleted();
     QTransform _viewTransform();
 

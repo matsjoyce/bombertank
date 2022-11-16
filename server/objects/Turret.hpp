@@ -30,6 +30,7 @@ class LaserTurretState : public TurretState {
    public:
     using TurretState::TurretState;
     void prePhysics(Game* game) override;
+    void postPhysics(Game* game) override;
     constants::ObjectType type() const override { return constants::ObjectType::LASER_TURRET; }
 };
 

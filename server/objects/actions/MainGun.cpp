@@ -10,8 +10,8 @@
 void MainGun::act(Game* game, TankState* tank) {
     // Shoot
     qDebug() << "Create shell";
-    auto forward = tank->body()->GetWorldVector({1, 0});
-    auto sideways = tank->body()->GetWorldVector({0, 1});
+    auto forward = tank->turretVector();
+    auto sideways = b2Vec2{forward.y, forward.x};
 
     const auto speed = 200;
     const auto maxSidewaysVelocity = speed / 50;
