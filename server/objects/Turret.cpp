@@ -61,10 +61,7 @@ void TurretState::prePhysics(Game* game) {
         }
     }
 
-    auto angleDiff = std::fmod(_targetTurretAngle - _turretAngle, 2.0f * M_PIf);
-    if (angleDiff > M_PI) {
-        angleDiff -= 2 * M_PI;
-    }
+    auto angleDiff = std::remainder(_targetTurretAngle - _turretAngle, 2.0f * M_PIf);
     _turretAngle += std::min(_slewRate, std::max(-_slewRate, angleDiff));
 
     if (hasTarget && std::abs(angleDiff) < 0.1) {
@@ -124,13 +121,13 @@ void MachineGunTurretState::prePhysics(Game* game) {
 void MachineGunTurretState::fire(float angle, Game* game) {
     if (!_reload) {
         auto forward = b2Vec2{std::cos(angle), std::sin(angle)};
-        auto sideways = b2Vec2{forward.y, forward.x};
+        auto sideways = b2Vec2{forward.y, -forward.x};
 
         const auto speed = 100;
         const auto maxSidewaysVelocity = speed / 20;
         std::uniform_real_distribution<float> distribution(-maxSidewaysVelocity, maxSidewaysVelocity);
         auto velocity = speed * forward + distribution(game->randomGenerator()) * sideways;
-        game->addObject(constants::ObjectType::MG_SHELL, body()->GetPosition() + 5 * forward,
+        game->addObject(constants::ObjectType::MG_SHELL, body()->GetPosition() + 4.5 * forward,
                                         std::atan2(velocity.y, velocity.x), velocity);
         _reload = 2;
         return;

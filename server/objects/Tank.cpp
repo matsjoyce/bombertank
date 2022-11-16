@@ -64,10 +64,7 @@ void TankState::prePhysics(Game* game) {
     else {
         body()->SetLinearVelocity({0, 0});
     }
-    auto angleDiff = std::fmod(_targetTurretAngle - _turretAngle, 2.0f * M_PIf);
-    if (angleDiff > M_PI) {
-        angleDiff -= 2 * M_PI;
-    }
+    auto angleDiff = std::remainder(_targetTurretAngle - _turretAngle, 2.0f * M_PIf);
     _turretAngle += std::min(_slewRate, std::max(-_slewRate, angleDiff));
     for (auto& action : _actions) {
         if (action) {
@@ -99,7 +96,7 @@ std::unique_ptr<TankModule> createModule(int type) {
 void TankState::handleMessage(const Message& msg) {
     if (msg.at("cmd").as_string() == "control_state") {
         _angle = msg.at("angle").as_double();
-        _targetTurretAngle = std::fmod(msg.at("turretAngle").as_double(), 2.0f * M_PIf);
+        _targetTurretAngle = std::remainder(msg.at("turretAngle").as_double(), 2.0f * M_PIf);
         _power = msg.at("power").as_double();
 
         auto actionsVec = msg.at("actions").as_vector();
