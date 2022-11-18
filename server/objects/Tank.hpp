@@ -9,10 +9,7 @@ class TankState : public BaseObjectState {
     float _turretAngle = 0, _targetTurretAngle = 0, _slewRate = 0.15;
     std::vector<std::unique_ptr<TankModule>> _actions;
     float _shield = 0;
-    float _leftTrack, _rightTrack;
-
-    b2Body *_leftTrackBody = nullptr, *_rightTrackBody = nullptr;
-    b2Joint *_leftTrackJoint = nullptr, *_rightTrackJoint = nullptr;
+    float _leftTrack = 0, _rightTrack = 0;
 
    public:
     TankState();

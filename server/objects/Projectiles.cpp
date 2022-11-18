@@ -14,7 +14,7 @@ void ShellState::createBodies(b2World& world, b2BodyDef& bodyDef) {
     b2CircleShape circ;
     circ.m_radius = _bodyRadius();
 
-    body()->CreateFixture(&circ, 300.0);
+    body()->CreateFixture(&circ, 100.0);
 }
 
 void ShellState::prePhysics(Game* game) {

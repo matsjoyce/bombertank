@@ -23,11 +23,12 @@ Item {
 
         var lr = (keys[Qt.Key_A] ? -1 : 0) + (keys[Qt.Key_D] ? 1 : 0);
         var fb = (keys[Qt.Key_W] ? 1 : 0) + (keys[Qt.Key_S] ? -1 : 0);
-        controls.leftTrack = fb == 0 ? lr : Math.max(-1, Math.min(1, lr * 0.5 + fb));
-        controls.rightTrack = fb == 0 ? -lr : Math.max(-1, Math.min(1, -lr * 0.5 + fb));
+        controls.leftTrack = fb == 0 ? lr * 0.5 : Math.max(-1, Math.min(1, lr * 0.5 + fb));
+        controls.rightTrack = fb == 0 ? -lr * 0.5 : Math.max(-1, Math.min(1, -lr * 0.5 + fb));
         controls.turretAngle = -Math.atan2(mouseArea.mouseY - height/2, mouseArea.mouseX - width/2);
-        controls.setAction(0, keys[Qt.Key_Space] || keys[Qt.Key_1]);
-        controls.setAction(1, keys[Qt.Key_2]);
+        console.log(mouseArea.pressedButtons & Qt.RightButton, mouseArea.pressedButtons & Qt.LeftButton);
+        controls.setAction(0, keys[Qt.Key_Space] || keys[Qt.Key_1] || mouseArea.pressedButtons & Qt.LeftButton);
+        controls.setAction(1, keys[Qt.Key_2] || mouseArea.pressedButtons & Qt.RightButton);
         controls.setAction(2, keys[Qt.Key_3]);
         controls.setAction(3, keys[Qt.Key_4]);
         controls.setAction(4, keys[Qt.Key_5]);
@@ -44,6 +45,7 @@ Item {
         id: mouseArea
         anchors.fill: parent
         hoverEnabled: true
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
     }
 
     Keys.onPressed: {

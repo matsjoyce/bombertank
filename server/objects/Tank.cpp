@@ -45,8 +45,6 @@ float TankState::maxShield() const {
 
 void TankState::createBodies(b2World& world, b2BodyDef& bodyDef) {
     bodyDef.type = b2_dynamicBody;
-    // Prevent the tank spinning too fast
-    bodyDef.angularDamping = 7;
 
     BaseObjectState::createBodies(world, bodyDef);
 
@@ -54,30 +52,14 @@ void TankState::createBodies(b2World& world, b2BodyDef& bodyDef) {
     // Half-size
     box.m_radius = 3.0f;
 
-    body()->CreateFixture(&box, 100.0);
-
-    b2BodyDef trackDef;
-    trackDef.type = b2_kinematicBody;
-    trackDef.position = bodyDef.position;
-
-    _leftTrackBody = world.CreateBody(&trackDef);
-    b2FrictionJointDef frictionDef;
-    frictionDef.bodyA = body();
-    frictionDef.localAnchorA = {0, 3};
-    frictionDef.bodyB = _leftTrackBody;
-    frictionDef.maxForce = 20 * body()->GetMass() * 2;
-    _leftTrackJoint = world.CreateJoint(&frictionDef);
-
-    _rightTrackBody = world.CreateBody(&trackDef);
-    frictionDef.localAnchorA = {0, -3};
-    frictionDef.bodyB = _rightTrackBody;
-    _rightTrackJoint = world.CreateJoint(&frictionDef);
+    // No friction to prevent rubbing on walls
+    body()->CreateFixture(&box, 100.0)->SetFriction(0);
 }
 
 constexpr float sign(float a) { return a > 0 ? 1 : (a < 0 ? -1 : 0); }
 
-float speedDiff(b2Body* body, b2Vec2 offset, b2Vec2 forward, float power, float maxTrackSpeed, float maxChange) {
-    auto speed = b2Dot(body->GetLinearVelocityFromLocalPoint(offset), forward);
+float speedDiff(b2Vec2 velocity, b2Vec2 forward, float power, float maxTrackSpeed, float maxChange) {
+    auto speed = b2Dot(velocity, forward);
     auto wantedSpeed = maxTrackSpeed * power;
     auto speedDiff = maxTrackSpeed * power - speed;
     if (sign(speed) != sign(wantedSpeed)) {
@@ -88,22 +70,30 @@ float speedDiff(b2Body* body, b2Vec2 offset, b2Vec2 forward, float power, float 
         // Accelerating
         speedDiff = std::min(std::abs(speedDiff), maxChange * std::abs(power)) * sign(speedDiff);
     }
-    return speedDiff + speed;
+    return speedDiff;
 }
 
 void TankState::prePhysics(Game* game) {
-    auto maxTrackSpeed = 30.0f;
-    auto maxAccel = 5.0f;
+    auto maxTrackSpeed = maxSpeed();
 
     auto forward = body()->GetWorldVector({1, 0});
+    auto sideways = b2Vec2{forward.y, -forward.x};
+    auto velocity = body()->GetLinearVelocity();
+    // Instant cancellation is body()->GetMass() I=v/m
+    // Friction
+    body()->ApplyLinearImpulseToCenter(-b2Dot(velocity, forward) * 100 * forward, true);
 
-    _leftTrackBody->SetTransform(body()->GetWorldPoint({0, 3}), 0);
-    _leftTrackBody->SetLinearVelocity(speedDiff(body(), {0, 3}, forward, _leftTrack, maxTrackSpeed, maxAccel) *
-                                      forward);
+    // Rotational and sideways friction
+    auto frontVelocity = body()->GetLinearVelocityFromLocalPoint({-3, 0});
+    auto backVelocity = body()->GetLinearVelocityFromLocalPoint({3, 0});
+    auto leftVelocity = body()->GetLinearVelocityFromLocalPoint({0, 3});
+    auto rightVelocity = body()->GetLinearVelocityFromLocalPoint({0, -3});
+    body()->ApplyLinearImpulse(-b2Dot(frontVelocity, sideways) * 300 * sideways, body()->GetWorldPoint({-3, 0}), true);
+    body()->ApplyLinearImpulse(-b2Dot(backVelocity, sideways) * 300 * sideways, body()->GetWorldPoint({3, 0}), true);
 
-    _rightTrackBody->SetTransform(body()->GetWorldPoint({0, -3}), 0);
-    _rightTrackBody->SetLinearVelocity(speedDiff(body(), {0, -3}, forward, _rightTrack, maxTrackSpeed, maxAccel) *
-                                       forward);
+    // Movement
+    body()->ApplyLinearImpulse(speedDiff(leftVelocity, forward, _leftTrack, maxTrackSpeed, maxTrackSpeed) * 300 * forward, body()->GetWorldPoint({0, 3}), true);
+    body()->ApplyLinearImpulse(speedDiff(rightVelocity, forward, _rightTrack, maxTrackSpeed, maxTrackSpeed) * 300 * forward, body()->GetWorldPoint({0, -3}), true);
 
     auto angleDiff = std::remainder(_targetTurretAngle - _turretAngle, 2.0f * M_PIf);
     _turretAngle += std::min(_slewRate, std::max(-_slewRate, angleDiff));
