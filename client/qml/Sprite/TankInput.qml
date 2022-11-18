@@ -13,13 +13,19 @@ Item {
     anchors.fill: parent
 
     function updateControls() {
-        var lr = keys[Qt.Key_A] - keys[Qt.Key_D];
-        var ud = keys[Qt.Key_W] - keys[Qt.Key_S];
-        var lra = Math.PI/2 + lr * Math.PI/2;
-        var uda = ud * Math.PI/2;
-        controls.angle = (lr && ud) ? (lra + uda/2 * -lr) : (lr ? lra : uda);
+        // var lr = keys[Qt.Key_A] - keys[Qt.Key_D];
+        // var ud = keys[Qt.Key_W] - keys[Qt.Key_S];
+        // var lra = Math.PI/2 + lr * Math.PI/2;
+        // var uda = ud * Math.PI/2;
+        // controls.angle = (lr && ud) ? (lra + uda/2 * -lr) : (lr ? lra : uda);
+        // controls.power = !!lr || !!ud;
+
+
+        var lr = (keys[Qt.Key_A] ? -1 : 0) + (keys[Qt.Key_D] ? 1 : 0);
+        var fb = (keys[Qt.Key_W] ? 1 : 0) + (keys[Qt.Key_S] ? -1 : 0);
+        controls.leftTrack = fb == 0 ? lr : Math.max(-1, Math.min(1, lr * 0.5 + fb));
+        controls.rightTrack = fb == 0 ? -lr : Math.max(-1, Math.min(1, -lr * 0.5 + fb));
         controls.turretAngle = -Math.atan2(mouseArea.mouseY - height/2, mouseArea.mouseX - width/2);
-        controls.power = !!lr || !!ud;
         controls.setAction(0, keys[Qt.Key_Space] || keys[Qt.Key_1]);
         controls.setAction(1, keys[Qt.Key_2]);
         controls.setAction(2, keys[Qt.Key_3]);

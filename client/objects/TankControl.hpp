@@ -9,47 +9,39 @@
 
 class TankControlState : public QObject {
     Q_OBJECT
-    Q_PROPERTY(float angle READ angle WRITE setAngle BINDABLE bindableAngle)
     Q_PROPERTY(float turretAngle READ turretAngle WRITE setTurretAngle BINDABLE bindableTurretAngle)
-    Q_PROPERTY(float power READ power WRITE setPower BINDABLE bindablePower)
+    Q_PROPERTY(float leftTrack READ leftTrack WRITE setLeftTrack BINDABLE bindableLeftTrack)
+    Q_PROPERTY(float rightTrack READ rightTrack WRITE setRightTrack BINDABLE bindableRightTrack)
     QML_ELEMENT
 
-    float _leftTrack, _rightTrack;
     std::vector<bool> _actions;
 
    public:
-    float p() const { return _leftTrack; }
-    void setLeftTrack(float power);
+    float leftTrack() const { return _leftTrackProp.value(); }
+    void setLeftTrack(float value) { _leftTrackProp.setValue(value); emit controlsChanged(); }
+    QBindable<float> bindableLeftTrack() { return &_leftTrackProp; }
 
-    float rightTrack() const { return _rightTrack; }
-    void setRightTrack(float power);
+    float rightTrack() const { return _rightTrackProp.value(); }
+    void setRightTrack(float value) { _rightTrackProp.setValue(value); emit controlsChanged(); }
+    QBindable<float> bindableRightTrack() { return &_rightTrackProp; }
+
+    float turretAngle() const { return _turretAngleProp.value(); }
+    void setTurretAngle(float value) { _turretAngleProp.setValue(value); emit controlsChanged(); }
+    QBindable<float> bindableTurretAngle() { return &_turretAngleProp; }
 
     Q_INVOKABLE bool action(int idx) { return _actions.size() < idx ? _actions[idx] : false; }
     Q_INVOKABLE void setAction(int idx, bool active);
 
     Message message() const;
 
-    float angle() const { return _angleProp.value(); }
-    void setAngle(float value) { _angleProp.setValue(value); emit controlsChanged(); }
-    QBindable<float> bindableAngle() { return &_angleProp; }
-
-    float turretAngle() const { return _turretAngleProp.value(); }
-    void setTurretAngle(float value) { _turretAngleProp.setValue(value); emit controlsChanged(); }
-    QBindable<float> bindableTurretAngle() { return &_turretAngleProp; }
-
-    float power() const { return _powerProp.value(); }
-    void setPower(float value) { _powerProp.setValue(value); emit controlsChanged(); }
-    QBindable<float> bindablePower() { return &_powerProp; }
-
    signals:
     void actionChanged(int idx);
     void controlsChanged();
 
    private:
-    Q_OBJECT_BINDABLE_PROPERTY(TankControlState, float, _angleProp)
+    Q_OBJECT_BINDABLE_PROPERTY(TankControlState, float, _leftTrackProp)
+    Q_OBJECT_BINDABLE_PROPERTY(TankControlState, float, _rightTrackProp)
     Q_OBJECT_BINDABLE_PROPERTY(TankControlState, float, _turretAngleProp)
-    Q_OBJECT_BINDABLE_PROPERTY(TankControlState, float, _powerProp)
-
 };
 
 #endif  // OBJECTS_TANK_CONTROL_HPP

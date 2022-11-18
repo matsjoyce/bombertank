@@ -45,6 +45,8 @@ float TankState::maxShield() const {
 
 void TankState::createBodies(b2World& world, b2BodyDef& bodyDef) {
     bodyDef.type = b2_dynamicBody;
+    // Prevent the tank spinning too fast
+    bodyDef.angularDamping = 7;
 
     BaseObjectState::createBodies(world, bodyDef);
 
@@ -53,17 +55,56 @@ void TankState::createBodies(b2World& world, b2BodyDef& bodyDef) {
     box.m_radius = 3.0f;
 
     body()->CreateFixture(&box, 100.0);
-    body()->SetFixedRotation(true);
+
+    b2BodyDef trackDef;
+    trackDef.type = b2_kinematicBody;
+    trackDef.position = bodyDef.position;
+
+    _leftTrackBody = world.CreateBody(&trackDef);
+    b2FrictionJointDef frictionDef;
+    frictionDef.bodyA = body();
+    frictionDef.localAnchorA = {0, 3};
+    frictionDef.bodyB = _leftTrackBody;
+    frictionDef.maxForce = 20 * body()->GetMass() * 2;
+    _leftTrackJoint = world.CreateJoint(&frictionDef);
+
+    _rightTrackBody = world.CreateBody(&trackDef);
+    frictionDef.localAnchorA = {0, -3};
+    frictionDef.bodyB = _rightTrackBody;
+    _rightTrackJoint = world.CreateJoint(&frictionDef);
+}
+
+constexpr float sign(float a) { return a > 0 ? 1 : (a < 0 ? -1 : 0); }
+
+float speedDiff(b2Body* body, b2Vec2 offset, b2Vec2 forward, float power, float maxTrackSpeed, float maxChange) {
+    auto speed = b2Dot(body->GetLinearVelocityFromLocalPoint(offset), forward);
+    auto wantedSpeed = maxTrackSpeed * power;
+    auto speedDiff = maxTrackSpeed * power - speed;
+    if (sign(speed) != sign(wantedSpeed)) {
+        // Decelerating
+        speedDiff = std::min(std::abs(speedDiff), maxChange) * sign(speedDiff);
+    }
+    else {
+        // Accelerating
+        speedDiff = std::min(std::abs(speedDiff), maxChange * std::abs(power)) * sign(speedDiff);
+    }
+    return speedDiff + speed;
 }
 
 void TankState::prePhysics(Game* game) {
-    if (_power) {
-        body()->SetTransform(body()->GetPosition(), _angle);
-        body()->SetLinearVelocity(maxSpeed() * _power * body()->GetWorldVector({1, 0}));
-    }
-    else {
-        body()->SetLinearVelocity({0, 0});
-    }
+    auto maxTrackSpeed = 30.0f;
+    auto maxAccel = 5.0f;
+
+    auto forward = body()->GetWorldVector({1, 0});
+
+    _leftTrackBody->SetTransform(body()->GetWorldPoint({0, 3}), 0);
+    _leftTrackBody->SetLinearVelocity(speedDiff(body(), {0, 3}, forward, _leftTrack, maxTrackSpeed, maxAccel) *
+                                      forward);
+
+    _rightTrackBody->SetTransform(body()->GetWorldPoint({0, -3}), 0);
+    _rightTrackBody->SetLinearVelocity(speedDiff(body(), {0, -3}, forward, _rightTrack, maxTrackSpeed, maxAccel) *
+                                       forward);
+
     auto angleDiff = std::remainder(_targetTurretAngle - _turretAngle, 2.0f * M_PIf);
     _turretAngle += std::min(_slewRate, std::max(-_slewRate, angleDiff));
     for (auto& action : _actions) {
@@ -95,10 +136,9 @@ std::unique_ptr<TankModule> createModule(int type) {
 
 void TankState::handleMessage(const Message& msg) {
     if (msg.at("cmd").as_string() == "control_state") {
-        _angle = msg.at("angle").as_double();
         _targetTurretAngle = std::remainder(msg.at("turretAngle").as_double(), 2.0f * M_PIf);
-        _power = msg.at("power").as_double();
-
+        _leftTrack = msg.at("left_track").as_double();
+        _rightTrack = msg.at("right_track").as_double();
         auto actionsVec = msg.at("actions").as_vector();
         auto actionVecIter = actionsVec.begin();
         auto actionsIter = _actions.begin();

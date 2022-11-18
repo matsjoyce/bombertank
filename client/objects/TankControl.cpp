@@ -2,9 +2,9 @@
 
 Message TankControlState::message() const {
     return {
-        {"angle", _angleProp.value()},
         {"turretAngle", _turretAngleProp.value()},
-        {"power", _powerProp.value()},
+        {"left_track", _leftTrackProp.value()},
+        {"right_track", _rightTrackProp.value()},
         {"actions", std::vector<msgpack::type::variant>(_actions.begin(), _actions.end())}};
 }
 
