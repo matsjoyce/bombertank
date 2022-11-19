@@ -8,6 +8,8 @@ class TankState;
 
 class TankModule {
     bool _active;
+
+protected:
     int _reload = 0;
 
 public:

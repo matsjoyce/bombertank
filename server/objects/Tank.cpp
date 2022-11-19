@@ -120,6 +120,7 @@ std::unique_ptr<TankModule> createModule(int type) {
         case 3: return std::make_unique<SpeedModule>();
         case 4: return std::make_unique<HealthModule>();
         case 5: return std::make_unique<ShieldModule>();
+        case 6: return std::make_unique<Laser>();
     }
     return {};
 }

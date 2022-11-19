@@ -34,5 +34,11 @@
         "name": "Shield module",
         "image": "images/shield_box.png",
         "for_slots": [3, 4]
+    },
+    {
+        "id": 6,
+        "name": "Laser module",
+        "image": "images/laser_icon.png",
+        "for_slots": [1]
     }
 ]

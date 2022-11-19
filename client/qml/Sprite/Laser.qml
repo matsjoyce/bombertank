@@ -30,9 +30,9 @@ BaseSprite {
         height: object.length * 8
         gradient: Gradient {
             orientation: Gradient.Horizontal
-            GradientStop { position: 0.0; color: "#ff0000" }
-            GradientStop { position: 0.5; color: "#ffaaaa" }
-            GradientStop { position: 1.0; color: "#ff0000" }
+            GradientStop { position: 0.0; color: "#fd4040" }
+            GradientStop { position: 0.5; color: "#ff8282" }
+            GradientStop { position: 1.0; color: "#fd4040" }
         }
         visible: object.length > 0
     }

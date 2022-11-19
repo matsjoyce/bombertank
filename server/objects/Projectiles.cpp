@@ -1,7 +1,7 @@
 #include "Projectiles.hpp"
 #include "../Game.hpp"
 
-const float IMPULSE_TO_DAMAGE = 1000.0f;
+const float IMPULSE_TO_DAMAGE = 300.0f;
 
 float ShellState::maxHealth() const { return 2; }
 

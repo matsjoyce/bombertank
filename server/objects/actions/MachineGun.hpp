@@ -3,10 +3,22 @@
 
 #include "TankModule.hpp"
 
+class LaserState;
+
 class MachineGun : public TankModule {
 public:
     int type() override { return 2; }
     void act(Game* game, TankState* tank) override;
+    float maxReload() override;
+};
+
+class Laser : public TankModule {
+    LaserState* _laser = nullptr;
+    int _energy = 0;
+public:
+    int type() override { return 6; }
+    void prePhysics(Game* game, TankState* tank) override;
+    void postPhysics(Game* game, TankState* tank) override;
     float maxReload() override;
 };
 
