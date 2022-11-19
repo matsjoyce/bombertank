@@ -5,14 +5,14 @@
 
 class HealthModule : public TankModule {
 public:
-    int type() override { return 4; }
+    int type() override { return 3; }
     float healthContribution() override;
 };
 
 
 class SpeedModule : public TankModule {
 public:
-    int type() override { return 3; }
+    int type() override { return 4; }
     float speedContribution() override;
 };
 

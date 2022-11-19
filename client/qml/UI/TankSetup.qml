@@ -10,7 +10,7 @@ Dialog {
     modal: true
     standardButtons: Dialog.Ok | Dialog.Cancel
     property int selectedSlot: 0
-    property var itemsForSlots: Array(5).fill(-1)
+    property var itemsForSlots: Array(5).fill(-1).map((_, i) => context.tankModuleData.find(item => console.log(item, i) || item.forSlots.includes(i)).id)
 
     ColumnLayout {
         RowLayout {

@@ -9,6 +9,7 @@
 #include "actions/MachineGun.hpp"
 #include "actions/RocketLauncher.hpp"
 #include "actions/StatBoostModules.hpp"
+#include "actions/DropModules.hpp"
 
 TankState::TankState() {
 }
@@ -117,10 +118,12 @@ std::unique_ptr<TankModule> createModule(int type) {
         case 0: return std::make_unique<MainGun>();
         case 1: return std::make_unique<RocketLauncher>();
         case 2: return std::make_unique<MachineGun>();
-        case 3: return std::make_unique<SpeedModule>();
-        case 4: return std::make_unique<HealthModule>();
+        case 3: return std::make_unique<HealthModule>();
+        case 4: return std::make_unique<SpeedModule>();
         case 5: return std::make_unique<ShieldModule>();
         case 6: return std::make_unique<Laser>();
+        case 7: return std::make_unique<CrateModule>();
+        case 8: return std::make_unique<BombModule>();
     }
     return {};
 }

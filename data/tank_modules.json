@@ -19,14 +19,14 @@
     },
     {
         "id": 3,
-        "name": "Speed module",
-        "image": "images/speed_box.png",
+        "name": "Health module",
+        "image": "images/health_box.png",
         "for_slots": [3, 4]
     },
     {
         "id": 4,
-        "name": "Health module",
-        "image": "images/health_box.png",
+        "name": "Speed module",
+        "image": "images/speed_box.png",
         "for_slots": [3, 4]
     },
     {
@@ -37,8 +37,20 @@
     },
     {
         "id": 6,
-        "name": "Laser module",
+        "name": "Laser",
         "image": "images/laser_icon.png",
         "for_slots": [1]
+    },
+    {
+        "id": 7,
+        "name": "Crates",
+        "image": "images/pwall.png",
+        "for_slots": [2]
+    },
+    {
+        "id": 8,
+        "name": "Charges",
+        "image": "images/charge.png",
+        "for_slots": [2]
     }
 ]
