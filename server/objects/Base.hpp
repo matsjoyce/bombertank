@@ -8,6 +8,7 @@
 #include "common/TcpMessageSocket.hpp"
 
 enum class DamageType { IMPACT, PIERCING, THERMAL };
+enum class Hostility { NON_HOSTILE, VAGELY_HOSTILE, HOSTILE };
 
 class Game;
 
@@ -39,6 +40,7 @@ class BaseObjectState {
     virtual void damage(float amount, DamageType type);
     virtual void destroy(Game* game);
     virtual std::pair<float, DamageType> impactDamage(float baseDamage);
+    virtual Hostility hostility() const;
     void die();
 };
 

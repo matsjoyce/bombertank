@@ -57,3 +57,8 @@ void BaseObjectState::die() {
     _deathPosition = body()->GetPosition();
     _deathAngle = body()->GetAngle();
 }
+
+Hostility BaseObjectState::hostility() const {
+    return Hostility::NON_HOSTILE;
+}
+

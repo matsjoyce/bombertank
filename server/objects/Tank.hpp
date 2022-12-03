@@ -24,6 +24,7 @@ class TankState : public BaseObjectState {
     void damage(float amount, DamageType type) override;
     void addShield(float amount);
     Message message() const override;
+    Hostility hostility() const override { return Hostility::HOSTILE; }
     float turretAngle() const { return _turretAngle; }
     b2Vec2 turretVector() const { return {std::cos(_turretAngle), std::sin(_turretAngle)}; }
 };

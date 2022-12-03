@@ -7,7 +7,7 @@
     },
     {
         "id": 1,
-        "name": "Missile",
+        "name": "Missiles",
         "image": "images/rocket_icon.png",
         "for_slots": [0]
     },
@@ -52,5 +52,11 @@
         "name": "Charges",
         "image": "images/charge.png",
         "for_slots": [2]
+    },
+    {
+        "id": 9,
+        "name": "Homing missiles",
+        "image": "images/homing_rocket_icon.png",
+        "for_slots": [0]
     }
 ]

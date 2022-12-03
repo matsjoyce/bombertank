@@ -30,6 +30,7 @@ enum class ObjectType {
     EXPLOSION = 19,
     LASER_TURRET = 20,
     LASER = 21,
+    HOMING_ROCKET = 22,
 };
 Q_ENUM_NS(ObjectType)
 }  // namespace constants

@@ -18,6 +18,7 @@ class TurretState : public BaseObjectState {
     void createBodies(b2World& world, b2BodyDef& bodyDef) override;
     void prePhysics(Game* game) override;
     Message message() const override;
+    Hostility hostility() const override { return Hostility::HOSTILE; }
 };
 
 class LaserTurretState : public TurretState {

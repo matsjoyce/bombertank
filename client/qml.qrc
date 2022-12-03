@@ -47,6 +47,7 @@
         <file>data/images/start_zone.png</file>
         <file>data/images/charge.png</file>
         <file>data/images/rocket_icon.png</file>
+        <file>data/images/homing_rocket_icon.png</file>
         <file>data/images/shell_icon.png</file>
         <file>data/images/mg_icon.png</file>
         <file>data/images/laser_turret_icon.png</file>

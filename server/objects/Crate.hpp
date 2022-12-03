@@ -19,6 +19,7 @@ public:
     float maxHealth() const override;
     constants::ObjectType type() const override { return constants::ObjectType::BOMB; }
     void destroy(Game * game) override;
+    Hostility hostility() const override { return Hostility::VAGELY_HOSTILE; }
 };
 
 #endif  // OBJECTS_CRATE_HPP

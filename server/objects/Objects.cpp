@@ -50,6 +50,9 @@ std::unique_ptr<BaseObjectState> createObjectFromType(constants::ObjectType type
         case constants::ObjectType::LASER: {
             return std::make_unique<LaserState>();
         }
+        case constants::ObjectType::HOMING_ROCKET: {
+            return std::make_unique<HomingRocketState>();
+        }
     }
     return {};
 }

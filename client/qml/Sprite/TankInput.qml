@@ -3,7 +3,7 @@ import BT 1.0
 
 Item {
     readonly property TankControlState controls: TankControlState {}
-    property var interestingKeys: [Qt.Key_W, Qt.Key_S, Qt.Key_A, Qt.Key_D, Qt.Key_Space, Qt.Key_1, Qt.Key_2, Qt.Key_3, Qt.Key_4, Qt.Key_5]
+    property var interestingKeys: [Qt.Key_W, Qt.Key_S, Qt.Key_A, Qt.Key_D, Qt.Key_Q, Qt.Key_E, Qt.Key_Space, Qt.Key_1, Qt.Key_2, Qt.Key_3, Qt.Key_4, Qt.Key_5]
     property var keys: {
         let initialKeys = {};
         interestingKeys.forEach(k => { initialKeys[k] = false });
@@ -28,8 +28,8 @@ Item {
         controls.turretAngle = -Math.atan2(mouseArea.mouseY - height/2, mouseArea.mouseX - width/2);
         console.log(mouseArea.pressedButtons & Qt.RightButton, mouseArea.pressedButtons & Qt.LeftButton);
         controls.setAction(0, keys[Qt.Key_Space] || keys[Qt.Key_1] || mouseArea.pressedButtons & Qt.LeftButton);
-        controls.setAction(1, keys[Qt.Key_2] || mouseArea.pressedButtons & Qt.RightButton);
-        controls.setAction(2, keys[Qt.Key_3]);
+        controls.setAction(1, keys[Qt.Key_2] || keys[Qt.Key_E] || mouseArea.pressedButtons & Qt.RightButton);
+        controls.setAction(2, keys[Qt.Key_3] || keys[Qt.Key_Q]);
         controls.setAction(3, keys[Qt.Key_4]);
         controls.setAction(4, keys[Qt.Key_5]);
     }

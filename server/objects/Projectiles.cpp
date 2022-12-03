@@ -40,7 +40,6 @@ void MGShellState::collision(BaseObjectState* other, float impulse) {
     die();
 }
 
-
 void RocketState::prePhysics(Game* game) {
     ShellState::prePhysics(game);
     body()->ApplyLinearImpulseToCenter(body()->GetMass() * 10 * body()->GetWorldVector({1, 0}), true);
@@ -51,6 +50,75 @@ void RocketState::destroy(Game* game) {
     ShellState::destroy(game);
 }
 
+// https://stackoverflow.com/a/2049593
+float sign(b2Vec2 p1, b2Vec2 p2, b2Vec2 p3) {
+    return (p1.x - p3.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p3.y);
+}
+
+bool pointInTriangle(b2Vec2 pt, b2Vec2 v1, b2Vec2 v2, b2Vec2 v3) {
+    float d1, d2, d3;
+    bool has_neg, has_pos;
+
+    d1 = sign(pt, v1, v2);
+    d2 = sign(pt, v2, v3);
+    d3 = sign(pt, v3, v1);
+
+    has_neg = (d1 < 0) || (d2 < 0) || (d3 < 0);
+    has_pos = (d1 > 0) || (d2 > 0) || (d3 > 0);
+
+    return !(has_neg && has_pos);
+}
+
+class TriangleRaycastCallback : public b2QueryCallback {
+    std::set<BaseObjectState*> _objs;
+    b2Vec2 _v1, _v2, _v3;
+public:
+    TriangleRaycastCallback(b2Vec2 v1, b2Vec2 v2, b2Vec2 v3) : _v1(v1), _v2(v2), _v3(v3) {}
+    bool ReportFixture(b2Fixture * fixture) override {
+        auto body = fixture->GetBody();
+        if (pointInTriangle(body->GetPosition(), _v1, _v2, _v3)) {
+            _objs.insert(reinterpret_cast<BaseObjectState*>(body->GetUserData().pointer));
+        }
+        return true;
+    }
+    const std::set<BaseObjectState*>& objs() const {return _objs;}
+};
+
+void HomingRocketState::prePhysics(Game* game) {
+    RocketState::prePhysics(game);
+    // Weathercock
+    auto velocity = body()->GetLinearVelocityFromLocalPoint({0, 0});
+    body()->SetTransform(body()->GetPosition(), std::atan2(velocity.y, velocity.x));
+
+    // Build an isosceles triangle which forms the "search cone" using our position
+    b2Rot rotation(M_PI/8);
+    auto forward = body()->GetWorldVector({1, 0});
+    auto dist = 50;
+    b2Vec2 v1 = body()->GetPosition();
+    b2Vec2 v2 = v1 + b2Mul(rotation, dist * forward);
+    b2Vec2 v3 = v1 + b2MulT(rotation, dist * forward);
+    b2AABB aabb;
+    aabb.lowerBound = b2Min(v1, b2Min(v2, v3));
+    aabb.upperBound = b2Max(v1, b2Max(v2, v3));
+    TriangleRaycastCallback queryCallback(v1, v2, v3);
+    game->world()->QueryAABB(&queryCallback, aabb);
+    std::vector<BaseObjectState*> objs(queryCallback.objs().begin(), queryCallback.objs().end());
+    std::sort(objs.begin(), objs.end(), [v1](BaseObjectState* left, BaseObjectState* right) {
+        // Lexicographical sort of (hostility, distance)
+        if (left->hostility() == right->hostility()) {
+            return (left->body()->GetPosition() - v1).LengthSquared() < (right->body()->GetPosition() - v1).LengthSquared();
+        }
+        return left->hostility() > right->hostility();
+    });
+    for (auto& obj : queryCallback.objs()) {
+        if (obj->side() != side() && obj->hostility() > Hostility::NON_HOSTILE) {
+            auto targetVector = (obj->body()->GetPosition() - v1);
+            bool goLeft = b2Cross(targetVector, forward) > 0;
+            body()->ApplyLinearImpulseToCenter(body()->GetMass() * 8 * (goLeft ? -1 : 1) * body()->GetWorldVector({0, 1}), true);
+            break;
+        }
+    }
+}
 
 class ExplosionRaycastCallback : public b2RayCastCallback {
     std::vector<BaseObjectState*> _objs;
