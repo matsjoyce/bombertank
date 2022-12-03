@@ -56,6 +56,8 @@
         <file>data/images/turret_base.png</file>
         <file>data/images/mg_turret_icon.png</file>
         <file>data/images/mg_turret.png</file>
+        <file>data/images/life.png</file>
+        <file>data/images/life_used.png</file>
         <file>data/sounds/laser-small.wav</file>
         <file>data/sounds/gun.wav</file>
         <file>data/sounds/small-gun.wav</file>

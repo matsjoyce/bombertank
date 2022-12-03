@@ -30,6 +30,7 @@ GameHandler::GameHandler(GameServer* gs,
         auto gameMode = new IndividualDeathMatch();
         gameMode->setGame(game);
         connect(game, &Game::destroyed, gameMode, &GameMode::deleteLater);
+        connect(gameMode, &GameMode::sendMessage, gs, &GameServer::handleGameMessage);
 
         game->mainloop();
         game->deleteLater();

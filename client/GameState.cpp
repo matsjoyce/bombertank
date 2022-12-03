@@ -46,6 +46,10 @@ void GameState::handleMessage(int id, Message msg) {
     else if (msg["cmd"].as_string() == "attach") {
         emit attachToObject(msg["id"].as_uint64_t());
     }
+    else if (msg["cmd"].as_string() == "livesLeft") {
+        _livesLeftProp.setValue(msg["left"].as_uint64_t());
+        _livesTotalProp.setValue(msg["total"].as_uint64_t());
+    }
     else {
         qWarning() << "Unknown cmd sent to GameState" << msg["cmd"].as_string().c_str();
     }

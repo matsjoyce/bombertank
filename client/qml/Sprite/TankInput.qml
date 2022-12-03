@@ -26,7 +26,6 @@ Item {
         controls.leftTrack = fb == 0 ? lr * 0.5 : Math.max(-1, Math.min(1, lr * 0.5 + fb));
         controls.rightTrack = fb == 0 ? -lr * 0.5 : Math.max(-1, Math.min(1, -lr * 0.5 + fb));
         controls.turretAngle = -Math.atan2(mouseArea.mouseY - height/2, mouseArea.mouseX - width/2);
-        console.log(mouseArea.pressedButtons & Qt.RightButton, mouseArea.pressedButtons & Qt.LeftButton);
         controls.setAction(0, keys[Qt.Key_Space] || keys[Qt.Key_1] || mouseArea.pressedButtons & Qt.LeftButton);
         controls.setAction(1, keys[Qt.Key_2] || keys[Qt.Key_E] || mouseArea.pressedButtons & Qt.RightButton);
         controls.setAction(2, keys[Qt.Key_3] || keys[Qt.Key_Q]);

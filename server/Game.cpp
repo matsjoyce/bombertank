@@ -102,6 +102,10 @@ void Game::mainloop() {
                 auto msg = obj->message();
                 msg["cmd"] = "destroy_object";
                 msg["id"] = iter->first;
+                if (_objToAttachedPlayer.count(iter->first)) {
+                    emit playerAttachedObjectDied(_objToAttachedPlayer[iter->first]);
+                    _objToAttachedPlayer.erase(iter->first);
+                }
                 iter->second->destroy(this);
                 for (auto c : _connections) {
                     emit sendMessage(c, msg);
@@ -168,4 +172,5 @@ std::vector<int> Game::objectsOfType(constants::ObjectType type) {
 
 void Game::attachPlayerToObject(int id, int objId) {
     emit sendMessage(id, {{"cmd", "attach"}, {"id", objId}});
+    _objToAttachedPlayer[objId] = id;
 }

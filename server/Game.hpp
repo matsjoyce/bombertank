@@ -19,6 +19,7 @@ class Game : public QObject, public b2ContactListener {
     std::vector<int> _connections;
     std::vector<std::pair<int, Message>> _messages;
     std::map<int, std::unique_ptr<BaseObjectState>> _objects;
+    std::map<int, int> _objToAttachedPlayer;
     std::mt19937 _randomGen;
     int _nextId = 1;
 

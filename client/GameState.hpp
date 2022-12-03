@@ -26,6 +26,11 @@ class GameState : public BaseGameState {
     Q_OBJECT
     QML_ELEMENT
     QML_UNCREATABLE("Uncreatable!")
+    Q_PROPERTY(int livesLeft READ livesLeft BINDABLE bindableLivesLeft)
+    Q_PROPERTY(int livesTotal READ livesTotal BINDABLE bindableLivesTotal)
+
+    Q_OBJECT_BINDABLE_PROPERTY(GameState, int, _livesLeftProp)
+    Q_OBJECT_BINDABLE_PROPERTY(GameState, int, _livesTotalProp)
 
     GameServer* _server;
 
@@ -35,6 +40,11 @@ class GameState : public BaseGameState {
     GameState(GameServer* parent);
 
     const std::map<int, std::shared_ptr<BaseObjectState>>& snapshot() const override;
+
+    int livesLeft() const { return _livesLeftProp.value(); }
+    QBindable<int> bindableLivesLeft() const { return &_livesLeftProp; }
+    int livesTotal() const { return _livesTotalProp.value(); }
+    QBindable<int> bindableLivesTotal() const { return &_livesTotalProp; }
 
    public slots:
     void handleMessage(int id, Message msg);

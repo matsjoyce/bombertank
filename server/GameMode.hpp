@@ -15,13 +15,19 @@ class GameMode : public QObject {
 
     virtual void setGame(Game* game);
     Game* game() { return _game; }
+
+   signals:
+    void sendMessage(int id, Message msg);
 };
 
 class IndividualDeathMatch : public GameMode {
     Q_OBJECT
 
     std::map<int, int> _playerToSide;
+    std::map<int, int> _sideToDeaths;
     int _nextSideAssignment = 0;
+    int _maxDeaths = 0;
+    void _sendDeathStats();
    private slots:
     void _onPlayerConnected(int id, Message msg);
     void _onPlayerAttachedObjectDied(int id);

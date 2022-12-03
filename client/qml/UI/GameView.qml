@@ -59,6 +59,38 @@ Item {
             }
         }
 
+        Repeater {
+            model: view.state.livesLeft
+            Item {
+                width: lifeImage.width + 4
+                height: lifeImage.height + 4
+                Image {
+                    id: lifeImage
+                    x: 2
+                    y: 2
+                    source: "qrc:/data/images/life.png"
+                    scale: 2.0
+                    smooth: false
+                }
+            }
+        }
+
+        Repeater {
+            model: console.log(view.state.livesTotal - view.state.livesLeft) || view.state.livesTotal - view.state.livesLeft
+            Item {
+                width: lifeImage.width + 4
+                height: lifeImage.height + 4
+                Image {
+                    id: lifeImage
+                    x: 2
+                    y: 2
+                    source: "qrc:/data/images/life_used.png"
+                    scale: 2.0
+                    smooth: false
+                }
+            }
+        }
+
         Text {
             text: controlledObject ? "Side %1 Speed %2".arg(controlledObject.side).arg(controlledObject.speed) : ""
             color: "white"
