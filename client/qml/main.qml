@@ -6,6 +6,7 @@ import QtQuick.Layouts 1.11
 import "UI"
 
 ApplicationWindow {
+    id: window
     minimumHeight: 640
     minimumWidth: 480
     visible: true
@@ -15,6 +16,6 @@ ApplicationWindow {
     UI {
         anchors.fill: parent
 
-        onClose: { close() }
+        onClose: { window.close() }
     }
 }

@@ -74,72 +74,30 @@ Item {
         }
     }
 
-    Item {
-        id: connectingLayer
-        anchors.fill: page
-        visible: false
+    Popup {
+        id: connectingDialog
+        modal: true
+        anchors.centerIn: parent
+        closePolicy: Popup.NoAutoClose
 
-        Behavior on visible {
-            PropertyAnimation {
-                target: connectingLayerBackground
-                property: "opacity"
-                from: 0
-                to: 0.75
-                duration: 500
-            }
-        }
-
-        Rectangle {
-            id: connectingLayerBackground
-            color: "black"
-            opacity: 0
-            anchors.fill: connectingLayer
-        }
-
-        Text {
+        Label {
             text: "Connecting..."
-            color: "red"
-            anchors.horizontalCenter: connectingLayer.horizontalCenter
-            anchors.verticalCenter: connectingLayer.verticalCenter
         }
     }
 
-    Item {
-        id: failedLayer
-        anchors.fill: page
-        visible: false
+    Dialog {
+        id: failedDialog
+        property string errorMessage: ""
+        title: "Error"
+        modal: true
+        anchors.centerIn: parent
+        standardButtons: Dialog.Ok
+        onRejected: { page.state = "START" }
+        onAccepted: { page.state = "START" }
 
-        Behavior on visible {
-            PropertyAnimation {
-                target: failedLayerBackground
-                property: "opacity"
-                from: 0
-                to: 0.75
-                duration: 500
-            }
-        }
-
-        Rectangle {
-            id: failedLayerBackground
-            color: "black"
-            opacity: 0
-            anchors.fill: failedLayer
-        }
-
-        ColumnLayout {
-            anchors.horizontalCenter: failedLayer.horizontalCenter
-            anchors.verticalCenter: failedLayer.verticalCenter
-
-            Text {
-                Layout.alignment: Qt.AlignCenter
-                text: "Error"
-                color: "red"
-            }
-
-            Button {
-                text: "OK"
-                onClicked: { page.state = "START" }
-            }
+        Label {
+            Layout.alignment: Qt.AlignCenter
+            text: failedDialog.errorMessage
         }
     }
 
@@ -151,9 +109,11 @@ Item {
         }
         function onErrorConnectingToServer(msg) {
             page.state = "FAILED";
+            failedDialog.errorMessage = msg;
         }
         function onErrorStartingLocalServer(msg) {
             page.state = "FAILED";
+            failedDialog.errorMessage = msg;
         }
     }
 
@@ -164,11 +124,11 @@ Item {
         },
         State {
             name: "CONNECTING"
-            PropertyChanges { target: connectingLayer; visible: true }
+            PropertyChanges { target: connectingDialog; visible: true }
         },
         State {
             name: "FAILED"
-            PropertyChanges { target: failedLayer; visible: true }
+            PropertyChanges { target: failedDialog; visible: true }
         }
     ]
 }
