@@ -22,6 +22,7 @@ class Game : public QObject, public b2ContactListener {
     std::map<int, int> _objToAttachedPlayer;
     std::mt19937 _randomGen;
     int _nextId = 1;
+    bool _active = true;
 
     b2World _world;
 
@@ -42,6 +43,7 @@ class Game : public QObject, public b2ContactListener {
     void addConnection(int id, Message msg);
     void removeConnection(int id);
     void recieveMessage(int id, Message msg);
+    void end();
 
    signals:
     void sendMessage(int id, Message msg);

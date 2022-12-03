@@ -41,6 +41,12 @@ void IndividualDeathMatch::_onPlayerAttachedObjectDied(int id) {
     if (_playerToSide.count(id)) {
         ++_sideToDeaths[_playerToSide[id]];
         _sendDeathStats();
+        if (_sideToDeaths[_playerToSide[id]] < _maxDeaths) {
+            emit sendMessage(id, {{"cmd", "deadRejoin"}});
+        }
+        else {
+            _checkGameOver();
+        }
     }
 }
 
@@ -53,3 +59,15 @@ void IndividualDeathMatch::_sendDeathStats() {
     }
 }
 
+void IndividualDeathMatch::_checkGameOver() {
+    std::set<int> winners;
+    for (auto& [side, deaths] : _sideToDeaths) {
+        if (deaths < _maxDeaths) {
+            winners.insert(side);
+        }
+    }
+    for (auto& player : _playerToSide) {
+        emit sendMessage(player.first, {{"cmd", "gameOver"}, {"winner", winners.count(player.second) == 1}});
+    }
+    emit gameOver();
+}

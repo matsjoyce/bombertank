@@ -8,7 +8,8 @@
 #include "common/MsgpackUtils.hpp"
 
 GameHandler::GameHandler(GameServer* gs,
-                         std::vector<std::map<msgpack::type::variant, msgpack::type::variant>> startingObjects)
+                         std::vector<std::map<msgpack::type::variant, msgpack::type::variant>> startingObjects,
+                         int id)
     : QObject(gs) {
     auto thread = new QThread();
     connect(thread, &QThread::started, [=]() {
@@ -31,9 +32,11 @@ GameHandler::GameHandler(GameServer* gs,
         gameMode->setGame(game);
         connect(game, &Game::destroyed, gameMode, &GameMode::deleteLater);
         connect(gameMode, &GameMode::sendMessage, gs, &GameServer::handleGameMessage);
+        connect(gameMode, &GameMode::gameOver, game, &Game::end);
 
         game->mainloop();
         game->deleteLater();
+        emit gameOver(id);
         thread->quit();
     });
     connect(thread, &QThread::finished, thread, &QThread::deleteLater);
@@ -59,8 +62,19 @@ GameServer::GameServer(const QHostAddress& address, quint16 port) {
 
 int GameServer::addGame(const std::vector<std::map<msgpack::type::variant, msgpack::type::variant>>& startingObjects) {
     auto id = _nextGameId++;
-    _games[id] = new GameHandler(this, startingObjects);
+    auto handler = new GameHandler(this, startingObjects, id);
+    connect(handler, &GameHandler::gameOver, this, &GameServer::removeGame);
+    _games[id] = handler;
     return id;
+}
+
+void GameServer::removeGame(int gameId) {
+    qInfo() << "Removing game" << gameId;
+    _games[gameId]->deleteLater();
+    _games.erase(gameId);
+    for (auto& connInfo : _connections) {
+        connInfo.second.connection->sendMessage({{"cmd", "game_removed"}, {"id", gameId}});
+    }
 }
 
 void GameServer::_sendStats() {

@@ -23,10 +23,13 @@ void GameServer::_handleMessage(int id, const Message& msg) {
     if (msg.at("cmd").as_string() == "game_created") {
         _listedGamesModel->_updateGame(msg.at("id").as_uint64_t(), "New game");
     }
-    if (msg.at("cmd").as_string() == "game_updated") {
+    else if (msg.at("cmd").as_string() == "game_updated") {
         _listedGamesModel->_updateGame(msg.at("id").as_uint64_t(), "New game");
     }
-    if (msg.at("cmd").as_string() == "server_stats") {
+    else if (msg.at("cmd").as_string() == "game_removed") {
+        _listedGamesModel->_removeGame(msg.at("id").as_uint64_t());
+    }
+    else if (msg.at("cmd").as_string() == "server_stats") {
         _connectedCountProp.setValue(msg.at("connected").as_uint64_t());
     }
     else if (_gameState) {
@@ -37,7 +40,7 @@ void GameServer::_handleMessage(int id, const Message& msg) {
 GameState* GameServer::joinGame(int id, std::vector<int> modulesForSlots) {
     _msgconn->sendMessage({{"cmd", "join_game"}, {"id", id}, {"tank_modules", std::vector<msgpack::type::variant>(modulesForSlots.begin(), modulesForSlots.end())}});
 
-    _gameState = new GameState(this);
+    _gameState = new GameState(this, id);
     connect(_gameState, &GameState::sendMessage, _msgconn, &TcpMessageSocket::sendMessage);
     QQmlEngine::setObjectOwnership(_gameState, QQmlEngine::CppOwnership);
     return _gameState;

@@ -18,6 +18,7 @@ class GameMode : public QObject {
 
    signals:
     void sendMessage(int id, Message msg);
+    void gameOver();
 };
 
 class IndividualDeathMatch : public GameMode {
@@ -28,6 +29,8 @@ class IndividualDeathMatch : public GameMode {
     int _nextSideAssignment = 0;
     int _maxDeaths = 0;
     void _sendDeathStats();
+    void _checkGameOver();
+
    private slots:
     void _onPlayerConnected(int id, Message msg);
     void _onPlayerAttachedObjectDied(int id);

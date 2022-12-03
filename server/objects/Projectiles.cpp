@@ -104,13 +104,13 @@ void HomingRocketState::prePhysics(Game* game) {
     game->world()->QueryAABB(&queryCallback, aabb);
     std::vector<BaseObjectState*> objs(queryCallback.objs().begin(), queryCallback.objs().end());
     std::sort(objs.begin(), objs.end(), [v1](BaseObjectState* left, BaseObjectState* right) {
-        // Lexicographical sort of (hostility, distance)
+        // Lexicographical sort of (most hostility, least distance)
         if (left->hostility() == right->hostility()) {
             return (left->body()->GetPosition() - v1).LengthSquared() < (right->body()->GetPosition() - v1).LengthSquared();
         }
         return left->hostility() > right->hostility();
     });
-    for (auto& obj : queryCallback.objs()) {
+    for (auto& obj : objs) {
         if (obj->side() != side() && obj->hostility() > Hostility::NON_HOSTILE) {
             auto targetVector = (obj->body()->GetPosition() - v1);
             bool goLeft = b2Cross(targetVector, forward) > 0;

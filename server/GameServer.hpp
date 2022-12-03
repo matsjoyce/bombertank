@@ -11,7 +11,7 @@ class GameHandler : public QObject {
     Q_OBJECT
 
    public:
-    GameHandler(GameServer* gs, std::vector<std::map<msgpack::type::variant, msgpack::type::variant>> startingObjects);
+    GameHandler(GameServer* gs, std::vector<std::map<msgpack::type::variant, msgpack::type::variant>> startingObjects, int id);
     void addConnection(int id, Message msg);
     void removeConnection(int id);
     void sendMessage(int id, Message msg);
@@ -20,6 +20,7 @@ class GameHandler : public QObject {
     void _addConnection(int id, Message msg);
     void _removeConnection(int id);
     void _sendMessage(int id, Message msg);
+    void gameOver(int gameId);
 };
 
 struct ConnectionInfo {
@@ -42,6 +43,7 @@ class GameServer : public QObject {
     void handleDisconnection(int id);
     void handleClientMessage(int id, Message msg);
     void handleGameMessage(int id, Message msg);
+    void removeGame(int gameId);
 
    public:
     GameServer(const QHostAddress& address = QHostAddress::Any, quint16 port = 0);

@@ -8,6 +8,7 @@ import BT 1.0
 Item {
     id: page
     required property GameState state
+    required property GameServer server
 
     signal exitGame()
 
@@ -23,11 +24,56 @@ Item {
             gameView.controlledObjectId = id;
             startSound.play();
         }
+        function onDeadRejoin() {
+            state.exitGame();
+            tankSetupDialog.open();
+        }
+        function onGameOver(winner: bool) {
+            tankSetupDialog.close();
+            gameOverDialog.winner = winner;
+            gameOverDialog.open();
+        }
     }
 
     SoundEffect {
         id: startSound
         source: "qrc:/data/sounds/start.wav"
+    }
+
+    TankSetup {
+        id: tankSetupDialog
+        anchors.centerIn: parent
+        onRejected: {
+            tankSetupDialog.close();
+            exitGame();
+        }
+        onAccepted: {
+            tankSetupDialog.close();
+            page.state = page.server.joinGame(page.state.id, tankSetupDialog.itemsForSlots);
+        }
+    }
+
+    Dialog {
+        id: gameOverDialog
+        property bool winner: false
+        anchors.centerIn: parent
+        modal: true
+        title: "Game over"
+        standardButtons: Dialog.Ok
+        onRejected: {
+            gameOverDialog.close();
+            state.exitGame();
+            exitGame();
+        }
+        onAccepted: {
+            gameOverDialog.close();
+            state.exitGame();
+            exitGame();
+        }
+
+        Label {
+            text: gameOverDialog.winner ? "Your team wins!" : "Your team lost."
+        }
     }
 
     Keys.onEscapePressed: {

@@ -63,7 +63,7 @@ void Game::mainloop() {
     qDebug() << "Game mainloop start";
     int physics_steps_per_logic_step = PHYSICS_FPS / LOGIC_FPS;
 
-    while (true) {
+    while (_active) {
         QElapsedTimer timer;
         timer.start();
         QCoreApplication::processEvents();
@@ -129,6 +129,11 @@ void Game::mainloop() {
         QThread::msleep(1/LOGIC_FPS*1000);
         // qInfo() << timer.elapsed() << "ms in game loop";
     }
+}
+
+void Game::end() {
+    qDebug() << "Ending game mainloop";
+    _active = false;
 }
 
 void Game::addConnection(int id, Message msg) {

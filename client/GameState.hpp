@@ -26,6 +26,7 @@ class GameState : public BaseGameState {
     Q_OBJECT
     QML_ELEMENT
     QML_UNCREATABLE("Uncreatable!")
+    Q_PROPERTY(int id READ id CONSTANT)
     Q_PROPERTY(int livesLeft READ livesLeft BINDABLE bindableLivesLeft)
     Q_PROPERTY(int livesTotal READ livesTotal BINDABLE bindableLivesTotal)
 
@@ -33,12 +34,14 @@ class GameState : public BaseGameState {
     Q_OBJECT_BINDABLE_PROPERTY(GameState, int, _livesTotalProp)
 
     GameServer* _server;
+    int _id;
 
     std::map<int, std::shared_ptr<BaseObjectState>> _objectStates;
 
    public:
-    GameState(GameServer* parent);
+    GameState(GameServer* parent, int id);
 
+    int id() const { return _id; }
     const std::map<int, std::shared_ptr<BaseObjectState>>& snapshot() const override;
 
     int livesLeft() const { return _livesLeftProp.value(); }
@@ -54,6 +57,8 @@ class GameState : public BaseGameState {
    signals:
     void sendMessage(Message msg);
     void attachToObject(int id);
+    void deadRejoin();
+    void gameOver(bool winner);
 };
 
 class EditorGameState : public BaseGameState {

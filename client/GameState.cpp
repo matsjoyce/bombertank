@@ -8,7 +8,7 @@
 #include "objects/TankState.hpp"
 #include "objects/TurretState.hpp"
 
-GameState::GameState(GameServer* server) : BaseGameState(server), _server(server) { qInfo() << "GameState started"; }
+GameState::GameState(GameServer* server, int id) : BaseGameState(server), _server(server), _id(id) { qInfo() << "GameState started"; }
 
 const std::map<int, std::shared_ptr<BaseObjectState>>& GameState::snapshot() const { return _objectStates; }
 
@@ -49,6 +49,12 @@ void GameState::handleMessage(int id, Message msg) {
     else if (msg["cmd"].as_string() == "livesLeft") {
         _livesLeftProp.setValue(msg["left"].as_uint64_t());
         _livesTotalProp.setValue(msg["total"].as_uint64_t());
+    }
+    else if (msg["cmd"].as_string() == "deadRejoin") {
+        emit deadRejoin();
+    }
+    else if (msg["cmd"].as_string() == "gameOver") {
+        emit gameOver(msg["winner"].as_bool());
     }
     else {
         qWarning() << "Unknown cmd sent to GameState" << msg["cmd"].as_string().c_str();
