@@ -11,7 +11,7 @@ ApplicationWindow {
     minimumWidth: 480
     visible: true
     visibility: Window.Maximized
-    title: qsTr("Hello World")
+    title: qsTr("Bombertank2")
 
     UI {
         anchors.fill: parent

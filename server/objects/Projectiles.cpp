@@ -2,6 +2,8 @@
 #include "../Game.hpp"
 
 const float IMPULSE_TO_DAMAGE = 300.0f;
+const int SHELL_CATEGORY = 0x2;
+const int SHELL_COLLISION_MASK = 0xffff & ~SHELL_CATEGORY;
 
 float ShellState::maxHealth() const { return 2; }
 
@@ -13,8 +15,13 @@ void ShellState::createBodies(b2World& world, b2BodyDef& bodyDef) {
 
     b2CircleShape circ;
     circ.m_radius = _bodyRadius();
+    b2FixtureDef fixtureDef;
+    fixtureDef.shape = &circ;
+    fixtureDef.density = 100.0;
+    fixtureDef.filter.categoryBits = SHELL_CATEGORY;
+    fixtureDef.filter.maskBits = SHELL_COLLISION_MASK;
 
-    body()->CreateFixture(&circ, 100.0);
+    body()->CreateFixture(&fixtureDef);
 }
 
 void ShellState::prePhysics(Game* game) {
