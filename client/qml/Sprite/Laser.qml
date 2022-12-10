@@ -8,19 +8,7 @@ BaseSprite {
         id: fireSound
         source: "qrc:/data/sounds/buzz.wav"
         loops: SoundEffect.Infinite
-    }
-
-    Connections {
-        target: object
-
-        function onLengthChanged(value: double) {
-            if (value > 0 && !fireSound.playing) {
-                fireSound.play();
-            }
-            else if (value == 0 && fireSound.playing) {
-                fireSound.stop();
-            }
-        }
+        volume: Math.min(1, object.length)
     }
 
     Rectangle {
