@@ -11,7 +11,7 @@ float HealthModule::healthContribution() {
 }
 
 float SpeedModule::speedContribution() {
-    return 20;
+    return 10;
 }
 
 void ShieldModule::prePhysics(Game* game, TankState* tank) {

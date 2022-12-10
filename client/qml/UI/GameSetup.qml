@@ -23,8 +23,12 @@ Dialog {
         anchors.fill: parent
         RowLayout {
             Label {
-                text: "Map: %1".arg(selectedMap.toString())
+                text: "Map:"
+            }
+            TextField {
                 Layout.fillWidth: true
+                readOnly: true
+                text: dialog.selectedMap.toString()
             }
             Button {
                 text: "Select"

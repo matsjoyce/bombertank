@@ -12,8 +12,8 @@ void RocketLauncher::act(Game* game, TankState* tank) {
     qDebug() << "Create shell";
     auto forward = tank->turretVector();
 
-    const auto speed = 20;
-    auto velocity = speed * forward + tank->body()->GetLinearVelocity();
+    const auto speed = std::max(20.0f, b2Dot(tank->body()->GetLinearVelocity(), forward));
+    auto velocity = speed * forward;
     auto obj = game->addObject(constants::ObjectType::ROCKET, tank->body()->GetPosition() + 3.5 * forward,
                                     std::atan2(velocity.y, velocity.x), velocity);
     if (obj) {
@@ -26,8 +26,8 @@ void HomingRocketLauncher::act(Game* game, TankState* tank) {
     qDebug() << "Create shell";
     auto forward = tank->turretVector();
 
-    const auto speed = 20;
-    auto velocity = speed * forward + tank->body()->GetLinearVelocity();
+    const auto speed = std::max(20.0f, b2Dot(tank->body()->GetLinearVelocity(), forward));
+    auto velocity = speed * forward;
     auto obj = game->addObject(constants::ObjectType::HOMING_ROCKET, tank->body()->GetPosition() + 3.5 * forward,
                                     std::atan2(velocity.y, velocity.x), velocity);
     if (obj) {
