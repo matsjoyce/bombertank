@@ -10,11 +10,14 @@ class GameServer;
 class GameHandler : public QObject {
     Q_OBJECT
 
+    std::string _title;
+
    public:
-    GameHandler(GameServer* gs, std::vector<std::map<msgpack::type::variant, msgpack::type::variant>> startingObjects, int id);
+    GameHandler(GameServer* gs, std::vector<std::map<msgpack::type::variant, msgpack::type::variant>> startingObjects, int id, std::string title);
     void addConnection(int id, Message msg);
     void removeConnection(int id);
     void sendMessage(int id, Message msg);
+    std::string title() const { return _title; }
 
    signals:
     void _addConnection(int id, Message msg);
@@ -48,7 +51,7 @@ class GameServer : public QObject {
    public:
     GameServer(const QHostAddress& address = QHostAddress::Any, quint16 port = 0);
 
-    int addGame(const std::vector<std::map<msgpack::type::variant, msgpack::type::variant>>& startingObjects);
+    int addGame(const std::vector<std::map<msgpack::type::variant, msgpack::type::variant>>& startingObjects, std::string title);
 
     friend class GameHandler;
 

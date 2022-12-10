@@ -21,10 +21,10 @@ void GameServer::disconnect() {
 
 void GameServer::_handleMessage(int id, const Message& msg) {
     if (msg.at("cmd").as_string() == "game_created") {
-        _listedGamesModel->_updateGame(msg.at("id").as_uint64_t(), "New game");
+        _listedGamesModel->_updateGame(msg.at("id").as_uint64_t(), QString::fromStdString(msg.at("title").as_string()));
     }
     else if (msg.at("cmd").as_string() == "game_updated") {
-        _listedGamesModel->_updateGame(msg.at("id").as_uint64_t(), "New game");
+        _listedGamesModel->_updateGame(msg.at("id").as_uint64_t(), QString::fromStdString(msg.at("title").as_string()));
     }
     else if (msg.at("cmd").as_string() == "game_removed") {
         _listedGamesModel->_removeGame(msg.at("id").as_uint64_t());
@@ -46,7 +46,7 @@ GameState* GameServer::joinGame(int id, std::vector<int> modulesForSlots) {
     return _gameState;
 }
 
-void GameServer::createGame(QUrl mapFilePath) {
+void GameServer::createGame(QUrl mapFilePath, QString title) {
     QFile mapFile(mapFilePath.toLocalFile());
     if (!mapFile.open(QIODevice::ReadOnly)) {
         qWarning() << "Could not open map file" << mapFilePath;
@@ -56,7 +56,7 @@ void GameServer::createGame(QUrl mapFilePath) {
     msgpack::object_handle oh = msgpack::unpack(mapData.constData(), mapData.size());
     auto objs = oh.get().as<std::vector<msgpack::type::variant>>();
 
-    _msgconn->sendMessage({{"cmd", "create_game"}, {"starting_objects", objs}});
+    _msgconn->sendMessage({{"cmd", "create_game"}, {"starting_objects", objs}, {"title", title.toStdString()}});
 }
 
 int ListedGameModel::rowCount(const QModelIndex& parent) const { return _listedGames.size(); }

@@ -12,6 +12,7 @@
         <file>qml/UI/editorUtils.js</file>
         <file>qml/UI/StatusBar.qml</file>
         <file>qml/UI/TankSetup.qml</file>
+        <file>qml/UI/GameSetup.qml</file>
         <file>qml/UI/UI.qml</file>
         <file>qml/Sprite/Tank.qml</file>
         <file>qml/Sprite/BaseSprite.qml</file>

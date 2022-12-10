@@ -88,7 +88,9 @@ void HomingRocketState::prePhysics(Game* game) {
     RocketState::prePhysics(game);
     // Weathercock
     auto velocity = body()->GetLinearVelocityFromLocalPoint({0, 0});
-    body()->SetTransform(body()->GetPosition(), std::atan2(velocity.y, velocity.x));
+    auto velocityAngle = std::atan2(velocity.y, velocity.x);
+    auto newAngle = body()->GetAngle() + std::clamp(velocityAngle - body()->GetAngle(), -M_PIf / 40, M_PIf / 40);
+    body()->SetTransform(body()->GetPosition(), newAngle);
 
     // Build an isosceles triangle which forms the "search cone" using our position
     b2Rot rotation(M_PI/8);

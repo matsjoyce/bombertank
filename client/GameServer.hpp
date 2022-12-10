@@ -59,7 +59,7 @@ class GameServer : public QObject {
     QBindable<int> connectedCountBindable() { return &_connectedCountProp; }
 
     Q_INVOKABLE GameState* joinGame(int id, std::vector<int> modulesForSlots);
-    Q_INVOKABLE void createGame(QUrl mapFilePath);
+    Q_INVOKABLE void createGame(QUrl mapFilePath, QString title);
     Q_INVOKABLE void disconnect();
 };
 

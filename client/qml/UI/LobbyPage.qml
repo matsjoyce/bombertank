@@ -2,7 +2,6 @@ import QtQuick 2.15
 import QtQuick.Window 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
-import Qt.labs.platform 1.1
 import BT 1.0
 
 Item {
@@ -12,10 +11,10 @@ Item {
     signal startGame(GameServer server, GameState gameState)
     signal leaveServer()
 
-    FileDialog {
-        id: mapOpenDialog
-        nameFilters: ["BT Maps (*.btm2)"]
-        onAccepted: server.createGame(files[0])
+    GameSetup {
+        id: gameSetupDialog
+        anchors.centerIn: parent
+        onAccepted: server.createGame(gameSetupDialog.selectedMap, gameSetupDialog.gameTitle)
     }
 
     GridLayout {
@@ -31,7 +30,7 @@ Item {
         Button {
             text: "Create game"
 
-            onClicked: mapOpenDialog.visible = true
+            onClicked: gameSetupDialog.visible = true
         }
 
         Button {

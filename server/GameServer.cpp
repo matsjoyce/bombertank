@@ -9,8 +9,8 @@
 
 GameHandler::GameHandler(GameServer* gs,
                          std::vector<std::map<msgpack::type::variant, msgpack::type::variant>> startingObjects,
-                         int id)
-    : QObject(gs) {
+                         int id, std::string title)
+    : QObject(gs), _title(title) {
     auto thread = new QThread();
     connect(thread, &QThread::started, [=]() {
         auto game = new Game();
@@ -60,9 +60,9 @@ GameServer::GameServer(const QHostAddress& address, quint16 port) {
     connect(_server, &QTcpServer::newConnection, this, &GameServer::handleConnection);
 }
 
-int GameServer::addGame(const std::vector<std::map<msgpack::type::variant, msgpack::type::variant>>& startingObjects) {
+int GameServer::addGame(const std::vector<std::map<msgpack::type::variant, msgpack::type::variant>>& startingObjects, std::string title) {
     auto id = _nextGameId++;
-    auto handler = new GameHandler(this, startingObjects, id);
+    auto handler = new GameHandler(this, startingObjects, id, title);
     connect(handler, &GameHandler::gameOver, this, &GameServer::removeGame);
     _games[id] = handler;
     return id;
@@ -94,7 +94,7 @@ void GameServer::handleConnection() {
 
     qInfo() << "Sending game list";
     for (auto game : _games) {
-        msgconn->sendMessage({{"cmd", "game_updated"}, {"id", game.first}});
+        msgconn->sendMessage({{"cmd", "game_updated"}, {"id", game.first}, {"title", game.second->title()}});
     }
     _sendStats();
 }
@@ -144,9 +144,9 @@ void GameServer::handleClientMessage(int id, Message msg) {
     }
     else if (msg["cmd"].as_string() == "create_game") {
         qInfo() << "Creating new game";
-        auto gameId = addGame(extractVectorOfMap(msg["starting_objects"]));
+        auto gameId = addGame(extractVectorOfMap(msg["starting_objects"]), msg["title"].as_string());
         for (auto& connInfo2 : _connections) {
-            connInfo2.second.connection->sendMessage({{"cmd", "game_created"}, {"id", gameId}});
+            connInfo2.second.connection->sendMessage({{"cmd", "game_created"}, {"id", gameId}, {"title", _games[gameId]->title()}});
         }
     }
     else {
