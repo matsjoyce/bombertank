@@ -13,7 +13,7 @@ enum class Hostility { NON_HOSTILE, VAGELY_HOSTILE, HOSTILE };
 class Game;
 
 class BaseObjectState {
-    bool _dirty = true, _dead = false;
+    bool _dead = false;
     b2Body* _body = nullptr;
     float _damageTaken = 0;
     int _side = 0;
@@ -28,7 +28,6 @@ class BaseObjectState {
     b2Body* body() const { return _body; }
     float health() const { return maxHealth() - _damageTaken; }
     bool dead() const { return _dead; }
-    bool dirty() const { return _dirty; }
     int side() const { return _side; }
     void setSide(int side) { _side = side; }
     virtual Message message() const;

@@ -115,11 +115,11 @@ void Game::mainloop() {
         }
 
         for (auto& [id, obj] : _objects) {
-            if (obj->dirty()) {
-                // obj->state->dirty = false;
-                auto msg = obj->message();
-                msg["cmd"] = "object";
-                msg["id"] = id;
+            auto msg = obj->message();
+            msg["cmd"] = "object";
+            msg["id"] = id;
+            if (msg != _previousObjectMsg[id]) {
+                _previousObjectMsg[id] = msg;
                 for (auto c : _connections) {
                     emit sendMessage(c, msg);
                 }
@@ -139,6 +139,9 @@ void Game::end() {
 void Game::addConnection(int id, Message msg) {
     _connections.push_back(id);
     emit playerConnected(id, msg);
+    for (auto [objId, objMsg] : _previousObjectMsg) {
+        emit sendMessage(id, objMsg);
+    }
 }
 
 void Game::removeConnection(int id) {
