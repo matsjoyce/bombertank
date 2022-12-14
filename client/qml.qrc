@@ -14,6 +14,8 @@
         <file>qml/UI/TankSetup.qml</file>
         <file>qml/UI/GameSetup.qml</file>
         <file>qml/UI/UI.qml</file>
+        <file>qml/UI/KeyStack.qml</file>
+        <file>qml/UI/HelpDialog.qml</file>
         <file>qml/Sprite/Tank.qml</file>
         <file>qml/Sprite/BaseSprite.qml</file>
         <file>qml/Sprite/Crate.qml</file>
@@ -59,6 +61,8 @@
         <file>data/images/mg_turret.png</file>
         <file>data/images/life.png</file>
         <file>data/images/life_used.png</file>
+        <file>data/icons/rotate.svg</file>
+        <file>data/icons/forward.svg</file>
         <file>data/sounds/laser-small.wav</file>
         <file>data/sounds/gun.wav</file>
         <file>data/sounds/small-gun.wav</file>

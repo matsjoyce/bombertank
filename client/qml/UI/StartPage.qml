@@ -42,6 +42,13 @@ Item {
             onClicked: startEditor()
         }
 
+
+        Button {
+            text: qsTr("Control cheatsheet")
+            Layout.fillWidth: true
+            onClicked: helpDialog.open()
+        }
+
         Button {
             text: qsTr("Exit")
             Layout.fillWidth: true
@@ -99,6 +106,11 @@ Item {
             Layout.alignment: Qt.AlignCenter
             text: failedDialog.errorMessage
         }
+    }
+
+    HelpDialog {
+        id: helpDialog
+        anchors.centerIn: parent
     }
 
     Connections {
