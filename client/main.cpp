@@ -38,18 +38,12 @@ int main(int argc, char *argv[]) {
     QQuickStyle::setStyle("Theme");
     QApplication app(argc, argv);
 
-    // int id = QFontDatabase::addApplicationFont(":/PixelEmulator-xq08.ttf");
-    // QString family = QFontDatabase::applicationFontFamilies(id).at(0);
-    // QFont monospace(family);
-    // for (auto ps : QFontDatabase::pointSizes(monospace.family(), "")) {
-    //     std::cout << ps << std::endl;
-    // }
-    // //    monospace.setLetterSpacing(QFont::AbsoluteSpacing, -2);
-
-    // monospace.setStyleStrategy(QFont::NoSubpixelAntialias);
-    // monospace.setHintingPreference(QFont::PreferNoHinting);
-    // monospace.setPointSize(16);
-    // app.setFont(monospace);
+    QFontDatabase::addApplicationFont(":/data/fonts/Orbitron-Black.ttf");
+    QFontDatabase::addApplicationFont(":/data/fonts/Orbitron-Bold.ttf");
+    QFontDatabase::addApplicationFont(":/data/fonts/Orbitron-ExtraBold.ttf");
+    QFontDatabase::addApplicationFont(":/data/fonts/Orbitron-Medium.ttf");
+    QFontDatabase::addApplicationFont(":/data/fonts/Orbitron-Regular.ttf");
+    QFontDatabase::addApplicationFont(":/data/fonts/Orbitron-SemiBold.ttf");
 
     QQmlApplicationEngine engine;
     engine.addImportPath("qrc:/qml/");

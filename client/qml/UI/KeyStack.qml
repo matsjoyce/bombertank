@@ -8,21 +8,23 @@ ColumnLayout {
 
     Repeater {
         model: root.keys
+
         Column {
+            width: root.width
+            Layout.alignment: Qt.AlignHCenter
             Label {
                 text: qsTr("or")
                 horizontalAlignment: Qt.AlignHCenter
                 verticalAlignment: Qt.AlignTop
                 visible: index > 0
-                width: parent.width
+                width: root.width
                 height: 25
             }
-            Rectangle {
-                border.color: "red"
-                border.width: 2
-                color: "white"
-                height: 30
-                width: 50
+            Frame {
+                // border.color: "#b81413"
+                // border.width: 2
+                // color: "white"
+                anchors.horizontalCenter: parent.horizontalCenter
 
                 Text {
                     anchors.fill: parent

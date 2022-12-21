@@ -67,6 +67,7 @@ Item {
             id: adddressInput
             selectByMouse: true
             placeholderText: "IP address (XXX.XXX.XXX.XXX)"
+            anchors.fill: parent
         }
 
         onAccepted: {

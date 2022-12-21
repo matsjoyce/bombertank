@@ -91,12 +91,6 @@ Item {
             }
         }
 
-        Text {
-            text: controlledObject ? "Side %1 Speed %2".arg(controlledObject.side).arg(controlledObject.speed) : ""
-            color: "white"
-            font.pixelSize: 20
-        }
-
         Item {
             Layout.fillWidth: true
         }

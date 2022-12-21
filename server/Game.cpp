@@ -110,6 +110,7 @@ void Game::mainloop() {
                 for (auto c : _connections) {
                     emit sendMessage(c, msg);
                 }
+                _previousObjectMsg.erase(iter->first);
                 iter = _objects.erase(iter);
             }
         }

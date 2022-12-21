@@ -2,7 +2,9 @@
     <qresource prefix="/">
         <file>qml/main.qml</file>
         <file>qml/Theme/Button.qml</file>
-        <file>qml/Theme/TextInput.qml</file>
+        <file>qml/Theme/Dialog.qml</file>
+        <file>qml/Theme/DialogButtonBox.qml</file>
+        <file>qml/Theme/Frame.qml</file>
         <file>qml/Theme/qmldir</file>
         <file>qml/UI/StartPage.qml</file>
         <file>qml/UI/LobbyPage.qml</file>
@@ -70,6 +72,12 @@
         <file>data/sounds/missile.wav</file>
         <file>data/sounds/start.wav</file>
         <file>data/sounds/buzz.wav</file>
+        <file>data/fonts/Orbitron-Black.ttf</file>
+        <file>data/fonts/Orbitron-Bold.ttf</file>
+        <file>data/fonts/Orbitron-ExtraBold.ttf</file>
+        <file>data/fonts/Orbitron-Medium.ttf</file>
+        <file>data/fonts/Orbitron-Regular.ttf</file>
+        <file>data/fonts/Orbitron-SemiBold.ttf</file>
         <file>data/objects.json</file>
         <file>data/tank_modules.json</file>
     </qresource>

@@ -202,6 +202,11 @@ Item {
             onClicked: view.state.clear()
         }
 
+        Button {
+            text: "Exit"
+            onClicked: exit()
+        }
+
         Item {
             Layout.fillWidth: true
         }

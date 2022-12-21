@@ -148,6 +148,7 @@ Dialog {
                 Item {
                     width: 52
                     height: 52
+                    Layout.alignment: Qt.AlignHCenter
 
                     Rectangle {
                         anchors.fill: parent
