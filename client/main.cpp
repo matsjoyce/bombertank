@@ -11,6 +11,7 @@
 #include "GameState.hpp"
 #include "MapView.hpp"
 #include "common/TcpMessageSocket.hpp"
+#include "common/VCS.hpp"
 #include "objects/TankControl.hpp"
 #include "docopt.h"
 
@@ -33,9 +34,10 @@ int main(int argc, char *argv[]) {
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif
 
-    std::map<std::string, docopt::value> args = docopt::docopt(USAGE, {argv + 1, argv + argc}, true, "BT Client 2.0a");
+    std::map<std::string, docopt::value> args = docopt::docopt(USAGE, {argv + 1, argv + argc}, true, std::string{"BomberTank2 Client "} + GIT_NAME);
 
     QQuickStyle::setStyle("Theme");
+    QApplication::setApplicationVersion(GIT_NAME);
     QApplication app(argc, argv);
 
     QFontDatabase::addApplicationFont(":/data/fonts/Orbitron-Black.ttf");

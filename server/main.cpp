@@ -2,6 +2,7 @@
 
 #include "GameServer.hpp"
 #include "docopt.h"
+#include "common/VCS.hpp"
 
 static const char USAGE[] =
     R"(BT Server
@@ -19,8 +20,9 @@ static const char USAGE[] =
 
 int main(int argc, char *argv[]) {
     QCoreApplication app(argc, argv);
+    QCoreApplication::setApplicationVersion(GIT_NAME);
 
-    std::map<std::string, docopt::value> args = docopt::docopt(USAGE, {argv + 1, argv + argc}, true, "BT Server 2.0a");
+    std::map<std::string, docopt::value> args = docopt::docopt(USAGE, {argv + 1, argv + argc}, true, std::string{"BomberTank2 Server "} + GIT_NAME);
 
     GameServer gs(QHostAddress::Any, 3000);
 

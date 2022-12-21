@@ -5,19 +5,34 @@ import QtQuick.Layouts 1.11
 
 import BT 1.0
 
-Item {
+Page {
     id: page
 
     signal startGame(GameServer server)
     signal startEditor()
     signal exit()
 
+    header: Label {
+        width: parent.width
+        text: "BomberTank2"
+        font.pointSize: 50
+        color: palette.highlight
+        padding: 10
+    }
+
+    footer: Label {
+        width: parent.width
+        text: "Version %1".arg(Qt.application.version)
+        color: palette.highlight
+        padding: 10
+        horizontalAlignment: Qt.AlignRight
+    }
+
     ColumnLayout {
-        id: columnLayout
-        width: 300
-        height: 300
+        spacing: 10
         x: 10
         anchors.verticalCenter: parent.verticalCenter
+        width: 300
 
         Button {
             text: qsTr("Start local game")

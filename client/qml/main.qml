@@ -11,7 +11,7 @@ ApplicationWindow {
     minimumWidth: 480
     visible: true
     visibility: Window.Maximized
-    title: qsTr("Bombertank2")
+    title: qsTr("BomberTank2")
     font.family: "Orbitron"
 
     palette {
