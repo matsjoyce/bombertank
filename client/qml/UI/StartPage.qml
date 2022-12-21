@@ -15,7 +15,7 @@ Page {
     header: Label {
         width: parent.width
         text: "BomberTank2"
-        font.pointSize: 50
+        font.pixelSize: 70
         color: palette.highlight
         padding: 10
     }

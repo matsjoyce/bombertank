@@ -6,7 +6,7 @@ T.Button {
     implicitHeight: 40
     implicitWidth: 200
 
-    font.pointSize: 14
+    font.pixelSize: 18
 
     contentItem: Text {
         text: control.text

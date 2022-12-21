@@ -8,7 +8,7 @@ Dialog {
     title: "Help"
     standardButtons: Dialog.Ok
     modal: true
-    horizontalPadding: 100
+    horizontalPadding: 60
 
     GridLayout {
         rows: 2
@@ -19,7 +19,7 @@ Dialog {
         Label {
             text: qsTr("Movement")
             font.bold: true
-            font.pointSize: 16
+            font.pixelSize: 18
         }
 
         GridLayout {
@@ -134,7 +134,7 @@ Dialog {
         Label {
             text: qsTr("Actions")
             font.bold: true
-            font.pointSize: 16
+            font.pixelSize: 18
         }
 
         GridLayout {

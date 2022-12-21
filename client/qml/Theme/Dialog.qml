@@ -27,6 +27,7 @@ T.Dialog {
         visible: control.title
         elide: Label.ElideRight
         font.bold: true
+        font.pixelSize: 18
         padding: 12
         color: control.palette.highlightedText
         background: Rectangle {

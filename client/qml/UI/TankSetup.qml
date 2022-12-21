@@ -89,7 +89,6 @@ Dialog {
                         color: delegate.highlighted ? palette.highlightedText : palette.text
                         height: delegate.height
                         verticalAlignment: Qt.AlignVCenter
-                        font.pointSize: 12
                     }
                 }
                 width: moduleList.width
