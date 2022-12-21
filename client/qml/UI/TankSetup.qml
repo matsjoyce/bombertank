@@ -86,7 +86,7 @@ Dialog {
                     }
                     Label {
                         text: modelData == null ? "Nothing" : modelData.name
-                        color: print(delegate.highlighted) || delegate.highlighted ? palette.highlightedText : palette.text
+                        color: delegate.highlighted ? palette.highlightedText : palette.text
                         height: delegate.height
                         verticalAlignment: Qt.AlignVCenter
                         font.pointSize: 12

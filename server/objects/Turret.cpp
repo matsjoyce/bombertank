@@ -61,7 +61,7 @@ void TurretState::prePhysics(Game* game) {
         }
     }
 
-    auto angleDiff = std::remainder(_targetTurretAngle - _turretAngle, 2.0f * M_PIf);
+    float angleDiff = std::remainder(_targetTurretAngle - _turretAngle, 2.0f * M_PI);
     _turretAngle += std::min(_slewRate, std::max(-_slewRate, angleDiff));
 
     if (hasTarget && std::abs(angleDiff) < 0.1) {

@@ -44,16 +44,18 @@ void MapView::_checkComponentsLoaded() {
 
         for (auto& [type, url] : spriteFilesForObjectType) {
             auto component = new QQmlComponent(engine, this);
+            auto urlCopy = url; // For clang
             connect(component, &QQmlComponent::statusChanged, this,
-                    [=](QQmlComponent::Status status) { qInfo() << url << status << component->errorString(); });
+                    [=](QQmlComponent::Status status) { qInfo() << urlCopy << status << component->errorString(); });
             component->loadUrl(url);
             _spriteComponents[type] = component;
         }
 
         for (auto& [type, url] : inputFilesForObjectType) {
             auto component = new QQmlComponent(engine, this);
+            auto urlCopy = url; // For clang
             connect(component, &QQmlComponent::statusChanged, this,
-                    [=](QQmlComponent::Status status) { qInfo() << url << status << component->errorString(); });
+                    [=](QQmlComponent::Status status) { qInfo() << urlCopy << status << component->errorString(); });
             component->loadUrl(url);
             _inputComponents[type] = component;
         }
