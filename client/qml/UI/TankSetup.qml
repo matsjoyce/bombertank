@@ -22,7 +22,7 @@ Dialog {
                     height: 76
                     width: 76
                     border.width: 2
-                    border.color: dialog.selectedSlot == index ? "red" : "white"
+                    border.color: dialog.selectedSlot == index ? palette.highlight : palette.base
 
                     Image {
                         source: itemsForSlots[index] == -1 ? "" : ("qrc:/data/" + context.tankModuleData.find(i => i.id == itemsForSlots[index]).image)
@@ -43,7 +43,7 @@ Dialog {
             }
         }
 
-        Text {
+        Label {
             text: "Selected slot %1".arg(dialog.selectedSlot + 1)
         }
 
@@ -60,40 +60,48 @@ Dialog {
             }
             clip: true
             spacing: 2
-            height: 76 * 3
-            width: 200
+            Layout.minimumHeight: 76 * 3
+            Layout.fillWidth: true
             currentIndex: Math.max(model.findIndex(i => i && i.id == dialog.itemsForSlots[dialog.selectedSlot]), 0)
+            ScrollBar.vertical: ScrollBar {
+                policy: ScrollBar.AlwaysOn
+            }
 
-            delegate: Rectangle {
-                height: 76
-                width: moduleList.width
-                border.width: 2
-                border.color: ListView.isCurrentItem ? "red" : "white"
-
-                Row {
+            delegate: ItemDelegate {
+                id: delegate
+                contentItem: Row {
                     padding: 2
-                    spacing: 2
+                    spacing: 10
                     anchors.fill: parent
-                    Image {
-                        source: modelData == null ? "" : "qrc:/data/" + modelData.image
+                    Rectangle {
                         width: 72
                         height: 72
-                        smooth: false
+                        color: "white"
+
+                        Image {
+                            source: modelData == null ? "" : "qrc:/data/" + modelData.image
+                            smooth: false
+                            anchors.fill: parent
+                        }
                     }
-                    Text {
+                    Label {
                         text: modelData == null ? "Nothing" : modelData.name
+                        color: print(delegate.highlighted) || delegate.highlighted ? palette.highlightedText : palette.text
+                        height: delegate.height
+                        verticalAlignment: Qt.AlignVCenter
+                        font.pointSize: 12
                     }
                 }
+                width: moduleList.width
+                height: 76
+                highlighted: ListView.isCurrentItem
 
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        dialog.itemsForSlots = [
-                            ...dialog.itemsForSlots.slice(0, dialog.selectedSlot),
-                            modelData == null ? -1 : modelData.id,
-                            ...dialog.itemsForSlots.slice(dialog.selectedSlot + 1)
-                        ]
-                    }
+                onClicked: {
+                    dialog.itemsForSlots = [
+                        ...dialog.itemsForSlots.slice(0, dialog.selectedSlot),
+                        modelData == null ? -1 : modelData.id,
+                        ...dialog.itemsForSlots.slice(dialog.selectedSlot + 1)
+                    ]
                 }
             }
         }

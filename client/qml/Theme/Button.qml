@@ -11,7 +11,7 @@ T.Button {
     contentItem: Text {
         text: control.text
         font: control.font
-        opacity: enabled ? 1.0 : 0.5
+        opacity: 1.0
         color: enabled ? (control.down || control.checked || control.hovered ? "white" : palette.dark) : "gray"
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter
@@ -19,9 +19,9 @@ T.Button {
     }
 
     background: Rectangle {
-        opacity: enabled ? 1.0 : 0.5
+        opacity: 1.0
         border.color: enabled ? palette.dark : "gray"
         border.width: 2
-        color: control.down || control.checked || control.hovered ? palette.dark : "white"
+        color: enabled && (control.down || control.checked || control.hovered) ? palette.dark : "white"
     }
 }

@@ -26,7 +26,7 @@ ColumnLayout {
                 // color: "white"
                 anchors.horizontalCenter: parent.horizontalCenter
 
-                Text {
+                Label {
                     anchors.fill: parent
                     horizontalAlignment: Qt.AlignHCenter
                     verticalAlignment: Qt.AlignVCenter

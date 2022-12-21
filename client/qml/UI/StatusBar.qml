@@ -41,4 +41,10 @@ Item {
         transformOrigin: Item.TopLeft
         scale: 2
     }
+
+    Text {
+        text: "%1%".arg(Math.round(bar.value * 100) || 0)
+        anchors.centerIn: parent
+        color: "white"
+    }
 }

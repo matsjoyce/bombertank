@@ -29,7 +29,7 @@ Item {
         }
 
         Button {
-            text: qsTr("Start network game")
+            text: qsTr("Join networked server")
             Layout.fillWidth: true
             onClicked: {
                 serverAddressDialog.open();

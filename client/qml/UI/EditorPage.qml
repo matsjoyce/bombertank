@@ -8,7 +8,7 @@ import BT 1.0
 import "editorUtils.js" as EditorUtils
 
 
-Item {
+Page {
     property EditorGameState state: EditorGameState {}
     readonly property var gridSizes: [2, 3, 6, 9]
     property double gridSize: 9
@@ -38,7 +38,7 @@ Item {
 
     Image {
         source: "qrc:/data/images/tiles.png"
-        anchors.fill: view
+        anchors.fill: parent
         smooth: false
         fillMode: Image.Tile
         transform: [
@@ -50,7 +50,7 @@ Item {
     MapView {
         id: map
         state: view.state
-        anchors.fill: view
+        anchors.fill: parent
     }
 
     MouseArea {
@@ -101,7 +101,7 @@ Item {
 
     Canvas {
         id: gridCanvas
-        anchors.fill: view
+        anchors.fill: parent
         visible: showGridButton.checked
 
         onPaint: {
@@ -144,139 +144,116 @@ Item {
         }
     }
 
+    header: ToolBar {
+        RowLayout {
+            spacing: 4
+            anchors.fill: parent
 
-    Rectangle {
-        anchors.left: view.left
-        anchors.top: view.top
-        anchors.right: view.right
-        height: topBar.height + 4
-        width: 100
-        color: "black"
-        opacity: 0.6
-    }
+            Button {
+                text: "Open"
+                onClicked: mapOpenDialog.open()
 
-    RowLayout {
-        id: topBar
-        spacing: 4
-        anchors.left: view.left
-        anchors.top: view.top
-        anchors.right: view.right
-        anchors.margins: 2
-
-
-        Button {
-            text: "Open"
-            onClicked: mapOpenDialog.open()
-
-            FileDialog {
-                id: mapOpenDialog
-                currentFile: fname
-                nameFilters: ["BT Maps (*.btm2)"]
-                onAccepted: {
-                    view.fname = file;
-                    // Static methods aren't really a thing in QML
-                    view.state = view.state.load(file);
+                FileDialog {
+                    id: mapOpenDialog
+                    currentFile: fname
+                    nameFilters: ["BT Maps (*.btm2)"]
+                    onAccepted: {
+                        view.fname = file;
+                        // Static methods aren't really a thing in QML
+                        view.state = view.state.load(file);
+                    }
                 }
             }
-        }
 
-        Button {
-            text: "Save"
-            onClicked: mapSaveDialog.open()
+            Button {
+                text: "Save"
+                onClicked: mapSaveDialog.open()
 
-            FileDialog {
-                id: mapSaveDialog
-                currentFile: fname
-                fileMode: FileDialog.SaveFile
-                nameFilters: ["BT Maps (*.btm2)"]
-                defaultSuffix: "btm2"
-                onAccepted: {
-                    view.fname = file;
-                    view.state.save(file);
+                FileDialog {
+                    id: mapSaveDialog
+                    currentFile: fname
+                    fileMode: FileDialog.SaveFile
+                    nameFilters: ["BT Maps (*.btm2)"]
+                    defaultSuffix: "btm2"
+                    onAccepted: {
+                        view.fname = file;
+                        view.state.save(file);
+                    }
                 }
             }
-        }
 
-        Button {
-            text: "Clear"
-            onClicked: view.state.clear()
-        }
+            Button {
+                text: "Clear"
+                onClicked: view.state.clear()
+            }
 
-        Button {
-            text: "Exit"
-            onClicked: exit()
-        }
+            Button {
+                text: "Exit"
+                onClicked: exit()
+            }
 
-        Item {
-            Layout.fillWidth: true
-        }
+            Item {
+                Layout.fillWidth: true
+            }
 
-        Button {
-            id: showGridButton
-            text: "Grid"
-            checkable: true
-            checked: true
-        }
+            Button {
+                id: showGridButton
+                text: "Grid"
+                checkable: true
+                checked: true
+            }
 
-        Text {
-            text: "Grid size: %1".arg(view.gridSize)
-            verticalAlignment: Text.AlignVCenter
-            Layout.fillHeight: true
-            Layout.minimumWidth: 80
-            color: "white"
-        }
+            Label {
+                text: "Grid size: %1".arg(view.gridSize)
+                verticalAlignment: Text.AlignVCenter
+                Layout.fillHeight: true
+                Layout.minimumWidth: 80
+            }
 
-        Slider {
-            from: 0
-            to: view.gridSizes.length - 1
-            stepSize: 1
-            snapMode: Slider.SnapAlways
-            value: view.gridSizes.indexOf(view.gridSize)
+            Slider {
+                from: 0
+                to: view.gridSizes.length - 1
+                stepSize: 1
+                snapMode: Slider.SnapAlways
+                value: view.gridSizes.indexOf(view.gridSize)
 
-            onMoved: view.gridSize = view.gridSizes[value]
+                onMoved: view.gridSize = view.gridSizes[value]
+            }
         }
     }
 
-    Rectangle {
-        anchors.fill: bottomBar
-        color: "black"
-        opacity: 0.6
-    }
-
-    Row {
-        id: bottomBar
-        padding: 2
-        anchors.bottom: view.bottom
-        width: view.width
-
-        ListView {
-            id: objectList
-            model: context.objectTypeData
-            clip: true
-            orientation: Qt.Horizontal
-            spacing: 2
-            height: 76
-            width: view.width - 4
-
-            delegate: Rectangle {
+    footer: ToolBar {
+        Row {
+            width: parent.width
+            ListView {
+                id: objectList
+                model: context.objectTypeData
+                clip: true
+                orientation: Qt.Horizontal
+                spacing: 2
                 height: 76
-                width: 76
-                border.width: 2
-                border.color: ListView.isCurrentItem ? "red" : "white"
+                width: parent.width
 
-                Image {
-                    source: "qrc:/data/" + modelData.client.image
-                    x: 2
-                    y: 2
-                    width: 72
-                    height: 72
-                    smooth: false
-                }
+                delegate: Rectangle {
+                    height: 76
+                    width: 76
+                    border.width: 2
+                    border.color: ListView.isCurrentItem ? palette.highlight : palette.base
 
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        objectList.currentIndex = index;
+                    Image {
+                        source: "qrc:/data/" + modelData.client.image
+                        x: 2
+                        y: 2
+                        width: 72
+                        height: 72
+                        smooth: false
+                    }
+
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: {
+                            objectList.currentIndex = index;
+                        }
                     }
                 }
             }

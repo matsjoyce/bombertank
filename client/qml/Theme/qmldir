@@ -3,5 +3,7 @@ Button 1.0 Button.qml
 Dialog 1.0 Dialog.qml
 DialogButtonBox 1.0 DialogButtonBox.qml
 Frame 1.0 Frame.qml
+ScrollBar 1.0 ScrollBar.qml
+ToolBar 1.0 ToolBar.qml
 
 import QtQuick.Controls.Basic 6.0

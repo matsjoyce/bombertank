@@ -5,6 +5,8 @@
         <file>qml/Theme/Dialog.qml</file>
         <file>qml/Theme/DialogButtonBox.qml</file>
         <file>qml/Theme/Frame.qml</file>
+        <file>qml/Theme/ScrollBar.qml</file>
+        <file>qml/Theme/ToolBar.qml</file>
         <file>qml/Theme/qmldir</file>
         <file>qml/UI/StartPage.qml</file>
         <file>qml/UI/LobbyPage.qml</file>

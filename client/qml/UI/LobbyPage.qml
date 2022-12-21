@@ -4,7 +4,7 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
 import BT 1.0
 
-Item {
+Page {
     id: page
     required property GameServer server
 
@@ -17,68 +17,63 @@ Item {
         onAccepted: server.createGame(gameSetupDialog.selectedMap, gameSetupDialog.gameTitle)
     }
 
-    GridLayout {
-        anchors.fill: parent
+    header: ToolBar {
+        RowLayout {
+            anchors.fill: parent
+            spacing: 4
 
-        Button {
-            text: "Join game"
-            enabled: gameList.currentIndex >= 0
+            Button {
+                text: "Join game"
+                enabled: gameList.currentIndex >= 0
 
-            onClicked: tankSetupDialog.open()
-        }
+                onClicked: tankSetupDialog.open()
+            }
 
-        Button {
-            text: "Create game"
+            Button {
+                text: "Create game"
 
-            onClicked: gameSetupDialog.visible = true
-        }
+                onClicked: gameSetupDialog.visible = true
+            }
 
-        Button {
-            text: "Leave server"
+            Item {
+                Layout.fillWidth: true
+            }
 
-            onClicked: {
-                page.server.disconnect();
-                leaveServer();
+            Button {
+                text: "Leave server"
+
+                onClicked: {
+                    page.server.disconnect();
+                    leaveServer();
+                }
             }
         }
+    }
 
         ListView {
             id: gameList
-            Layout.row: 1
-            Layout.columnSpan: 3
-            Layout.minimumWidth: 100
-            Layout.minimumHeight: 100
-            Layout.fillWidth: true
-            Layout.fillHeight: true
-            Layout.margins: 5
+            anchors.fill: parent
+            anchors.margins: 4
             model: page.server ? page.server.listedGamesModel : []
             clip: true
 
-            delegate: Rectangle {
+            delegate: ItemDelegate {
                 required property int id
                 required property string title
                 required property int index
-                height: 40
+
+                text: "%1 %2".arg(id).arg(title)
                 width: gameList.width
-                color: ListView.isCurrentItem ? "red" : "white"
+                highlighted: ListView.isCurrentItem
 
-                Text {
-                    x: 2
-                    y: 2
-                    text: "%1 %2".arg(id).arg(title)
-                    color: ListView.isCurrentItem ? "white" : "black"
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        gameList.currentIndex = index;
-                    }
+                onClicked: {
+                    gameList.currentIndex = index;
                 }
             }
         }
 
-        Text {
+    footer: ToolBar {
+        Label {
             Layout.row: 2
             Layout.columnSpan: 3
             padding: 2
