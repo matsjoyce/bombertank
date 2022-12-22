@@ -240,6 +240,7 @@ void MapView::_doUpdate() {
         _controlsUpdated = false;
     }
     // qInfo() << timer.elapsed() << "ms in game loop";
+    _state->cleanup();
 }
 
 QPointF MapView::pixelsToPosition(QPointF pos) {

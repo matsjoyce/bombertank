@@ -19,6 +19,7 @@ class BaseGameState : public QObject {
     using QObject::QObject;
 
     virtual const std::map<int, std::shared_ptr<BaseObjectState>>& snapshot() const = 0;
+    virtual void cleanup() {}
 };
 
 class GameServer;
@@ -39,11 +40,14 @@ class GameState : public BaseGameState {
 
     std::map<int, std::shared_ptr<BaseObjectState>> _objectStates;
 
+    std::shared_ptr<BaseObjectState>& _getOrCreateObject(const Message& msg);
+
    public:
     GameState(GameServer* parent, int id);
 
     int id() const { return _id; }
     const std::map<int, std::shared_ptr<BaseObjectState>>& snapshot() const override;
+    void cleanup() override;
 
     int livesLeft() const { return _livesLeftProp.value(); }
     QBindable<int> bindableLivesLeft() const { return &_livesLeftProp; }

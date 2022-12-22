@@ -38,14 +38,9 @@ BaseSprite {
 
         ParallelAnimation {
             id: deathAnim
+            running: object.destroyed
             NumberAnimation { target: hitCircle; property: "radius"; to: 10; duration: 200 }
             NumberAnimation { target: hitCircle; property: "opacity"; to: 0; duration: 200 }
-        }
-    }
-    Connections {
-        target: object
-        function onDestroyedChanged() {
-            deathAnim.start();
         }
     }
 }

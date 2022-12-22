@@ -13,36 +13,45 @@ GameState::GameState(GameServer* server, int id) : BaseGameState(server), _serve
 
 const std::map<int, std::shared_ptr<BaseObjectState>>& GameState::snapshot() const { return _objectStates; }
 
+void GameState::cleanup() {
+    for (auto iter = _objectStates.begin(); iter != _objectStates.end(); ++iter) {
+        if (iter->second->destroyed()) {
+            iter = _objectStates.erase(iter);
+        }
+    }
+}
+
+std::shared_ptr<BaseObjectState>& GameState::_getOrCreateObject(const Message& msg) {
+    auto id = msg.at("id").as_uint64_t();
+    auto iter = _objectStates.find(id);
+    if (iter == _objectStates.end()) {
+        std::shared_ptr<BaseObjectState> objState;
+        auto objType = static_cast<constants::ObjectType>(msg.at("type").as_uint64_t());
+        if (objType == constants::ObjectType::TANK) {
+            objState = std::make_shared<TankState>();
+        }
+        else if (objType == constants::ObjectType::LASER_TURRET || objType == constants::ObjectType::MG_TURRET) {
+            objState = std::make_shared<TurretState>();
+        }
+        else if (objType == constants::ObjectType::LASER) {
+            objState = std::make_shared<LaserState>();
+        }
+        else {
+            objState = std::make_shared<BaseObjectState>();
+        }
+        iter = _objectStates.insert(std::make_pair(id, std::move(objState))).first;
+    }
+    return iter->second;
+}
+
 void GameState::handleMessage(int id, Message msg) {
     if (msg["cmd"].as_string() == "object") {
-        auto id = msg["id"].as_uint64_t();
-        auto iter = _objectStates.find(id);
-        if (iter == _objectStates.end()) {
-            std::shared_ptr<BaseObjectState> objState;
-            auto objType = static_cast<constants::ObjectType>(msg["type"].as_uint64_t());
-            if (objType == constants::ObjectType::TANK) {
-                objState = std::make_shared<TankState>();
-            }
-            else if (objType == constants::ObjectType::LASER_TURRET || objType == constants::ObjectType::MG_TURRET) {
-                objState = std::make_shared<TurretState>();
-            }
-            else if (objType == constants::ObjectType::LASER) {
-                objState = std::make_shared<LaserState>();
-            }
-            else {
-                objState = std::make_shared<BaseObjectState>();
-            }
-            iter = _objectStates.insert(std::make_pair(id, std::move(objState))).first;
-        }
-        iter->second->loadMessage(msg);
+        _getOrCreateObject(msg)->loadMessage(msg);
     }
     else if (msg["cmd"].as_string() == "destroy_object") {
-        auto iter = _objectStates.find(msg["id"].as_uint64_t());
-        if (iter != _objectStates.end()) {
-            iter->second->loadMessage(msg);
-            iter->second->setDestroyed(true);
-            _objectStates.erase(iter);
-        }
+        auto obj = _getOrCreateObject(msg);
+        obj->loadMessage(msg);
+        obj->setDestroyed(true);
     }
     else if (msg["cmd"].as_string() == "attach") {
         emit attachToObject(msg["id"].as_uint64_t());
