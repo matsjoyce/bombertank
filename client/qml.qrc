@@ -7,6 +7,9 @@
         <file>qml/Theme/Frame.qml</file>
         <file>qml/Theme/ScrollBar.qml</file>
         <file>qml/Theme/ToolBar.qml</file>
+        <file>qml/Theme/Switch.qml</file>
+        <file>qml/Theme/Slider.qml</file>
+        <file>qml/Theme/Popup.qml</file>
         <file>qml/Theme/qmldir</file>
         <file>qml/UI/StartPage.qml</file>
         <file>qml/UI/LobbyPage.qml</file>

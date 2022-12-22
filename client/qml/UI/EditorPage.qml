@@ -196,18 +196,21 @@ Page {
                 Layout.fillWidth: true
             }
 
-            Button {
-                id: showGridButton
+            Label {
                 text: "Grid"
-                checkable: true
+                Layout.alignment: Qt.AlignVCenter
+                font.pixelSize: 18
+            }
+
+            Switch {
+                id: showGridButton
                 checked: true
             }
 
             Label {
-                text: "Grid size: %1".arg(view.gridSize)
-                verticalAlignment: Text.AlignVCenter
-                Layout.fillHeight: true
-                Layout.minimumWidth: 80
+                text: "Size: %1".arg(view.gridSize)
+                Layout.alignment: Qt.AlignVCenter
+                Layout.minimumWidth: 60
             }
 
             Slider {
@@ -239,6 +242,7 @@ Page {
                     width: 76
                     border.width: 2
                     border.color: ListView.isCurrentItem ? palette.highlight : palette.base
+                    opacity: ListView.isCurrentItem ? 1.0 : 0.5
 
                     Image {
                         source: "qrc:/data/" + modelData.client.image

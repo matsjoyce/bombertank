@@ -13,6 +13,7 @@ ApplicationWindow {
     visibility: Window.Maximized
     title: qsTr("BomberTank2")
     font.family: "Orbitron"
+    font.pixelSize: 14
 
     palette {
         alternateBase: "grey"

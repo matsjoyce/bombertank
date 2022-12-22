@@ -5,5 +5,8 @@ DialogButtonBox 1.0 DialogButtonBox.qml
 Frame 1.0 Frame.qml
 ScrollBar 1.0 ScrollBar.qml
 ToolBar 1.0 ToolBar.qml
+Switch 1.0 Switch.qml
+Slider 1.0 Slider.qml
+Popup 1.0 Popup.qml
 
 import QtQuick.Controls.Basic 6.0
