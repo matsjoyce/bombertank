@@ -14,6 +14,50 @@ AppContext::AppContext(std::string serverExePath) : _serverExePath(serverExePath
     connect(&_conn, &QTcpSocket::errorOccurred, this, &AppContext::handleConnectionError);
 }
 
+const std::map<int, ObjectTypeData>& AppContext::objectTypeDatas() const {
+    return _objectTypeData;
+}
+
+std::vector<ObjectTypeData> AppContext::objectTypeDataValues() const {
+    std::vector<ObjectTypeData> ret;
+    ret.reserve(_objectTypeData.size());
+    for (auto& [_, v] : _objectTypeData) {
+        ret.emplace_back(v);
+    }
+    return ret;
+}
+
+ObjectTypeData AppContext::objectTypeData(int type) const {
+    return _objectTypeData.at(type);
+}
+
+const std::map<int, TankModuleData>& AppContext::tankModuleDatas() const {
+    return _tankModuleData;
+}
+
+std::vector<TankModuleData> AppContext::tankModuleDataValues() const {
+    std::vector<TankModuleData> ret;
+    ret.reserve(_tankModuleData.size());
+    for (auto& [_, v] : _tankModuleData) {
+        ret.emplace_back(v);
+    }
+    return ret;
+}
+
+std::vector<TankModuleData> AppContext::tankModuleDatasForSlot(int slot) const {
+    std::vector<TankModuleData> ret;
+    for (auto& [_, v] : _tankModuleData) {
+        if (std::find_if(v.forSlots.begin(), v.forSlots.end(), [&](auto& s){ return s == slot; }) != v.forSlots.end()) {
+            ret.emplace_back(v);
+        }
+    }
+    return ret;
+}
+
+TankModuleData AppContext::tankModuleData(int type) const {
+    return _tankModuleData.at(type);
+}
+
 void AppContext::handleLocalServerStarted() { QTimer::singleShot(1000, this, [this](){ connectToHost(QHostAddress::LocalHost); }); }
 
 void AppContext::handleLocalServerError() {

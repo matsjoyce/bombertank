@@ -10,7 +10,7 @@ Dialog {
     modal: true
     standardButtons: Dialog.Ok | Dialog.Cancel
     property int selectedSlot: 0
-    property var itemsForSlots: Array(5).fill(-1).map((_, i) => context.tankModuleData.find(item => item.forSlots.includes(i)).id)
+    property var itemsForSlots: Array(5).fill(-1).map((_, i) => context.tankModuleDatasForSlot(i)[0].id)
 
     ColumnLayout {
         RowLayout {
@@ -25,7 +25,7 @@ Dialog {
                     border.color: dialog.selectedSlot == index ? palette.highlight : palette.base
 
                     Image {
-                        source: itemsForSlots[index] == -1 ? "" : ("qrc:/data/" + context.tankModuleData.find(i => i.id == itemsForSlots[index]).image)
+                        source: print(context.tankModuleData(itemsForSlots[index]), itemsForSlots[index]) || itemsForSlots[index] == -1 ? "" : ("qrc:/data/" + context.tankModuleData(itemsForSlots[index]).image)
                         x: 2
                         y: 2
                         width: 72
@@ -49,15 +49,7 @@ Dialog {
 
         ListView {
             id: moduleList
-            model: {
-                let model = [null];
-                context.tankModuleData.map(item => {
-                    if (item.forSlots.includes(dialog.selectedSlot)) {
-                        model.push(item)
-                    }
-                });
-                return model;
-            }
+            model: [null, ...context.tankModuleDatasForSlot(dialog.selectedSlot)]
             clip: true
             spacing: 2
             Layout.minimumHeight: 76 * 3

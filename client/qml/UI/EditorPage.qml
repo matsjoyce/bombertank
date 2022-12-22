@@ -9,31 +9,43 @@ import "editorUtils.js" as EditorUtils
 
 
 Page {
-    property EditorGameState state: EditorGameState {}
+    property EditorGameState state: EditorGameState {
+        Component.onCompleted: {
+            // Work around QTBUG-109597
+            state.context = appContext;
+        }
+    }
     readonly property var gridSizes: [2, 3, 6, 9]
     property double gridSize: 9
     property url fname: ""
-    property int selectedObjectType: objectList.model[objectList.currentIndex].id
+    property int selectedObjectType: (md => md !== null ? md.id : -1)(objectList.model[objectList.currentIndex])
+    property AppContext appContext: context
 
     signal exit()
 
     id: view
     focus: true
 
+    function moveView(x: int, y: int) {
+        map.viewCenter = Qt.point(map.viewCenter.x + x, map.viewCenter.y + y);
+        dragRect.startDragPoint = Qt.point(dragRect.startDragPoint.x + x, dragRect.startDragPoint.y + y);
+        dragRect.endDragPoint = Qt.point(dragRect.endDragPoint.x + x, dragRect.endDragPoint.y + y);
+    }
+
     Keys.onEscapePressed: {
         exit()
     }
     Keys.onLeftPressed: {
-        map.viewCenter = Qt.point(map.viewCenter.x - 4, map.viewCenter.y);
+        moveView(-4, 0);
     }
     Keys.onRightPressed: {
-        map.viewCenter = Qt.point(map.viewCenter.x + 4, map.viewCenter.y);
+        moveView(4, 0);
     }
     Keys.onUpPressed: {
-        map.viewCenter = Qt.point(map.viewCenter.x, map.viewCenter.y + 4);
+        moveView(0, 4);
     }
     Keys.onDownPressed: {
-        map.viewCenter = Qt.point(map.viewCenter.x, map.viewCenter.y - 4);
+        moveView(0, -4);
     }
 
     Image {
@@ -72,10 +84,18 @@ Page {
             if (mouse.button == Qt.LeftButton) {
                 dragRect.endDragPoint = Qt.point(mouse.x, mouse.y);
 
-                for (var x = dragRect.dragRectPoints.startX; x <= dragRect.dragRectPoints.endX; ++x) {
-                    for (var y = dragRect.dragRectPoints.startY; y <= dragRect.dragRectPoints.endY; ++y) {
-                        view.state.addObject(selectedObjectType, x * view.gridSize, y * view.gridSize);
+                if (selectedObjectType !== -1) {
+                    for (var x = dragRect.dragRectPoints.startX; x <= dragRect.dragRectPoints.endX; ++x) {
+                        for (var y = dragRect.dragRectPoints.startY; y <= dragRect.dragRectPoints.endY; ++y) {
+                            view.state.addObject(selectedObjectType, x * view.gridSize, y * view.gridSize);
+                        }
                     }
+                }
+                else {
+                    view.state.removeObjects(
+                        dragRect.dragRectPoints.startX * view.gridSize, dragRect.dragRectPoints.startY * view.gridSize,
+                        dragRect.dragRectPoints.endX * view.gridSize, dragRect.dragRectPoints.endY * view.gridSize
+                    )
                 }
 
                 dragRect.startDragPoint = dragRect.endDragPoint;
@@ -160,7 +180,8 @@ Page {
                     onAccepted: {
                         view.fname = file;
                         // Static methods aren't really a thing in QML
-                        view.state = view.state.load(file);
+                        view.state = view.state.load(file, context);
+                        map.viewCenter = "0,0"
                     }
                 }
             }
@@ -184,7 +205,10 @@ Page {
 
             Button {
                 text: "Clear"
-                onClicked: view.state.clear()
+                onClicked: {
+                    view.state.clear()
+                    map.viewCenter = "0,0"
+                }
             }
 
             Button {
@@ -219,6 +243,7 @@ Page {
                 stepSize: 1
                 snapMode: Slider.SnapAlways
                 value: view.gridSizes.indexOf(view.gridSize)
+                focusPolicy: Qt.NoFocus
 
                 onMoved: view.gridSize = view.gridSizes[value]
             }
@@ -230,12 +255,13 @@ Page {
             width: parent.width
             ListView {
                 id: objectList
-                model: context.objectTypeData
+                model: [null, ...context.objectTypeDatas.filter(d => d.client.editorPlacable)]
                 clip: true
                 orientation: Qt.Horizontal
                 spacing: 2
                 height: 76
                 width: parent.width
+                currentIndex: 1
 
                 delegate: Rectangle {
                     height: 76
@@ -245,12 +271,18 @@ Page {
                     opacity: ListView.isCurrentItem ? 1.0 : 0.5
 
                     Image {
-                        source: "qrc:/data/" + modelData.client.image
+                        source: modelData !== null ? "qrc:/data/" + modelData.client.image : ""
                         x: 2
                         y: 2
                         width: 72
                         height: 72
                         smooth: false
+                    }
+
+                    Label {
+                        anchors.centerIn: parent
+                        text: "Delete"
+                        visible: modelData === null
                     }
 
                     MouseArea {

@@ -101,7 +101,7 @@ Page {
                         border.width: 2
                     }
                     Image {
-                        source: modelData.type == -1 ? "" : "qrc:/data/" + context.tankModuleData[modelData.type].image
+                        source: modelData.type == -1 ? "" : "qrc:/data/" + context.tankModuleData(modelData.type).image
                         anchors.fill: parent
                         anchors.margins: 2
                         smooth: false

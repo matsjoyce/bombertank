@@ -2,6 +2,7 @@
 #define OBJECT_TYPE_DATA_HPP
 
 #include <QString>
+#include <QSizeF>
 #include <QObject>
 #include <QQmlEngine>
 
@@ -14,11 +15,13 @@ struct ClientOTD {
     Q_PROPERTY(QString image MEMBER image CONSTANT)
     Q_PROPERTY(bool editorPlacable MEMBER editorPlacable CONSTANT)
     Q_PROPERTY(QString renderer MEMBER renderer CONSTANT)
+    Q_PROPERTY(QSizeF editorBounds MEMBER editorBounds CONSTANT)
 
 public:
     QString image;
     bool editorPlacable;
     QString renderer;
+    QSizeF editorBounds;
 };
 
 struct ServerOTD {
@@ -47,7 +50,7 @@ public:
     ServerOTD server;
 };
 
-std::vector<ObjectTypeData> loadObjectTypeData(QString fname);
+std::map<int, ObjectTypeData> loadObjectTypeData(QString fname);
 
 struct TankModuleData {
     Q_GADGET
@@ -66,6 +69,6 @@ public:
     std::vector<int> forSlots;
 };
 
-std::vector<TankModuleData> loadTankModuleData(QString fname);
+std::map<int, TankModuleData> loadTankModuleData(QString fname);
 
 # endif // OBJECT_TYPE_DATA_HPP

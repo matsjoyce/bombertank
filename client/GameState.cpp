@@ -7,6 +7,7 @@
 #include "common/MsgpackUtils.hpp"
 #include "objects/TankState.hpp"
 #include "objects/TurretState.hpp"
+#include "AppContext.hpp"
 
 GameState::GameState(GameServer* server, int id) : BaseGameState(server), _server(server), _id(id) { qInfo() << "GameState started"; }
 
@@ -73,19 +74,85 @@ void GameState::exitGame() {
     emit sendMessage(msg);
 }
 
+EditorGameState::EditorGameState(AppContext* context) {
+    _contextProp.setValue(context);
+    _contextNotifier = _contextProp.addNotifier([=](){ clear(); });
+}
+
+AppContext* EditorGameState::context() const {
+    return _contextProp.value();
+}
+
+void EditorGameState::setContext(AppContext* context) {
+    _contextProp.setValue(context);
+}
+
+QBindable<AppContext*> EditorGameState::bindableContext() const {
+    return &_contextProp;
+}
 
 const std::map<int, std::shared_ptr<BaseObjectState>>& EditorGameState::snapshot() const { return _objectStates; }
 
 void EditorGameState::clear() {
+    for (auto& [_, treeData] : _objectTreeData) {
+        _queryTree.DestroyProxy(treeData.proxyId);
+    }
+    _objectTreeData.clear();
     _objectStates.clear();
     _nextId = 1;
 }
 
+constexpr float AABB_REDUCTION = 0.05; // To prevent side-by-side objects removing each other
+
 int EditorGameState::addObject(int type, float x, float y) {
+    if (!context()) return -1;
+
+    auto bounds = context()->objectTypeData(type).client.editorBounds;
+    if (bounds.isEmpty()) {
+        qWarning() << "Type" << type << "used in the editor has empty bounds, this will mess with object removal";
+    }
+    b2AABB aabb = {
+        {static_cast<float>(x - bounds.width() / 2 + AABB_REDUCTION), static_cast<float>(y - bounds.height() / 2 + AABB_REDUCTION)},
+        {static_cast<float>(x + bounds.width() / 2 - AABB_REDUCTION), static_cast<float>(y + bounds.height() / 2 - AABB_REDUCTION)}
+    };
+    removeObjects(aabb.lowerBound.x, aabb.lowerBound.y, aabb.upperBound.x, aabb.upperBound.y);
+
     auto id = _nextId++;
     _objectStates[id] = std::make_shared<BaseObjectState>();
     _objectStates[id]->setFromEditor(static_cast<constants::ObjectType>(type), x, y);
+    _objectTreeData.emplace(id, ObjectTreeData{id, aabb, 0});
+    _objectTreeData[id].proxyId = _queryTree.CreateProxy(aabb, &_objectTreeData[id]);
     return id;
+}
+
+struct RemoveObjectsCallback {
+    b2DynamicTree& tree;
+    std::map<int, std::shared_ptr<BaseObjectState>>& objectStates;
+    b2AABB& queryAABB;
+    std::set<int> hits;
+
+    bool QueryCallback(int32 nodeId) {
+        auto treeData = static_cast<EditorGameState::ObjectTreeData*>(tree.GetUserData(nodeId));
+        if (b2TestOverlap(treeData->realAABB, queryAABB)) {
+            hits.insert(treeData->id);
+        }
+        return true;
+    }
+};
+
+void EditorGameState::removeObjects(float x1, float y1, float x2, float y2) {
+    b2AABB aabb = {{x1, y1}, {x2, y2}};
+    RemoveObjectsCallback callback{_queryTree, _objectStates, aabb, {}};
+    _queryTree.Query(&callback, aabb);
+    for (auto id : callback.hits) {
+        _removeObject(id);
+    }
+}
+
+void EditorGameState::_removeObject(int id) {
+    _queryTree.DestroyProxy(_objectTreeData[id].proxyId);
+    _objectTreeData.erase(id);
+    _objectStates.erase(id);
 }
 
 void EditorGameState::save(QUrl fname) const {
@@ -108,8 +175,8 @@ void EditorGameState::save(QUrl fname) const {
     msgpack::pack(mapFile, objs);
 }
 
-EditorGameState* EditorGameState::load(QUrl fname) {
-    auto state = new EditorGameState();
+EditorGameState* EditorGameState::load(QUrl fname, AppContext* context) {
+    auto state = new EditorGameState(context);
     QFile mapFile(fname.toLocalFile());
     if (!mapFile.open(QIODevice::ReadOnly)) {
         qWarning() << "Could not open map file" << fname;
@@ -123,6 +190,6 @@ EditorGameState* EditorGameState::load(QUrl fname) {
         state->addObject(obj["type"].as_uint64_t(), obj["x"].as_double(), obj["y"].as_double());
     }
 
+    QQmlEngine::setObjectOwnership(state, QQmlEngine::JavaScriptOwnership);
     return state;
 }
-

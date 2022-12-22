@@ -107,6 +107,10 @@ void MapView::setState(BaseGameState* state) {
     if (auto controllableState = dynamic_cast<GameState*>(_state)) {
         disconnect(this, &MapView::controlStateChanged, controllableState, &GameState::setControlState);
     }
+    for (auto& [_, sprite] : _sprites) {
+        delete sprite.item;
+    }
+    _sprites.clear();
     _state = state;
     qInfo() << "State set";
     if (auto controllableState = dynamic_cast<GameState*>(_state)) {
@@ -148,6 +152,7 @@ QTransform MapView::_viewTransform() {
 }
 
 void MapView::_doUpdate() {
+    if (!_state) return;
     QElapsedTimer timer;
     timer.start();
     auto engine = qmlEngine(this);

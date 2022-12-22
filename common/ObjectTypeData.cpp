@@ -6,8 +6,8 @@
 #include "ObjectTypeData.hpp"
 
 
-std::vector<ObjectTypeData> loadObjectTypeData(QString fname) {
-     std::vector<ObjectTypeData> ret;
+std::map<int, ObjectTypeData> loadObjectTypeData(QString fname) {
+     std::map<int, ObjectTypeData> ret;
      QFile f(fname);
 
     if (!f.open(QIODevice::ReadOnly)) {
@@ -21,25 +21,30 @@ std::vector<ObjectTypeData> loadObjectTypeData(QString fname) {
         auto obj = item.toObject();
         auto client = obj["client"].toObject();
         auto server = obj["server"].toObject();
-        ret.emplace_back(ObjectTypeData{
+        auto data = ObjectTypeData{
             obj["id"].toInt(),
             obj["name"].toString(),
             {
                 client["image"].toString(),
                 client["editor_placable"].toBool(),
-                client["renderer"].toString()
+                client["renderer"].toString(),
+                QSizeF{
+                    client["editor_bounds"].toArray().at(0).toDouble(),
+                    client["editor_bounds"].toArray().at(1).toDouble(),
+                }
             },
             {
                 "?"
             }
-        });
+        };
+        ret.emplace(std::make_pair(data.id, std::move(data)));
     }
     return ret;
 }
 
 
-std::vector<TankModuleData> loadTankModuleData(QString fname) {
-     std::vector<TankModuleData> ret;
+std::map<int, TankModuleData> loadTankModuleData(QString fname) {
+     std::map<int, TankModuleData> ret;
      QFile f(fname);
 
     if (!f.open(QIODevice::ReadOnly)) {
@@ -55,12 +60,13 @@ std::vector<TankModuleData> loadTankModuleData(QString fname) {
         for (auto slot : obj["for_slots"].toArray()) {
             forSlots.push_back(slot.toInt());
         }
-        ret.emplace_back(TankModuleData{
+        auto data = TankModuleData{
             obj["id"].toInt(),
             obj["name"].toString(),
             obj["image"].toString(),
             forSlots
-        });
+        };
+        ret.emplace(std::make_pair(data.id, std::move(data)));
     }
     return ret;
 }

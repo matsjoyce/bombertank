@@ -5,7 +5,7 @@
         "client": {
             "image": "images/wall.png",
             "editor_placable": true,
-            "editor_grid": [9, 9],
+            "editor_bounds": [9, 9],
             "renderer": "Wall"
         },
         "server": {
@@ -23,7 +23,7 @@
         "client": {
             "image": "images/iwall.png",
             "editor_placable": true,
-            "editor_grid": [9, 9],
+            "editor_bounds": [9, 9],
             "renderer": "Wall"
         },
         "server": {
@@ -41,7 +41,8 @@
         "name": "Crate",
         "client": {
             "image": "images/pwall.png",
-            "editor_placable": true
+            "editor_placable": true,
+            "editor_bounds": [6, 6]
         }
     },
     {
@@ -50,7 +51,7 @@
         "client": {
             "image": "images/start_zone.png",
             "editor_placable": true,
-            "editor_grid": [6, 6],
+            "editor_bounds": [9, 9],
             "renderer": "Tank"
         }
     },
@@ -66,7 +67,8 @@
         "name": "Static_Bomb",
         "client": {
             "image": "images/charge.png",
-            "editor_placable": true
+            "editor_placable": true,
+            "editor_bounds": [6, 6]
         }
     },
     {
@@ -87,16 +89,14 @@
         "id": 8,
         "name": "Chest",
         "client": {
-            "image": "images/chest.png",
-            "editor_placable": true
+            "image": "images/chest.png"
         }
     },
     {
         "id": 9,
         "name": "Mine",
         "client": {
-            "image": "images/mine.png",
-            "editor_placable": true
+            "image": "images/mine.png"
         }
     },
     {
@@ -124,8 +124,7 @@
         "id": 13,
         "name": "Laser_Robo",
         "client": {
-            "image": "images/laserrobo.png",
-            "editor_placable": true
+            "image": "images/laserrobo.png"
         }
     },
     {
@@ -133,7 +132,8 @@
         "name": "Machine Gun Turret",
         "client": {
             "image": "images/mg_turret_icon.png",
-            "editor_placable": true
+            "editor_placable": true,
+            "editor_bounds": [6, 6]
         }
     },
     {
@@ -155,7 +155,6 @@
         "name": "Thin Indestructable_Wall",
         "client": {
             "image": "images/iwall_thin.png",
-            "editor_placable": true,
             "editor_grid": [9, 9],
             "renderer": "Wall"
         },
@@ -174,7 +173,8 @@
         "name": "Laser Turret",
         "client": {
             "image": "images/laser_turret_icon.png",
-            "editor_placable": true
+            "editor_placable": true,
+            "editor_bounds": [6, 6]
         }
     }
 ]

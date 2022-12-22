@@ -14,14 +14,14 @@ class AppContext : public QObject {
     QML_ELEMENT
     QML_UNCREATABLE("Uncreatable!")
 
-    Q_PROPERTY(std::vector<ObjectTypeData> objectTypeData READ objectTypeData CONSTANT)
-    Q_PROPERTY(std::vector<TankModuleData> tankModuleData READ tankModuleData CONSTANT)
+    Q_PROPERTY(std::vector<ObjectTypeData> objectTypeDatas READ objectTypeDataValues CONSTANT)
+    Q_PROPERTY(std::vector<TankModuleData> tankModuleDatas READ tankModuleDataValues CONSTANT)
 
     std::string _serverExePath;
     QProcess _localServerProc;
     QTcpSocket _conn;
-    std::vector<ObjectTypeData> _objectTypeData;
-    std::vector<TankModuleData> _tankModuleData;
+    std::map<int, ObjectTypeData> _objectTypeData;
+    std::map<int, TankModuleData> _tankModuleData;
 
     void handleLocalServerStarted();
     void handleLocalServerError();
@@ -31,8 +31,15 @@ class AppContext : public QObject {
 
    public:
     AppContext(std::string serverExePath);
-    const std::vector<ObjectTypeData>& objectTypeData() const { return _objectTypeData; }
-    const std::vector<TankModuleData>& tankModuleData() const { return _tankModuleData; }
+
+    const std::map<int, ObjectTypeData>& objectTypeDatas() const;
+    std::vector<ObjectTypeData> objectTypeDataValues() const;
+    Q_INVOKABLE ObjectTypeData objectTypeData(int type) const;
+
+    const std::map<int, TankModuleData>& tankModuleDatas() const;
+    std::vector<TankModuleData> tankModuleDataValues() const;
+    Q_INVOKABLE std::vector<TankModuleData> tankModuleDatasForSlot(int slot) const;
+    Q_INVOKABLE TankModuleData tankModuleData(int type) const;
 
    public slots:
     void connectToServer(QString address);
