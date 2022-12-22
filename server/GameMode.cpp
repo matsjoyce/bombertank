@@ -25,14 +25,19 @@ void IndividualDeathMatch::_onPlayerConnected(int id, Message msg) {
         _playerToSide[id] = _nextSideAssignment++ % startZones.size();
         _maxDeaths += 2;
     }
-    auto side = _playerToSide[id];
-    auto startZone = game()->object(startZones[side]);
-    auto tank = game()->addObject(constants::ObjectType::TANK, startZone->body()->GetPosition(), startZone->body()->GetAngle(), {0, 0});
-    if (tank) {
-        auto [tankId, tankObj] = *tank;
-        tankObj->setSide(side + 1);
-        tankObj->handleMessage(msg);
-        game()->attachPlayerToObject(id, tankId);
+    if (auto existingObj = game()->attachedObjectForPlayer(id)) {
+        game()->attachPlayerToObject(id, *existingObj);
+    }
+    else {
+        auto side = _playerToSide[id];
+        auto startZone = game()->object(startZones[side]);
+        auto tank = game()->addObject(constants::ObjectType::TANK, startZone->body()->GetPosition(), startZone->body()->GetAngle(), {0, 0});
+        if (tank) {
+            auto [tankId, tankObj] = *tank;
+            tankObj->setSide(side + 1);
+            tankObj->handleMessage(msg);
+            game()->attachPlayerToObject(id, tankId);
+        }
     }
     _sendDeathStats();
 }

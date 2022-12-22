@@ -44,7 +44,7 @@ Page {
         }
 
         Button {
-            text: qsTr("Join networked server")
+            text: qsTr("Join server")
             Layout.fillWidth: true
             onClicked: {
                 serverAddressDialog.open();
@@ -59,7 +59,7 @@ Page {
 
 
         Button {
-            text: qsTr("Control cheatsheet")
+            text: qsTr("Controls cheatsheet")
             Layout.fillWidth: true
             onClicked: helpDialog.open()
         }

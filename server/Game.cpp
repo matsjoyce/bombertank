@@ -103,8 +103,10 @@ void Game::mainloop() {
                 msg["cmd"] = "destroy_object";
                 msg["id"] = iter->first;
                 if (_objToAttachedPlayer.count(iter->first)) {
-                    emit playerAttachedObjectDied(_objToAttachedPlayer[iter->first]);
+                    auto playerId = _objToAttachedPlayer[iter->first];
                     _objToAttachedPlayer.erase(iter->first);
+                    _playerToAttachedObj.erase(playerId);
+                    emit playerAttachedObjectDied(playerId);
                 }
                 iter->second->destroy(this);
                 for (auto c : _connections) {
@@ -159,7 +161,7 @@ BaseObjectState* Game::object(int id) {
     return iter->second.get();
 }
 
-std::vector<int> Game::objectsOnSide(int side) {
+std::vector<int> Game::objectsOnSide(int side) const {
     std::vector<int> res;
     for (auto& obj : _objects) {
         if (obj.second->side() == side) {
@@ -169,7 +171,7 @@ std::vector<int> Game::objectsOnSide(int side) {
     return res;
 }
 
-std::vector<int> Game::objectsOfType(constants::ObjectType type) {
+std::vector<int> Game::objectsOfType(constants::ObjectType type) const {
     std::vector<int> res;
     for (auto& obj : _objects) {
         if (obj.second->type() == type) {
@@ -180,6 +182,17 @@ std::vector<int> Game::objectsOfType(constants::ObjectType type) {
 }
 
 void Game::attachPlayerToObject(int id, int objId) {
+    if (_playerToAttachedObj.count(id)) {
+        _objToAttachedPlayer.erase(_playerToAttachedObj[id]);
+    }
     emit sendMessage(id, {{"cmd", "attach"}, {"id", objId}});
     _objToAttachedPlayer[objId] = id;
+    _playerToAttachedObj[id] = objId;
+}
+
+std::optional<int> Game::attachedObjectForPlayer(int id) const {
+    if (_playerToAttachedObj.count(id)) {
+        return {_playerToAttachedObj.at(id)};
+    }
+    return {};
 }

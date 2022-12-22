@@ -20,6 +20,7 @@ class Game : public QObject, public b2ContactListener {
     std::vector<std::pair<int, Message>> _messages;
     std::map<int, std::unique_ptr<BaseObjectState>> _objects;
     std::map<int, int> _objToAttachedPlayer;
+    std::map<int, int> _playerToAttachedObj;
     std::map<int, Message> _previousObjectMsg;
     std::mt19937 _randomGen;
     int _nextId = 1;
@@ -34,9 +35,10 @@ class Game : public QObject, public b2ContactListener {
     void PreSolve(b2Contact *contact, const b2Manifold* oldManifold) override;
     void PostSolve(b2Contact *contact, const b2ContactImpulse *impulse) override;
     BaseObjectState *object(int id);
-    std::vector<int> objectsOnSide(int side);
-    std::vector<int> objectsOfType(constants::ObjectType type);
+    std::vector<int> objectsOnSide(int side) const;
+    std::vector<int> objectsOfType(constants::ObjectType type) const;
     void attachPlayerToObject(int id, int objId);
+    std::optional<int> attachedObjectForPlayer(int id) const;
     std::mt19937& randomGenerator() { return _randomGen; }
     const b2World* world() const { return &_world; }
 

@@ -5,7 +5,7 @@ import QtQuick.Dialogs
 import Qt5Compat.GraphicalEffects
 
 Dialog {
-    title: "Help"
+    title: "Controls cheatsheet"
     standardButtons: Dialog.Ok
     modal: true
     horizontalPadding: 60
