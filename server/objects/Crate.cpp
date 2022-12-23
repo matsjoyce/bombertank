@@ -53,7 +53,7 @@ void TimedBombState::prePhysics(Game* game) {
 }
 
 void MineState::createBodies(b2World& world, b2BodyDef& bodyDef) {
-    bodyDef.type = b2_dynamicBody;
+    bodyDef.type = b2_staticBody;
 
     BaseObjectState::createBodies(world, bodyDef);
 

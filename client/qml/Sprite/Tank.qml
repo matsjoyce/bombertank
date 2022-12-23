@@ -49,11 +49,10 @@ BaseSprite {
     }
 
     Repeater {
-        model: object ? object.modules : [];
+        model: object.modules
         Loader {
             property TankModuleState module: modelData
             property var data: modelData.type == -1 ? null : context.tankModuleData(modelData.type)
-            anchors.centerIn: base
             source: (modelData.type == -1 || data.renderer == "") ? "" : "qrc:/qml/Sprite/TankModules/" + data.renderer
         }
     }

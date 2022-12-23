@@ -3,6 +3,9 @@
 void TankModule::prePhysics(Game* game, TankState* tank) {
     if (_reload) {
         --_reload;
+        if (!_reload) {
+            reloaded();
+        }
     }
 
     if (active() && !_reload) {

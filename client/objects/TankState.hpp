@@ -2,12 +2,14 @@
 #define OBJECTS_TANK_STATE_HPP
 
 #include "Base.hpp"
+#include <QPointF>
 
 class TankModuleState : public QObject {
     Q_OBJECT
     Q_PROPERTY(int type READ type BINDABLE bindableType)
     Q_PROPERTY(float reload READ reload BINDABLE bindableReload)
     Q_PROPERTY(int uses READ uses BINDABLE bindableUses)
+    Q_PROPERTY(std::vector<QPointF> points READ points BINDABLE bindablePoints)
     QML_ELEMENT
 
    public:
@@ -20,6 +22,8 @@ class TankModuleState : public QObject {
     QBindable<float> bindableReload() { return &_reloadProp; }
     int uses() { return _usesProp.value(); }
     QBindable<int> bindableUses() { return &_usesProp; }
+    std::vector<QPointF> points() { return _pointsProp.value(); }
+    QBindable<std::vector<QPointF>> bindablePoints() { return &_pointsProp; }
 
 signals:
     void used();
@@ -28,6 +32,7 @@ private:
     Q_OBJECT_BINDABLE_PROPERTY(TankModuleState, int, _typeProp)
     Q_OBJECT_BINDABLE_PROPERTY(TankModuleState, float, _reloadProp)
     Q_OBJECT_BINDABLE_PROPERTY(TankModuleState, int, _usesProp)
+    Q_OBJECT_BINDABLE_PROPERTY(TankModuleState, std::vector<QPointF>, _pointsProp)
 };
 
 class TankState : public BaseObjectState {

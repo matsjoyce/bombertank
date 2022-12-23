@@ -66,6 +66,7 @@ std::map<int, TankModuleData> loadTankModuleData(QString fname) {
             obj["image"].toString(),
             obj["description"].toString(),
             obj["renderer"].toString(),
+            obj["controller_overlay"].toString(),
             forSlots
         };
         ret.emplace(std::make_pair(data.id, std::move(data)));

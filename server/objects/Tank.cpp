@@ -11,6 +11,7 @@
 #include "actions/StatBoostModules.hpp"
 #include "actions/DropModules.hpp"
 #include "actions/StunModule.hpp"
+#include "actions/MineDetector.hpp"
 
 TankState::TankState() {
 }
@@ -136,6 +137,7 @@ std::unique_ptr<TankModule> createModule(int type) {
         case 12: return std::make_unique<TimedBombModule>();
         case 13: return std::make_unique<MGTurretModule>();
         case 14: return std::make_unique<MineModule>();
+        case 15: return std::make_unique<MineDetector>();
     }
     return {};
 }

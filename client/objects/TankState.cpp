@@ -39,6 +39,7 @@ void TankModuleState::loadMessage(Message& msg) {
     if (type == -1) {
         _reloadProp.setValue(0);
         _usesProp.setValue(0);
+        _pointsProp.setValue({});
     }
     else {
         _reloadProp.setValue(msg.at("reload").as_double());
@@ -47,5 +48,13 @@ void TankModuleState::loadMessage(Message& msg) {
         if (beforeUses < _usesProp.value()) {
             emit used();
         }
+        std::vector<QPointF> points;
+        if (msg.count("points")) {
+            for (auto p : msg["points"].as_vector()) {
+                auto pv = p.as_vector();
+                points.push_back({pv.at(0).as_double(), pv.at(1).as_double()});
+            }
+        }
+        _pointsProp.setValue(points);
     }
 }

@@ -27,6 +27,7 @@ public:
     virtual float stunResistanceMultiplier() { return 1; }
     virtual Message message();
     virtual float maxReload();
+    virtual void reloaded() {};
 };
 
 #endif // OBJECTS_ACTIONS_TANK_MODULE_HPP

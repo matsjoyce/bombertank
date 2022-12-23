@@ -102,5 +102,13 @@
         "image": "images/mine_icon.png",
         "for_slots": [2],
         "description": "Drop invisible mines for area denial. Mines become active after 2 seconds, so move before then!"
+    },
+    {
+        "id": 15,
+        "name": "Mine detector",
+        "image": "images/mine_detector_icon.png",
+        "for_slots": [3],
+        "description": "Find nearby mines. Remember to bring something to destroy them with!",
+        "controller_overlay": "MineDetector.qml"
     }
 ]

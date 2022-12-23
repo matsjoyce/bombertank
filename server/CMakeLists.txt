@@ -19,6 +19,7 @@ set(SOURCE
     objects/actions/StatBoostModules.cpp
     objects/actions/DropModules.cpp
     objects/actions/StunModule.cpp
+    objects/actions/MineDetector.cpp
 )
 
 add_executable(bt_server ${SOURCE})

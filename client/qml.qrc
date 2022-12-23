@@ -42,6 +42,7 @@
         <file>qml/Sprite/StunWave.qml</file>
         <file>qml/Sprite/TimedBomb.qml</file>
         <file>qml/Sprite/TankModules/TankModule.qml</file>
+        <file>qml/Sprite/TankModules/MineDetector.qml</file>
         <file>data/images/tank_base.png</file>
         <file>data/images/tank_color.png</file>
         <file>data/images/tank_turret.png</file>
@@ -77,6 +78,8 @@
         <file>data/images/bomb.png</file>
         <file>data/images/bomb_icon.png</file>
         <file>data/images/mine_icon.png</file>
+        <file>data/images/mine_detector_icon.png</file>
+        <file>data/images/mine_detected.png</file>
         <file>data/icons/rotate.svg</file>
         <file>data/icons/forward.svg</file>
         <file>data/sounds/laser-small.wav</file>

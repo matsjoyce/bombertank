@@ -62,11 +62,12 @@ struct TankModuleData {
     Q_PROPERTY(QString image MEMBER image CONSTANT)
     Q_PROPERTY(QString description MEMBER description CONSTANT)
     Q_PROPERTY(QString renderer MEMBER renderer CONSTANT)
+    Q_PROPERTY(QString controllerOverlay MEMBER controllerOverlay CONSTANT)
     Q_PROPERTY(std::vector<int> forSlots MEMBER forSlots CONSTANT)
 
 public:
     int id;
-    QString name, image, description, renderer;
+    QString name, image, description, renderer, controllerOverlay;
     std::vector<int> forSlots;
 };
 

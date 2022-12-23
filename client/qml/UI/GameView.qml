@@ -28,6 +28,17 @@ Page {
         anchors.fill: parent
     }
 
+    Repeater {
+        model: controlledObject ? controlledObject.modules : []
+        Loader {
+            property TankModuleState module: modelData
+            property var data: modelData.type == -1 ? null : context.tankModuleData(modelData.type)
+            property BaseObjectState object: controlledObject
+            anchors.centerIn: parent
+            source: (modelData.type == -1 || data.controllerOverlay == "") ? "" : "qrc:/qml/Sprite/TankModules/" + data.controllerOverlay
+        }
+    }
+
     header: ToolBar {
         RowLayout {
             spacing: 8
@@ -88,7 +99,7 @@ Page {
             }
 
             Repeater {
-                model: controlledObject ? controlledObject.modules : [];
+                model: controlledObject ? controlledObject.modules : []
                 Item {
                     id: moduleImg
                     width: 52
