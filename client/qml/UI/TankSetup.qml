@@ -53,7 +53,7 @@ Dialog {
                 model: [null, ...context.tankModuleDatasForSlot(dialog.selectedSlot)]
                 clip: true
                 spacing: 2
-                Layout.minimumHeight: 76 * 3
+                Layout.minimumHeight: 76 * 4
                 Layout.minimumWidth: 300
                 Layout.fillWidth: true
                 currentIndex: Math.max(model.findIndex(i => i && i.id == dialog.itemsForSlots[dialog.selectedSlot]), 0)

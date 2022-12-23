@@ -192,7 +192,7 @@ void TankState::stun(int amount) {
 
 
 void TankState::addShield(float amount) {
-    _shield = std::max(0.0f, _shield + amount);
+    _shield = std::max(0.0f, std::min(_shield + amount, maxShield()));
 }
 
 Message TankState::message() const {
