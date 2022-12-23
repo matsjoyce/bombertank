@@ -81,6 +81,7 @@
         <file>data/sounds/missile.wav</file>
         <file>data/sounds/start.wav</file>
         <file>data/sounds/buzz.wav</file>
+        <file>data/sounds/stun-wave.wav</file>
         <file>data/fonts/Orbitron-Black.ttf</file>
         <file>data/fonts/Orbitron-Bold.ttf</file>
         <file>data/fonts/Orbitron-ExtraBold.ttf</file>

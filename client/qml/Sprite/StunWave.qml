@@ -3,14 +3,14 @@ import QtMultimedia
 
 BaseSprite {
     id: base
-    removable: /*!sound.playing && */!anim.running
+    removable: !sound.playing && !anim.running
 
-    // SoundEffect {
-    //     id: sound
-    //     source: "qrc:/data/sounds/bomb-2.wav"
-    // }
+    SoundEffect {
+        id: sound
+        source: "qrc:/data/sounds/stun-wave.wav"
+    }
     Component.onCompleted: {
-        // sound.play();
+        sound.play();
         anim.start();
     }
 
