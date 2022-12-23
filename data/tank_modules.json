@@ -3,31 +3,36 @@
         "id": 0,
         "name": "Autocannon",
         "image": "images/shell_icon.png",
-        "for_slots": [0]
+        "for_slots": [0],
+        "description": "A powerful main gun for shooting holes in most things."
     },
     {
         "id": 1,
         "name": "Missiles",
         "image": "images/rocket_icon.png",
-        "for_slots": [0]
+        "for_slots": [0],
+        "description": "Rocket launcher firing unguided explosive rockets."
     },
     {
         "id": 2,
         "name": "Machine gun",
         "image": "images/mg_icon.png",
-        "for_slots": [1]
+        "for_slots": [1],
+        "description": "High rate of fire with decent damage. Useful for destroying charges and incoming missiles."
     },
     {
         "id": 3,
         "name": "Health module",
         "image": "images/health_box.png",
-        "for_slots": [3, 4]
+        "for_slots": [3, 4],
+        "description": "+100% more health."
     },
     {
         "id": 4,
         "name": "Speed module",
         "image": "images/speed_box.png",
-        "for_slots": [3, 4]
+        "for_slots": [3, 4],
+        "description": "+33% more speed."
     },
     {
         "id": 5,
@@ -39,42 +44,49 @@
         "id": 6,
         "name": "Laser",
         "image": "images/laser_icon.png",
-        "for_slots": [1]
+        "for_slots": [1],
+        "description": "Precise and glowing. Useful for destroying charges and aiming more powerful weapons."
     },
     {
         "id": 7,
         "name": "Crates",
         "image": "images/pwall.png",
-        "for_slots": [2]
+        "for_slots": [2],
+        "description": "Drops movable crates. Useful for blocking off areas and annoying other players."
     },
     {
         "id": 8,
         "name": "Charges",
         "image": "images/charge.png",
-        "for_slots": [2]
+        "for_slots": [2],
+        "description": "Drops exploding crates. Useful for demolition."
     },
     {
         "id": 9,
         "name": "Homing missiles",
         "image": "images/homing_rocket_icon.png",
-        "for_slots": [0]
+        "for_slots": [0],
+        "description": "Rocket launcher firing guided explosive rockets which home in on threats."
     },
     {
         "id": 10,
         "name": "Stun projector",
         "image": "images/stun_icon.png",
-        "for_slots": [0]
+        "for_slots": [0],
+        "description": "Stun nearby enemies (and friends!)."
     },
     {
         "id": 11,
         "name": "Invisibility panels",
         "image": "images/invisibility_icon.png",
-        "for_slots": [1]
+        "for_slots": [1],
+        "description": "Become invisible for 5 seconds."
     },
     {
         "id": 12,
         "name": "Timed charges",
         "image": "images/bomb_icon.png",
-        "for_slots": [2]
+        "for_slots": [2],
+        "description": "Drops exploding crates which explode after 2 seconds. Useful for mine clearance."
     }
 ]

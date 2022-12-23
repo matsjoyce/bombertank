@@ -47,52 +47,68 @@ Dialog {
             text: "Selected slot %1".arg(dialog.selectedSlot + 1)
         }
 
-        ListView {
-            id: moduleList
-            model: [null, ...context.tankModuleDatasForSlot(dialog.selectedSlot)]
-            clip: true
-            spacing: 2
-            Layout.minimumHeight: 76 * 3
-            Layout.fillWidth: true
-            currentIndex: Math.max(model.findIndex(i => i && i.id == dialog.itemsForSlots[dialog.selectedSlot]), 0)
-            ScrollBar.vertical: ScrollBar {
-                policy: ScrollBar.AlwaysOn
-            }
+        RowLayout {
+            ListView {
+                id: moduleList
+                model: [null, ...context.tankModuleDatasForSlot(dialog.selectedSlot)]
+                clip: true
+                spacing: 2
+                Layout.minimumHeight: 76 * 3
+                Layout.minimumWidth: 300
+                Layout.fillWidth: true
+                currentIndex: Math.max(model.findIndex(i => i && i.id == dialog.itemsForSlots[dialog.selectedSlot]), 0)
+                ScrollBar.vertical: ScrollBar {
+                    policy: ScrollBar.AlwaysOn
+                }
 
-            delegate: ItemDelegate {
-                id: delegate
-                contentItem: Row {
-                    padding: 2
-                    spacing: 10
-                    anchors.fill: parent
-                    Rectangle {
-                        width: 72
-                        height: 72
-                        color: "white"
+                delegate: ItemDelegate {
+                    id: delegate
+                    contentItem: Row {
+                        padding: 2
+                        spacing: 10
+                        anchors.fill: parent
+                        Rectangle {
+                            width: 72
+                            height: 72
+                            color: "white"
 
-                        Image {
-                            source: modelData == null ? "" : "qrc:/data/" + modelData.image
-                            smooth: false
-                            anchors.fill: parent
+                            Image {
+                                source: modelData == null ? "" : "qrc:/data/" + modelData.image
+                                smooth: false
+                                anchors.fill: parent
+                            }
+                        }
+                        Label {
+                            text: modelData == null ? "Nothing" : modelData.name
+                            color: delegate.highlighted ? palette.highlightedText : palette.text
+                            height: delegate.height
+                            verticalAlignment: Qt.AlignVCenter
                         }
                     }
-                    Label {
-                        text: modelData == null ? "Nothing" : modelData.name
-                        color: delegate.highlighted ? palette.highlightedText : palette.text
-                        height: delegate.height
-                        verticalAlignment: Qt.AlignVCenter
+                    width: moduleList.width
+                    height: 76
+                    highlighted: ListView.isCurrentItem
+
+                    onClicked: {
+                        dialog.itemsForSlots = [
+                            ...dialog.itemsForSlots.slice(0, dialog.selectedSlot),
+                            modelData == null ? -1 : modelData.id,
+                            ...dialog.itemsForSlots.slice(dialog.selectedSlot + 1)
+                        ]
                     }
                 }
-                width: moduleList.width
-                height: 76
-                highlighted: ListView.isCurrentItem
-
-                onClicked: {
-                    dialog.itemsForSlots = [
-                        ...dialog.itemsForSlots.slice(0, dialog.selectedSlot),
-                        modelData == null ? -1 : modelData.id,
-                        ...dialog.itemsForSlots.slice(dialog.selectedSlot + 1)
-                    ]
+            }
+            ColumnLayout {
+                Layout.preferredWidth: 300
+                Label {
+                    font.bold: true
+                    text: dialog.itemsForSlots[dialog.selectedSlot] == -1 ? "" : context.tankModuleData(dialog.itemsForSlots[dialog.selectedSlot]).name
+                }
+                Label {
+                    wrapMode: Text.WordWrap
+                    text: dialog.itemsForSlots[dialog.selectedSlot] == -1 ? "" : context.tankModuleData(dialog.itemsForSlots[dialog.selectedSlot]).description
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
                 }
             }
         }
