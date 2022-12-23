@@ -39,7 +39,8 @@ class ListedGameModel : public QAbstractListModel {
 class GameServer : public QObject {
     Q_OBJECT
     Q_PROPERTY(ListedGameModel* listedGamesModel READ listedGamesModel CONSTANT)
-    Q_PROPERTY(int connectedCount READ connectedCount BINDABLE connectedCountBindable)
+    Q_PROPERTY(int connectedCount READ connectedCount BINDABLE bindableConnectedCount)
+    Q_PROPERTY(QString serverVersion READ serverVersion BINDABLE bindableServerVersion)
     QML_ELEMENT
     QML_UNCREATABLE("Uncreatable!")
 
@@ -48,6 +49,7 @@ class GameServer : public QObject {
     GameState* _gameState = nullptr;
 
     Q_OBJECT_BINDABLE_PROPERTY(GameServer, int, _connectedCountProp)
+    Q_OBJECT_BINDABLE_PROPERTY(GameServer, QString, _serverVersionProp)
 
     void _handleMessage(int id, const Message& msg);
 
@@ -56,7 +58,9 @@ class GameServer : public QObject {
     ListedGameModel* listedGamesModel() const { return _listedGamesModel; }
 
     int connectedCount() const { return _connectedCountProp.value(); }
-    QBindable<int> connectedCountBindable() { return &_connectedCountProp; }
+    QBindable<int> bindableConnectedCount() { return &_connectedCountProp; }
+    QString serverVersion() const { return _serverVersionProp.value(); }
+    QBindable<QString> bindableServerVersion() { return &_serverVersionProp; }
 
     Q_INVOKABLE GameState* joinGame(int id, std::vector<int> modulesForSlots);
     Q_INVOKABLE void createGame(QUrl mapFilePath, QString title);

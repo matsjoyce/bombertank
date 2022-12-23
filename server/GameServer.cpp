@@ -6,6 +6,7 @@
 #include "Game.hpp"
 #include "GameMode.hpp"
 #include "common/MsgpackUtils.hpp"
+#include "common/VCS.hpp"
 
 GameHandler::GameHandler(GameServer* gs,
                          std::vector<std::map<msgpack::type::variant, msgpack::type::variant>> startingObjects,
@@ -79,7 +80,7 @@ void GameServer::removeGame(int gameId) {
 
 void GameServer::_sendStats() {
     for (auto& conn : _connections) {
-        conn.second.connection->sendMessage({{"cmd", "server_stats"}, {"connected", _connections.size()}});
+        conn.second.connection->sendMessage({{"cmd", "server_stats"}, {"connected", _connections.size()}, {"version", GIT_NAME}});
     }
 }
 

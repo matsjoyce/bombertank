@@ -73,11 +73,15 @@ Page {
         }
 
     footer: ToolBar {
-        Label {
-            Layout.row: 2
-            Layout.columnSpan: 3
-            padding: 2
-            text: "Connected players: %1".arg(page.server.connectedCount)
+        RowLayout {
+            anchors.fill: parent
+            Label {
+                text: "Connected players: %1".arg(page.server.connectedCount)
+                Layout.fillWidth: true
+            }
+            Label {
+                text: "Server version: %1".arg(page.server.serverVersion)
+            }
         }
     }
 

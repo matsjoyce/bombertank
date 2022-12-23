@@ -31,6 +31,7 @@ void GameServer::_handleMessage(int id, const Message& msg) {
     }
     else if (msg.at("cmd").as_string() == "server_stats") {
         _connectedCountProp.setValue(msg.at("connected").as_uint64_t());
+        _serverVersionProp.setValue(QString::fromStdString(msg.at("version").as_string()));
     }
     else if (_gameState) {
         _gameState->handleMessage(id, msg);
