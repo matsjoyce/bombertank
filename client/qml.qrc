@@ -40,6 +40,7 @@
         <file>qml/Sprite/Laser.qml</file>
         <file>qml/Sprite/StunnedAnimation.qml</file>
         <file>qml/Sprite/StunWave.qml</file>
+        <file>qml/Sprite/TimedBomb.qml</file>
         <file>qml/Sprite/TankModules/TankModule.qml</file>
         <file>data/images/tank_base.png</file>
         <file>data/images/tank_color.png</file>
@@ -73,6 +74,8 @@
         <file>data/images/life_used.png</file>
         <file>data/images/stun_icon.png</file>
         <file>data/images/invisibility_icon.png</file>
+        <file>data/images/bomb.png</file>
+        <file>data/images/bomb_icon.png</file>
         <file>data/icons/rotate.svg</file>
         <file>data/icons/forward.svg</file>
         <file>data/sounds/laser-small.wav</file>

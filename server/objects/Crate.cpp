@@ -39,3 +39,15 @@ float BombState::maxHealth() const {
     return 10;
 }
 
+void TimedBombState::prePhysics(Game* game) {
+    BombState::prePhysics(game);
+    if (stunned()) {
+        return;
+    }
+    if (_timer) {
+        --_timer;
+    }
+    else {
+        die();
+    }
+}

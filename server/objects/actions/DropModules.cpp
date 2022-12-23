@@ -23,3 +23,12 @@ void BombModule::act(Game* game, TankState* tank) {
     TankModule::act(game, tank);
     game->addObject(constants::ObjectType::BOMB, tank->body()->GetPosition() - tank->body()->GetWorldVector({3, 0}), 0, {0, 0});
 }
+
+float TimedBombModule::maxReload() {
+    return 40;
+}
+
+void TimedBombModule::act(Game* game, TankState* tank) {
+    TankModule::act(game, tank);
+    game->addObject(constants::ObjectType::TIMED_BOMB, tank->body()->GetPosition() - tank->body()->GetWorldVector({3, 0}), 0, {0, 0});
+}

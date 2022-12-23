@@ -70,5 +70,11 @@
         "name": "Invisibility panels",
         "image": "images/invisibility_icon.png",
         "for_slots": [1]
+    },
+    {
+        "id": 12,
+        "name": "Timed charges",
+        "image": "images/bomb_icon.png",
+        "for_slots": [2]
     }
 ]

@@ -10,10 +10,16 @@ public:
     void act(Game* game, TankState* tank) override;
 };
 
-
 class BombModule : public TankModule {
 public:
     int type() override { return 8; }
+    float maxReload() override;
+    void act(Game* game, TankState* tank) override;
+};
+
+class TimedBombModule : public TankModule {
+public:
+    int type() override { return 12; }
     float maxReload() override;
     void act(Game* game, TankState* tank) override;
 };

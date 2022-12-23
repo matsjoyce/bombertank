@@ -41,6 +41,9 @@ std::unique_ptr<BaseObjectState> createObjectFromType(constants::ObjectType type
         case constants::ObjectType::BOMB: {
             return std::make_unique<BombState>();
         }
+        case constants::ObjectType::TIMED_BOMB: {
+            return std::make_unique<TimedBombState>();
+        }
         case constants::ObjectType::LASER_TURRET: {
             return std::make_unique<LaserTurretState>();
         }

@@ -22,4 +22,12 @@ public:
     Hostility hostility() const override { return Hostility::VAGELY_HOSTILE; }
 };
 
+class TimedBombState : public BombState {
+    int _timer = 40;
+public:
+    using BombState::BombState;
+    constants::ObjectType type() const override { return constants::ObjectType::TIMED_BOMB; }
+    void prePhysics(Game* game) override;
+};
+
 #endif  // OBJECTS_CRATE_HPP
