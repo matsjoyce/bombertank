@@ -93,10 +93,13 @@ std::set<BaseObjectState*> raycastAllObjects(Game* game, b2Vec2 start, b2Vec2 en
 class FirstObjectRaycastCallback : public b2RayCastCallback {
     BaseObjectState* _obj = nullptr;
     float _dist = INFINITY;
+    std::function<bool(BaseObjectState*)> _pred;
 public:
+    FirstObjectRaycastCallback(std::function<bool(BaseObjectState*)> pred) : _pred(pred) {}
     float ReportFixture(b2Fixture * fixture, const b2Vec2 & point, const b2Vec2 & normal, float fraction) override {
-        if (fraction < _dist) {
-            _obj = reinterpret_cast<BaseObjectState*>(fixture->GetBody()->GetUserData().pointer);
+        auto obj = reinterpret_cast<BaseObjectState*>(fixture->GetBody()->GetUserData().pointer);
+        if (fraction < _dist && _pred(obj)) {
+            _obj = obj;
             _dist = fraction;
         }
         return _dist;
@@ -105,11 +108,24 @@ public:
     float fraction() const {return _dist;}
 };
 
-std::optional<std::tuple<BaseObjectState*, float>> raycastNearestObject(Game* game, b2Vec2 start, b2Vec2 end) {
-    FirstObjectRaycastCallback callback;
+std::optional<std::tuple<BaseObjectState*, float>> raycastNearestObject(Game* game, b2Vec2 start, b2Vec2 end, std::function<bool(BaseObjectState*)> pred) {
+    FirstObjectRaycastCallback callback(pred);
     game->world()->RayCast(&callback, start, end);
     if (callback.obj() != nullptr) {
         return {{callback.obj(), callback.fraction()}};
     }
     return {};
+}
+
+bool hasCollisionCategory(BaseObjectState* obj, int category) {
+    return hasCollisionCategory(obj->body(), category);
+}
+
+bool hasCollisionCategory(b2Body* obj, int category) {
+    for (b2Fixture* f = obj->GetFixtureList(); f; f = f->GetNext()) {
+        if (f->GetFilterData().maskBits & category) {
+            return true;
+        }
+    }
+    return false;
 }

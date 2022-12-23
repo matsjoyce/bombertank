@@ -7,7 +7,8 @@ class ShellState : public BaseObjectState {
     int _selfDestruct = 20;
 
 protected:
-    float _bodyRadius() { return 0.25; }
+    virtual float _bodyRadius() { return 0.25; }
+    virtual int _category() { return SHELL_CATEGORY; }
 
    public:
     using BaseObjectState::BaseObjectState;
@@ -21,7 +22,7 @@ protected:
 
 class MGShellState : public ShellState {
 protected:
-    float _bodyRadius() { return 0.125; }
+    float _bodyRadius() override { return 0.125; }
 public:
     using ShellState::ShellState;
     constants::ObjectType type() const override { return constants::ObjectType::MG_SHELL; }
@@ -30,7 +31,8 @@ public:
 
 class RocketState : public ShellState {
 protected:
-    float _bodyRadius() { return 0.5; }
+    float _bodyRadius() override { return 0.5; }
+    int _category() override { return ROCKET_CATEGORY; }
 public:
     using ShellState::ShellState;
     constants::ObjectType type() const override { return constants::ObjectType::ROCKET; }

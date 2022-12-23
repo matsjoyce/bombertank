@@ -95,5 +95,12 @@
         "image": "images/mg_turret_icon.png",
         "for_slots": [1],
         "description": "Create turrets that shoot at nearby enemies."
+    },
+    {
+        "id": 14,
+        "name": "Mines",
+        "image": "images/mine_icon.png",
+        "for_slots": [2],
+        "description": "Drop invisible mines for area denial. Mines become active after 2 seconds, so move before then!"
     }
 ]

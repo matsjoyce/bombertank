@@ -51,3 +51,35 @@ void TimedBombState::prePhysics(Game* game) {
         die();
     }
 }
+
+void MineState::createBodies(b2World& world, b2BodyDef& bodyDef) {
+    bodyDef.type = b2_dynamicBody;
+
+    BaseObjectState::createBodies(world, bodyDef);
+
+    b2CircleShape circ;
+    circ.m_radius = 1;
+    b2FixtureDef fixtureDef;
+    fixtureDef.shape = &circ;
+    fixtureDef.density = 100.0;
+    fixtureDef.filter.maskBits = 0xFF & ~SHELL_CATEGORY & ~ROCKET_CATEGORY;
+
+    body()->CreateFixture(&fixtureDef);
+}
+
+void MineState::prePhysics(Game* game) {
+    BombState::prePhysics(game);
+    invisiblize(1);
+    if (stunned()) {
+        return;
+    }
+    if (_timer) {
+        --_timer;
+    }
+}
+
+void MineState::collision(BaseObjectState* other, float impulse) {
+    if (!_timer) {
+        die();
+    }
+}

@@ -44,3 +44,12 @@ void MGTurretModule::act(Game* game, TankState* tank) {
         obj->second->setSide(tank->side());
     }
 }
+
+float MineModule::maxReload() {
+    return 60;
+}
+
+void MineModule::act(Game* game, TankState* tank) {
+    TankModule::act(game, tank);
+    game->addObject(constants::ObjectType::MINE, tank->body()->GetPosition() - tank->body()->GetWorldVector({3, 0}), 0, {0, 0});
+}

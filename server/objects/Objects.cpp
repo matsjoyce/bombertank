@@ -59,6 +59,9 @@ std::unique_ptr<BaseObjectState> createObjectFromType(constants::ObjectType type
         case constants::ObjectType::STUN_WAVE: {
             return std::make_unique<StunWaveState>();
         }
+        case constants::ObjectType::MINE: {
+            return std::make_unique<MineState>();
+        }
     }
     return {};
 }

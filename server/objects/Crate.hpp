@@ -30,4 +30,14 @@ public:
     void prePhysics(Game* game) override;
 };
 
+class MineState : public BombState {
+    int _timer = 40;
+public:
+    using BombState::BombState;
+    constants::ObjectType type() const override { return constants::ObjectType::MINE; }
+    void createBodies(b2World& world, b2BodyDef& bodyDef) override;
+    void prePhysics(Game* game) override;
+    void collision(BaseObjectState* other, float impulse) override;
+};
+
 #endif  // OBJECTS_CRATE_HPP

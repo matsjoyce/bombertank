@@ -4,7 +4,6 @@
 #include "Queries.hpp"
 
 const float IMPULSE_TO_DAMAGE = 300.0f;
-const int SHELL_CATEGORY = 0x2;
 const int SHELL_COLLISION_MASK = 0xffff & ~SHELL_CATEGORY;
 
 float ShellState::maxHealth() const { return 2; }
@@ -20,7 +19,7 @@ void ShellState::createBodies(b2World& world, b2BodyDef& bodyDef) {
     b2FixtureDef fixtureDef;
     fixtureDef.shape = &circ;
     fixtureDef.density = 100.0;
-    fixtureDef.filter.categoryBits = SHELL_CATEGORY;
+    fixtureDef.filter.categoryBits = _category();
     fixtureDef.filter.maskBits = SHELL_COLLISION_MASK;
 
     body()->CreateFixture(&fixtureDef);
@@ -114,7 +113,7 @@ void LaserState::prePhysics(Game* game) {
         auto center = body()->GetPosition();
         b2Vec2 rayDir(std::cos(body()->GetAngle()), std::sin(body()->GetAngle()));
         b2Vec2 rayEnd = center + _length * rayDir;
-        auto hit = raycastNearestObject(game, center, rayEnd);
+        auto hit = raycastNearestObject(game, center, rayEnd, [](auto obj){ return hasCollisionCategory(obj, SHELL_CATEGORY); });
         if (hit) {
             auto [obj, fraction] = *hit;
             obj->damage(1, DamageType::THERMAL);

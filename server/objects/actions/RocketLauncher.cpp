@@ -15,7 +15,7 @@ void RocketLauncher::act(Game* game, TankState* tank) {
 
     const auto speed = std::max(20.0f, b2Dot(tank->body()->GetLinearVelocity(), forward));
     auto velocity = speed * forward;
-    auto obj = game->addObject(constants::ObjectType::ROCKET, tank->body()->GetPosition() + 3.5 * forward,
+    auto obj = game->addObject(constants::ObjectType::ROCKET, tank->body()->GetPosition() + 3.75 * forward,
                                     std::atan2(velocity.y, velocity.x), velocity);
     if (obj) {
         obj->second->setSide(tank->side());
@@ -30,7 +30,7 @@ void HomingRocketLauncher::act(Game* game, TankState* tank) {
 
     const auto speed = std::max(20.0f, b2Dot(tank->body()->GetLinearVelocity(), forward));
     auto velocity = speed * forward;
-    auto obj = game->addObject(constants::ObjectType::HOMING_ROCKET, tank->body()->GetPosition() + 3.5 * forward,
+    auto obj = game->addObject(constants::ObjectType::HOMING_ROCKET, tank->body()->GetPosition() + 3.75 * forward,
                                     std::atan2(velocity.y, velocity.x), velocity);
     if (obj) {
         obj->second->setSide(tank->side());

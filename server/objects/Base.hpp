@@ -10,6 +10,9 @@
 enum class DamageType { IMPACT, PIERCING, THERMAL };
 enum class Hostility { NON_HOSTILE, VAGELY_HOSTILE, HOSTILE };
 
+constexpr int SHELL_CATEGORY = 0x2;
+constexpr int ROCKET_CATEGORY = 0x4;
+
 class Game;
 
 class BaseObjectState {
