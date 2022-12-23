@@ -24,6 +24,13 @@ public:
     void act(Game* game, TankState* tank) override;
 };
 
+class MGTurretModule : public TankModule {
+public:
+    int type() override { return 13; }
+    float maxReload() override;
+    void act(Game* game, TankState* tank) override;
+};
+
 #endif // OBJECTS_ACTIONS_DROP_MODULES_HPP
 
 

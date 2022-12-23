@@ -88,5 +88,12 @@
         "image": "images/bomb_icon.png",
         "for_slots": [2],
         "description": "Drops exploding crates which explode after 2 seconds. Useful for mine clearance."
+    },
+    {
+        "id": 13,
+        "name": "Turret",
+        "image": "images/mg_turret_icon.png",
+        "for_slots": [1],
+        "description": "Create turrets that shoot at nearby enemies."
     }
 ]
