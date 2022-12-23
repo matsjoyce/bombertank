@@ -1,6 +1,7 @@
 #include "Base.hpp"
 
 #include <QDebug>
+#include <common/Constants.hpp>
 
 const float IMPULSE_TO_DAMAGE = 10000.0f;
 const float MIN_IMPULSE_DAMAGE = 1.0f;
@@ -8,6 +9,13 @@ const float MIN_IMPULSE_DAMAGE = 1.0f;
 BaseObjectState::BaseObjectState() {}
 
 Message BaseObjectState::message() const {
+    constants::StatusTypes status;
+    if (stunned()) {
+        status |= constants::STUNNED;
+    }
+    if (invisible()) {
+        status |= constants::INVISIBLE;
+    }
     return {
         {"type", static_cast<uint64_t>(type())},
         {"health", health() / maxHealth()},
@@ -17,6 +25,7 @@ Message BaseObjectState::message() const {
         {"rotation", _dead ? _deathAngle : body()->GetAngle()},
         {"vx", _dead ? 0 : body()->GetLinearVelocity().x},
         {"vy", _dead ? 0 : body()->GetLinearVelocity().y},
+        {"status", status.toInt()}
     };
 }
 
@@ -27,7 +36,14 @@ void BaseObjectState::createBodies(b2World& world, b2BodyDef& bodyDef) {
 
 BaseObjectState::~BaseObjectState() { _body->GetUserData().pointer = 0; }
 
-void BaseObjectState::prePhysics(Game* game) {}
+void BaseObjectState::prePhysics(Game* game) {
+    if (stunned()) {
+        --_stunnedFor;
+    }
+    if (invisible()) {
+        --_invisibleFor;
+    }
+}
 
 void BaseObjectState::postPhysics(Game* game) {}
 
@@ -45,6 +61,15 @@ void BaseObjectState::damage(float amount, DamageType type) {
         die();
     }
 }
+
+void BaseObjectState::stun(int amount) {
+    _stunnedFor += amount;
+}
+
+void BaseObjectState::invisiblize(int amount) {
+    _invisibleFor += amount;
+}
+
 
 void BaseObjectState::destroy(Game* game) {
     _body->GetWorld()->DestroyBody(_body);

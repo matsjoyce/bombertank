@@ -47,22 +47,24 @@ int main(int argc, char *argv[]) {
     QFontDatabase::addApplicationFont(":/data/fonts/Orbitron-Regular.ttf");
     QFontDatabase::addApplicationFont(":/data/fonts/Orbitron-SemiBold.ttf");
 
-    QQmlApplicationEngine engine;
-    engine.addImportPath("qrc:/qml/");
-
     AppContext appContext(args["--server-exe"].asString());
-    engine.rootContext()->setContextProperty("context", &appContext);
 
-    const QUrl url(QStringLiteral("qrc:/qml/main.qml"));
-    QObject::connect(
-        &engine, &QQmlApplicationEngine::objectCreated, &app,
-        [url](QObject *obj, const QUrl &objUrl) {
-            if (!obj && url == objUrl) {
-                QCoreApplication::exit(-1);
-            }
-        },
-        Qt::QueuedConnection);
+    {
+        QQmlApplicationEngine engine;
+        engine.addImportPath("qrc:/qml/");
+        engine.rootContext()->setContextProperty("context", &appContext);
 
-    engine.load(url);
-    return app.exec();
+        const QUrl url(QStringLiteral("qrc:/qml/main.qml"));
+        QObject::connect(
+            &engine, &QQmlApplicationEngine::objectCreated, &app,
+            [url](QObject *obj, const QUrl &objUrl) {
+                if (!obj && url == objUrl) {
+                    QCoreApplication::exit(-1);
+                }
+            },
+            Qt::QueuedConnection);
+
+        engine.load(url);
+        return app.exec();
+    }
 }

@@ -19,6 +19,7 @@ class BaseObjectState {
     int _side = 0;
     b2Vec2 _deathPosition;
     float _deathAngle;
+    int _stunnedFor = 0, _invisibleFor = 0;
 
    public:
     BaseObjectState();
@@ -28,6 +29,8 @@ class BaseObjectState {
     b2Body* body() const { return _body; }
     float health() const { return maxHealth() - _damageTaken; }
     bool dead() const { return _dead; }
+    bool stunned() const { return _stunnedFor != 0; }
+    bool invisible() const { return _invisibleFor != 0; }
     int side() const { return _side; }
     void setSide(int side) { _side = side; }
     virtual Message message() const;
@@ -37,6 +40,8 @@ class BaseObjectState {
     virtual void handleMessage(const Message& msg);
     virtual void collision(BaseObjectState* other, float impulse);
     virtual void damage(float amount, DamageType type);
+    virtual void stun(int amount);
+    virtual void invisiblize(int amount);
     virtual void destroy(Game* game);
     virtual std::pair<float, DamageType> impactDamage(float baseDamage);
     virtual Hostility hostility() const;

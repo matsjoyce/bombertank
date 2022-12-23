@@ -33,6 +33,14 @@ enum class ObjectType {
     HOMING_ROCKET = 22,
 };
 Q_ENUM_NS(ObjectType)
+
+enum StatusType {
+    STUNNED = 1,
+    INVISIBLE = 2,
+};
+Q_DECLARE_FLAGS(StatusTypes, StatusType)
+Q_DECLARE_OPERATORS_FOR_FLAGS(StatusTypes)
+Q_FLAG_NS(StatusTypes)
 }  // namespace constants
 
 #endif  // CONSTANTS_HPP

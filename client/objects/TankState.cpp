@@ -38,8 +38,14 @@ void TankModuleState::loadMessage(Message& msg) {
     _typeProp.setValue(type);
     if (type == -1) {
         _reloadProp.setValue(0);
+        _usesProp.setValue(0);
     }
     else {
         _reloadProp.setValue(msg.at("reload").as_double());
+        int beforeUses = _usesProp.value();
+        _usesProp.setValue(msg.at("uses").as_uint64_t());
+        if (beforeUses < _usesProp.value()) {
+            emit used();
+        }
     }
 }

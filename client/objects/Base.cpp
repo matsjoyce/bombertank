@@ -8,6 +8,7 @@ void BaseObjectState::loadMessage(Message& msg) {
     _healthProp.setValue(msg["health"].as_double());
     _sideProp.setValue(msg["side"].as_uint64_t());
     _speedProp.setValue(std::hypot(msg["vx"].as_double(), msg["vy"].as_double()));
+    _statusProp.setValue(msg["status"].as_uint64_t());
 }
 
 void BaseObjectState::setFromEditor(constants::ObjectType type, float x, float y) {

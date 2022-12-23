@@ -10,12 +10,15 @@ set(SOURCE
     objects/Walls.cpp
     objects/Projectiles.cpp
     objects/Turret.cpp
+    objects/Utils.cpp
+    objects/Queries.cpp
     objects/actions/TankModule.cpp
     objects/actions/MainGun.cpp
     objects/actions/MachineGun.cpp
     objects/actions/RocketLauncher.cpp
     objects/actions/StatBoostModules.cpp
     objects/actions/DropModules.cpp
+    objects/actions/StunModule.cpp
 )
 
 add_executable(bt_server ${SOURCE})

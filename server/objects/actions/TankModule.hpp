@@ -7,7 +7,8 @@ class Game;
 class TankState;
 
 class TankModule {
-    bool _active;
+    bool _active = false;
+    int _uses = 0;
 
 protected:
     int _reload = 0;
@@ -16,13 +17,14 @@ public:
     virtual ~TankModule() = default;
     virtual void prePhysics(Game* game, TankState* tank);
     virtual void postPhysics(Game* game, TankState* tank) {};
-    virtual void act(Game* game, TankState* tank) {};
+    virtual void act(Game* game, TankState* tank);
     virtual int type() = 0;
-    void setActive(bool active) { _active=active; }
+    void setActive(bool active) { _active = active; }
     bool active() const { return _active; }
     virtual float healthContribution() { return 0; }
     virtual float speedContribution() { return 0; }
     virtual float maxShieldContribution() { return 0; }
+    virtual float stunResistanceMultiplier() { return 1; }
     virtual Message message();
     virtual float maxReload();
 };

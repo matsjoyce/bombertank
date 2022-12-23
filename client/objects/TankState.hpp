@@ -7,6 +7,7 @@ class TankModuleState : public QObject {
     Q_OBJECT
     Q_PROPERTY(int type READ type BINDABLE bindableType)
     Q_PROPERTY(float reload READ reload BINDABLE bindableReload)
+    Q_PROPERTY(int uses READ uses BINDABLE bindableUses)
     QML_ELEMENT
 
    public:
@@ -17,10 +18,16 @@ class TankModuleState : public QObject {
     QBindable<int> bindableType() { return &_typeProp; }
     float reload() { return _reloadProp.value(); }
     QBindable<float> bindableReload() { return &_reloadProp; }
+    int uses() { return _usesProp.value(); }
+    QBindable<int> bindableUses() { return &_usesProp; }
+
+signals:
+    void used();
 
 private:
     Q_OBJECT_BINDABLE_PROPERTY(TankModuleState, int, _typeProp)
     Q_OBJECT_BINDABLE_PROPERTY(TankModuleState, float, _reloadProp)
+    Q_OBJECT_BINDABLE_PROPERTY(TankModuleState, int, _usesProp)
 };
 
 class TankState : public BaseObjectState {

@@ -1,5 +1,5 @@
 import QtQuick 2.15
-import Qt5Compat.GraphicalEffects
+import BT.Common
 
 BaseSprite {
     id: base
@@ -22,5 +22,9 @@ BaseSprite {
         height: 48
         smooth: false
         rotation: -(object.turretAngle || 0) / Math.PI * 180;
+    }
+
+    StunnedAnimation {
+        running: object.status & Constants.STUNNED
     }
 }

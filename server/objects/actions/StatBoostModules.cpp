@@ -20,6 +20,7 @@ void ShieldModule::prePhysics(Game* game, TankState* tank) {
 }
 
 void ShieldModule::act(Game* game, TankState* tank) {
+    TankModule::act(game, tank);
     tank->addShield(maxShieldContribution());
 }
 

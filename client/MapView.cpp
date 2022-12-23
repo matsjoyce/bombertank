@@ -175,8 +175,8 @@ void MapView::_doUpdate() {
             // Added
             auto iter = _spriteComponents.find(snapshot_iter->second->type());
             if (iter == _spriteComponents.end() || !iter->second->isReady()) {
-                qWarning() << "Could not create item for" << snapshot_iter->first << "since its type"
-                           << static_cast<int>(snapshot_iter->second->type()) << "is not loaded or does not exist";
+                // qWarning() << "Could not create item for" << snapshot_iter->first << "since its type"
+                //            << static_cast<int>(snapshot_iter->second->type()) << "is not loaded or does not exist";
             }
             else {
                 auto context = new QQmlContext(engine->rootContext(), this);

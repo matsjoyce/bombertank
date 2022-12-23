@@ -1,5 +1,7 @@
 import QtQuick 2.15
 import Qt5Compat.GraphicalEffects
+import BT
+import BT.Common
 
 BaseSprite {
     id: base
@@ -40,5 +42,19 @@ BaseSprite {
         height: 48
         smooth: false
         rotation: -(object.turretAngle - object.rotation || 0) / Math.PI * 180;
+    }
+
+    StunnedAnimation {
+        running: object.status & Constants.STUNNED
+    }
+
+    Repeater {
+        model: object ? object.modules : [];
+        Loader {
+            property TankModuleState module: modelData
+            property var data: modelData.type == -1 ? null : context.tankModuleData(modelData.type)
+            anchors.centerIn: base
+            source: (modelData.type == -1 || data.renderer == "") ? "" : "qrc:/qml/Sprite/TankModules/" + data.renderer
+        }
     }
 }

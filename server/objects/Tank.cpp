@@ -10,6 +10,7 @@
 #include "actions/RocketLauncher.hpp"
 #include "actions/StatBoostModules.hpp"
 #include "actions/DropModules.hpp"
+#include "actions/StunModule.hpp"
 
 TankState::TankState() {
 }
@@ -75,12 +76,13 @@ float speedDiff(b2Vec2 velocity, b2Vec2 forward, float power, float maxTrackSpee
 }
 
 void TankState::prePhysics(Game* game) {
+    BaseObjectState::prePhysics(game);
     auto maxTrackSpeed = maxSpeed();
 
     auto forward = body()->GetWorldVector({1, 0});
     auto sideways = b2Vec2{forward.y, -forward.x};
     auto velocity = body()->GetLinearVelocity();
-    // Instant cancellation is body()->GetMass() I=v/m
+
     // Friction
     body()->ApplyLinearImpulseToCenter(-b2Dot(velocity, forward) * 100 * forward, true);
 
@@ -91,6 +93,10 @@ void TankState::prePhysics(Game* game) {
     auto rightVelocity = body()->GetLinearVelocityFromLocalPoint({0, -3});
     body()->ApplyLinearImpulse(-b2Dot(frontVelocity, sideways) * 300 * sideways, body()->GetWorldPoint({-3, 0}), true);
     body()->ApplyLinearImpulse(-b2Dot(backVelocity, sideways) * 300 * sideways, body()->GetWorldPoint({3, 0}), true);
+
+    if (stunned()) {
+        return;
+    }
 
     // Movement
     body()->ApplyLinearImpulse(speedDiff(leftVelocity, forward, _leftTrack, maxTrackSpeed, maxTrackSpeed) * 300 * forward, body()->GetWorldPoint({0, 3}), true);
@@ -125,6 +131,7 @@ std::unique_ptr<TankModule> createModule(int type) {
         case 7: return std::make_unique<CrateModule>();
         case 8: return std::make_unique<BombModule>();
         case 9: return std::make_unique<HomingRocketLauncher>();
+        case 10: return std::make_unique<StunModule>();
     }
     return {};
 }
@@ -169,6 +176,17 @@ void TankState::damage(float amount, DamageType type) {
     }
     BaseObjectState::damage(amount, type);
 }
+
+void TankState::stun(int amount) {
+    float multiplier = 1.0;
+    for (auto& action : _actions) {
+        if (action) {
+            multiplier *= action->stunResistanceMultiplier();
+        }
+    }
+    BaseObjectState::stun(amount * multiplier);
+}
+
 
 void TankState::addShield(float amount) {
     _shield = std::max(0.0f, _shield + amount);

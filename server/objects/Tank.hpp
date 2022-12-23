@@ -22,6 +22,7 @@ class TankState : public BaseObjectState {
     void postPhysics(Game* game) override;
     void handleMessage(const Message& msg) override;
     void damage(float amount, DamageType type) override;
+    void stun(int amount) override;
     void addShield(float amount);
     Message message() const override;
     Hostility hostility() const override { return Hostility::HOSTILE; }

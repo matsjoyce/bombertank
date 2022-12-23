@@ -22,6 +22,7 @@ target_link_libraries(
     Qt6::Widgets # For file dialog support
     Qt6::Qml
     bt_common
+    bt_commonplugin
     docopt
     box2d # For editor BVH
 )

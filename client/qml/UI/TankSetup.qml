@@ -25,7 +25,7 @@ Dialog {
                     border.color: dialog.selectedSlot == index ? palette.highlight : palette.base
 
                     Image {
-                        source: print(context.tankModuleData(itemsForSlots[index]), itemsForSlots[index]) || itemsForSlots[index] == -1 ? "" : ("qrc:/data/" + context.tankModuleData(itemsForSlots[index]).image)
+                        source: itemsForSlots[index] == -1 ? "" : ("qrc:/data/" + context.tankModuleData(itemsForSlots[index]).image)
                         x: 2
                         y: 2
                         width: 72

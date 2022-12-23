@@ -8,6 +8,7 @@
 #include "common/Constants.hpp"
 
 void RocketLauncher::act(Game* game, TankState* tank) {
+    TankModule::act(game, tank);
     // Shoot
     qDebug() << "Create shell";
     auto forward = tank->turretVector();
@@ -22,6 +23,7 @@ void RocketLauncher::act(Game* game, TankState* tank) {
 }
 
 void HomingRocketLauncher::act(Game* game, TankState* tank) {
+    TankModule::act(game, tank);
     // Shoot
     qDebug() << "Create shell";
     auto forward = tank->turretVector();

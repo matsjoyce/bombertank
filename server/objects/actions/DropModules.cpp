@@ -11,6 +11,7 @@ float CrateModule::maxReload() {
 }
 
 void CrateModule::act(Game* game, TankState* tank) {
+    TankModule::act(game, tank);
     game->addObject(constants::ObjectType::CRATE, tank->body()->GetPosition() - tank->body()->GetWorldVector({3, 0}), 0, {0, 0});
 }
 
@@ -19,5 +20,6 @@ float BombModule::maxReload() {
 }
 
 void BombModule::act(Game* game, TankState* tank) {
+    TankModule::act(game, tank);
     game->addObject(constants::ObjectType::BOMB, tank->body()->GetPosition() - tank->body()->GetWorldVector({3, 0}), 0, {0, 0});
 }

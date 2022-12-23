@@ -6,6 +6,8 @@
 #include "../Game.hpp"
 #include "common/Constants.hpp"
 #include "Projectiles.hpp"
+#include "Utils.hpp"
+#include "Queries.hpp"
 
 TurretState::TurretState() {
 }
@@ -28,37 +30,18 @@ void TurretState::createBodies(b2World& world, b2BodyDef& bodyDef) {
     _targetTurretAngle = body()->GetAngle();
 }
 
-class TargettingRaycastCallback : public b2QueryCallback {
-    std::set<BaseObjectState*> _objs;
-    float _maxDistSq;
-    b2Vec2 _center;
-public:
-    TargettingRaycastCallback(float maxDist, b2Vec2 center) : _maxDistSq(maxDist * maxDist), _center(center) {}
-    bool ReportFixture(b2Fixture * fixture) override {
-        auto body = fixture->GetBody();
-        if ((body->GetPosition() - _center).LengthSquared() <= _maxDistSq) {
-            _objs.insert(reinterpret_cast<BaseObjectState*>(body->GetUserData().pointer));
-        }
-        return true;
-    }
-    const std::set<BaseObjectState*>& objs() const {return _objs;}
-};
-
 void TurretState::prePhysics(Game* game) {
-    b2AABB aabb;
+    BaseObjectState::prePhysics(game);
+    if (stunned()) {
+        return;
+    }
     auto center = body()->GetPosition();
-    TargettingRaycastCallback queryCallback(_targettingRange, center);
-    aabb.lowerBound = center - b2Vec2{_targettingRange, _targettingRange};
-    aabb.upperBound = center + b2Vec2{_targettingRange, _targettingRange};
-    game->world()->QueryAABB(&queryCallback, aabb);
     bool hasTarget = false;
-    for (auto& obj : queryCallback.objs()) {
-        if (obj->side() != side()) {
-            auto targetVector = (obj->body()->GetPosition() - center);
-            _targetTurretAngle = std::atan2(targetVector.y, targetVector.x);
-            hasTarget = true;
-            break;
-        }
+    auto prioritisedTargets = getPrioritsedTargets(queryObjectsInCircle(game, center, _targettingRange), side(), center);
+    if (prioritisedTargets.size()) {
+        auto targetVector = (prioritisedTargets.front()->body()->GetPosition() - center);
+        _targetTurretAngle = std::atan2(targetVector.y, targetVector.x);
+        hasTarget = true;
     }
 
     float angleDiff = std::remainder(_targetTurretAngle - _turretAngle, 2.0f * M_PI);

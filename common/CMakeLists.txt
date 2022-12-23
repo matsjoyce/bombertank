@@ -11,4 +11,8 @@ configure_file("${CMAKE_CURRENT_SOURCE_DIR}/VCS.cpp.in" "${CMAKE_CURRENT_BINARY_
 list(APPEND SOURCE "${CMAKE_CURRENT_BINARY_DIR}/VCS.cpp")
 
 add_library(bt_common STATIC ${SOURCE})
+qt_add_qml_module(bt_common
+    URI BT.Common
+    VERSION 1.0
+)
 target_link_libraries(bt_common PRIVATE Qt6::Core Qt6::Network Qt6::Qml)

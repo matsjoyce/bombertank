@@ -9,6 +9,7 @@
 #include "common/Constants.hpp"
 
 void MachineGun::act(Game* game, TankState* tank) {
+    TankModule::act(game, tank);
     // Shoot
     qDebug() << "Create shell";
     auto forward = tank->turretVector();

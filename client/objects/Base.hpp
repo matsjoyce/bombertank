@@ -17,6 +17,7 @@ class BaseObjectState : public QObject {
     Q_PROPERTY(int side READ side BINDABLE bindableSide)
     Q_PROPERTY(float speed READ speed BINDABLE bindableSpeed)
     Q_PROPERTY(bool destroyed READ destroyed BINDABLE bindableDestroyed)
+    Q_PROPERTY(int status READ status BINDABLE bindableStatus)
     QML_ELEMENT
 
     constants::ObjectType _type;
@@ -42,6 +43,8 @@ class BaseObjectState : public QObject {
     bool destroyed() const { return _destroyedProp.value(); }
     void setDestroyed(bool value) { _destroyedProp.setValue(value); }
     QBindable<bool> bindableDestroyed() { return &_destroyedProp; }
+    int status() const { return _statusProp.value(); }
+    QBindable<int> bindableStatus() { return &_statusProp; }
 
 private:
     Q_OBJECT_BINDABLE_PROPERTY(BaseObjectState, float, _xProp)
@@ -51,6 +54,7 @@ private:
     Q_OBJECT_BINDABLE_PROPERTY(BaseObjectState, int, _sideProp)
     Q_OBJECT_BINDABLE_PROPERTY(BaseObjectState, float, _speedProp)
     Q_OBJECT_BINDABLE_PROPERTY(BaseObjectState, bool, _destroyedProp)
+    Q_OBJECT_BINDABLE_PROPERTY(BaseObjectState, int, _statusProp)
 };
 
 #endif  // OBJECTS_BASE_HPP
