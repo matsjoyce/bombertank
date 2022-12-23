@@ -99,6 +99,14 @@ void ExplosionState::prePhysics(Game* game) {
     die();
 }
 
+void StunWaveState::prePhysics(Game* game) {
+    BaseObjectState::prePhysics(game);
+    for (auto obj : queryObjectsInCircle(game, body()->GetPosition(), 30)) {
+        obj->stun(75);
+    }
+    die();
+}
+
 void LaserState::prePhysics(Game* game) {
     BaseObjectState::prePhysics(game);
     _length = _maxLength;

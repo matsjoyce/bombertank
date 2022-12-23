@@ -31,6 +31,7 @@ enum class ObjectType {
     LASER_TURRET = 20,
     LASER = 21,
     HOMING_ROCKET = 22,
+    STUN_WAVE = 23,
 };
 Q_ENUM_NS(ObjectType)
 

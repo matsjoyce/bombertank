@@ -53,6 +53,9 @@ std::unique_ptr<BaseObjectState> createObjectFromType(constants::ObjectType type
         case constants::ObjectType::HOMING_ROCKET: {
             return std::make_unique<HomingRocketState>();
         }
+        case constants::ObjectType::STUN_WAVE: {
+            return std::make_unique<StunWaveState>();
+        }
     }
     return {};
 }

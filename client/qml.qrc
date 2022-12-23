@@ -39,8 +39,8 @@
         <file>qml/Sprite/MGTurret.qml</file>
         <file>qml/Sprite/Laser.qml</file>
         <file>qml/Sprite/StunnedAnimation.qml</file>
+        <file>qml/Sprite/StunWave.qml</file>
         <file>qml/Sprite/TankModules/TankModule.qml</file>
-        <file>qml/Sprite/TankModules/StunModule.qml</file>
         <file>data/images/tank_base.png</file>
         <file>data/images/tank_color.png</file>
         <file>data/images/tank_turret.png</file>

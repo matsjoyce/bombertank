@@ -1,13 +1,19 @@
-import QtQuick
+import QtQuick 2.15
+import QtMultimedia
 
-TankModule {
-    Connections {
-        target: module
+BaseSprite {
+    id: base
+    removable: /*!sound.playing && */!anim.running
 
-        function onUsed() {
-            flashAnim.restart();
-        }
+    // SoundEffect {
+    //     id: sound
+    //     source: "qrc:/data/sounds/bomb-2.wav"
+    // }
+    Component.onCompleted: {
+        // sound.play();
+        anim.start();
     }
+
     Rectangle {
         id: blueFlash
         anchors.centerIn: parent
@@ -15,10 +21,9 @@ TankModule {
         height: 8*30*2
         color: "#00fff8"
         radius: width/2
-        visible: flashAnim.running
 
         NumberAnimation {
-            id: flashAnim
+            id: anim
             target: blueFlash
             property: "opacity"
             from: 1

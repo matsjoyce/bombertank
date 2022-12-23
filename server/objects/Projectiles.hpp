@@ -54,6 +54,13 @@ public:
     void prePhysics(Game* game) override;
 };
 
+class StunWaveState : public BaseObjectState {
+public:
+    float maxHealth() const override { return 0; }
+    constants::ObjectType type() const override { return constants::ObjectType::STUN_WAVE; }
+    void prePhysics(Game* game) override;
+};
+
 class LaserState : public BaseObjectState {
     float _length = 0, _maxLength = 0;
 public:
