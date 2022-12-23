@@ -25,5 +25,12 @@ public:
     float maxShieldContribution() override;
 };
 
+class InvisibiltyModule : public TankModule {
+public:
+    int type() override { return 11; }
+    void act(Game* game, TankState* tank) override;
+    float maxReload() override;
+};
+
 #endif // OBJECTS_ACTIONS_STAT_BOOST_MODULES_HPP
 

@@ -63,7 +63,12 @@
         "id": 10,
         "name": "Stun projector",
         "image": "images/stun_icon.png",
-        "for_slots": [0],
-        "renderer": "StunModule.qml"
+        "for_slots": [0]
+    },
+    {
+        "id": 11,
+        "name": "Invisibility panels",
+        "image": "images/invisibility_icon.png",
+        "for_slots": [1]
     }
 ]

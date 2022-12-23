@@ -8,7 +8,7 @@ set(SOURCE
 
 git_describe(GIT_NAME "--always")
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/VCS.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/VCS.cpp" @ONLY)
-set_property(SOURCE "${CMAKE_CURRENT_BINARY_DIR}/VCS.cpp" PROPERTY SKIP_AUTOGEN ON)
+set_property(SOURCE "${CMAKE_CURRENT_BINARY_DIR}/bt_commonplugin_init.cpp" PROPERTY SKIP_AUTOGEN ON)
 list(APPEND SOURCE "${CMAKE_CURRENT_BINARY_DIR}/VCS.cpp")
 
 add_library(bt_common STATIC ${SOURCE})

@@ -132,6 +132,7 @@ std::unique_ptr<TankModule> createModule(int type) {
         case 8: return std::make_unique<BombModule>();
         case 9: return std::make_unique<HomingRocketLauncher>();
         case 10: return std::make_unique<StunModule>();
+        case 11: return std::make_unique<InvisibiltyModule>();
     }
     return {};
 }

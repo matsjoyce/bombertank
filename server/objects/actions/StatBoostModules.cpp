@@ -31,3 +31,11 @@ float ShieldModule::maxReload() {
 float ShieldModule::maxShieldContribution() {
     return 100;
 }
+
+void InvisibiltyModule::act(Game* game, TankState* tank) {
+    tank->invisiblize(100);
+}
+
+float InvisibiltyModule::maxReload() {
+    return 200;
+}
