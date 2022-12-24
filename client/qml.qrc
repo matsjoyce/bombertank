@@ -44,6 +44,7 @@
         <file>qml/Sprite/TankModules/TankModule.qml</file>
         <file>qml/Sprite/TankModules/MineDetector.qml</file>
         <file>data/images/tank_base.png</file>
+        <file>data/images/tank_track_marks.png</file>
         <file>data/images/tank_color.png</file>
         <file>data/images/tank_turret.png</file>
         <file>data/images/pwall.png</file>

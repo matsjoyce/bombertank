@@ -30,11 +30,25 @@ Dialog {
                 Layout.preferredHeight: 48
                 Layout.row: 2
                 Layout.column: 2
+                clip: true
 
                 Image {
+                    id: baseImage
                     source: "qrc:/data/images/tank_base.png"
                     anchors.fill: parent
                     smooth: false
+                }
+
+                Image {
+                    id: tracksImage
+                    property double yOffset: 0
+                    source: "qrc:/data/images/tank_track_marks.png"
+                    x: baseImage.x
+                    y: baseImage.y + yOffset * 2
+                    width: 48
+                    height: 48
+                    smooth: false
+                    NumberAnimation { target: tracksImage; property: "yOffset"; from: 4; to: 0; duration: 300; loops: Animation.Infinite; running: true }
                 }
 
                 Image {
@@ -54,10 +68,18 @@ Dialog {
                 }
 
                 Image {
+                    id: turretImage
                     source: "qrc:/data/images/tank_turret.png"
                     anchors.fill: parent
                     smooth: false
-                    rotation: 45;
+                    rotation: 60;
+                    SequentialAnimation {
+                        loops: Animation.Infinite; running: true
+                        NumberAnimation { target: turretImage; property: "rotation"; from: 60; to: -60; duration: 1000 }
+                        PauseAnimation { duration: 5000 }
+                        NumberAnimation { target: turretImage; property: "rotation"; from: -60; to: 60; duration: 1000 }
+                        PauseAnimation { duration: 5000 }
+                    }
                 }
             }
             Image {

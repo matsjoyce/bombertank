@@ -16,6 +16,15 @@ BaseSprite {
     }
 
     Image {
+        source: "qrc:/data/images/tank_track_marks.png"
+        x: -24
+        y: -24
+        width: 48
+        height: 48
+        smooth: false
+    }
+
+    Image {
         id: overlay
         source: "qrc:/data/images/tank_color.png"
         x: -24
