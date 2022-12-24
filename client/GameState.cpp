@@ -14,9 +14,12 @@ GameState::GameState(GameServer* server, int id) : BaseGameState(server), _serve
 const std::map<int, std::shared_ptr<BaseObjectState>>& GameState::snapshot() const { return _objectStates; }
 
 void GameState::cleanup() {
-    for (auto iter = _objectStates.begin(); iter != _objectStates.end(); ++iter) {
+    for (auto iter = _objectStates.begin(); iter != _objectStates.end();) {
         if (iter->second->destroyed()) {
             iter = _objectStates.erase(iter);
+        }
+        else {
+            ++iter;
         }
     }
 }
