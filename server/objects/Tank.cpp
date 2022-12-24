@@ -84,16 +84,18 @@ void TankState::prePhysics(Game* game) {
     auto sideways = b2Vec2{forward.y, -forward.x};
     auto velocity = body()->GetLinearVelocity();
 
-    // Friction
-    body()->ApplyLinearImpulseToCenter(-b2Dot(velocity, forward) * 100 * forward, true);
-
     // Rotational and sideways friction
     auto frontVelocity = body()->GetLinearVelocityFromLocalPoint({-3, 0});
     auto backVelocity = body()->GetLinearVelocityFromLocalPoint({3, 0});
     auto leftVelocity = body()->GetLinearVelocityFromLocalPoint({0, 3});
     auto rightVelocity = body()->GetLinearVelocityFromLocalPoint({0, -3});
+    _leftTrackMovement += b2Dot(leftVelocity, forward) * game->timestep();
+    _rightTrackMovement += b2Dot(rightVelocity, forward) * game->timestep();
     body()->ApplyLinearImpulse(-b2Dot(frontVelocity, sideways) * 300 * sideways, body()->GetWorldPoint({-3, 0}), true);
     body()->ApplyLinearImpulse(-b2Dot(backVelocity, sideways) * 300 * sideways, body()->GetWorldPoint({3, 0}), true);
+
+    // Friction
+    body()->ApplyLinearImpulseToCenter(-b2Dot(velocity, forward) * 100 * forward, true);
 
     if (stunned()) {
         return;
@@ -217,5 +219,7 @@ Message TankState::message() const {
         }
     }
     msg["modules"] = moduleMsgs;
+    msg["left_track_movement"] = _leftTrackMovement;
+    msg["right_track_movement"] = _rightTrackMovement;
     return msg;
 }

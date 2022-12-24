@@ -30,7 +30,6 @@ Dialog {
                 Layout.preferredHeight: 48
                 Layout.row: 2
                 Layout.column: 2
-                clip: true
 
                 Image {
                     id: baseImage
@@ -39,16 +38,31 @@ Dialog {
                     smooth: false
                 }
 
-                Image {
-                    id: tracksImage
+                Item {
+                    id: tracksImages
                     property double yOffset: 0
-                    source: "qrc:/data/images/tank_track_marks.png"
                     x: baseImage.x
-                    y: baseImage.y + yOffset * 2
+                    y: baseImage.y
                     width: 48
                     height: 48
-                    smooth: false
-                    NumberAnimation { target: tracksImage; property: "yOffset"; from: 4; to: 0; duration: 300; loops: Animation.Infinite; running: true }
+                    clip: true
+                    NumberAnimation { target: tracksImages; property: "yOffset"; from: 4; to: 0; duration: 300; loops: Animation.Infinite; running: true }
+
+                    Image {
+                        source: "qrc:/data/images/tank_track_marks.png"
+                        y: tracksImages.yOffset * 2
+                        width: 48
+                        height: 48
+                        smooth: false
+                    }
+                    Image {
+                        source: "qrc:/data/images/tank_track_marks.png"
+                        y: tracksImages.yOffset * 2
+                        width: 48
+                        height: 48
+                        smooth: false
+                        mirror: true
+                    }
                 }
 
                 Image {

@@ -4,6 +4,8 @@ void TankState::loadMessage(Message& msg) {
     BaseObjectState::loadMessage(msg);
     _shieldProp.setValue(msg["shield"].as_double());
     _turretAngleProp.setValue(msg["turretAngle"].as_double());
+    _leftTrackMovementProp.setValue(msg["left_track_movement"].as_double());
+    _rightTrackMovementProp.setValue(msg["right_track_movement"].as_double());
     auto modules = msg.at("modules").as_vector();
     bool updateBinding = false;
     while (_modulesPtrs.size() < modules.size()) {

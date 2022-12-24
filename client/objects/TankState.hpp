@@ -40,6 +40,8 @@ class TankState : public BaseObjectState {
     Q_PROPERTY(float shield READ shield BINDABLE bindableShield)
     Q_PROPERTY(float turretAngle READ turretAngle BINDABLE bindableTurretAngle)
     Q_PROPERTY(std::vector<TankModuleState*> modules READ modules BINDABLE bindableModules)
+    Q_PROPERTY(float leftTrackMovement READ leftTrackMovement BINDABLE bindableLeftTrackMovement)
+    Q_PROPERTY(float rightTrackMovement READ rightTrackMovement BINDABLE bindableRightTrackMovement)
     QML_ELEMENT
 
     std::vector<std::unique_ptr<TankModuleState>> _modulesPtrs;
@@ -51,12 +53,19 @@ public:
     QBindable<float> bindableTurretAngle() { return &_turretAngleProp; }
     const std::vector<TankModuleState*> modules() { return _modulesProp.value(); }
     QBindable<std::vector<TankModuleState*>> bindableModules() { return &_modulesProp; }
+    float leftTrackMovement() const { return _leftTrackMovementProp.value(); }
+    QBindable<float> bindableLeftTrackMovement() { return &_leftTrackMovementProp; }
+    float rightTrackMovement() const { return _rightTrackMovementProp.value(); }
+    QBindable<float> bindableRightTrackMovement() { return &_rightTrackMovementProp; }
+
     void loadMessage(Message& msg) override;
 
 private:
     Q_OBJECT_BINDABLE_PROPERTY(TankState, float, _shieldProp)
     Q_OBJECT_BINDABLE_PROPERTY(TankState, float, _turretAngleProp)
     Q_OBJECT_BINDABLE_PROPERTY(TankState, std::vector<TankModuleState*>, _modulesProp)
+    Q_OBJECT_BINDABLE_PROPERTY(TankState, float, _leftTrackMovementProp)
+    Q_OBJECT_BINDABLE_PROPERTY(TankState, float, _rightTrackMovementProp)
 };
 
 #endif // OBJECTS_TANK_STATE_HPP

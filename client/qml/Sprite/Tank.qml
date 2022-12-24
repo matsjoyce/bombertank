@@ -15,13 +15,29 @@ BaseSprite {
         smooth: false
     }
 
-    Image {
-        source: "qrc:/data/images/tank_track_marks.png"
+
+    Item {
         x: -24
         y: -24
         width: 48
         height: 48
-        smooth: false
+        clip: true
+
+        Image {
+            source: "qrc:/data/images/tank_track_marks.png"
+            y: ((-object.leftTrackMovement * 8) % 8 + 8) % 8
+            width: 48
+            height: 48
+            smooth: false
+        }
+        Image {
+            source: "qrc:/data/images/tank_track_marks.png"
+            y: ((-object.rightTrackMovement * 8) % 8 + 8) % 8
+            width: 48
+            height: 48
+            smooth: false
+            mirror: true
+        }
     }
 
     Image {

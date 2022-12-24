@@ -196,3 +196,7 @@ std::optional<int> Game::attachedObjectForPlayer(int id) const {
     }
     return {};
 }
+
+float Game::timestep() const {
+    return 1 / LOGIC_FPS;
+}

@@ -41,6 +41,7 @@ class Game : public QObject, public b2ContactListener {
     std::optional<int> attachedObjectForPlayer(int id) const;
     std::mt19937& randomGenerator() { return _randomGen; }
     const b2World* world() const { return &_world; }
+    float timestep() const;
 
    public slots:
     void addConnection(int id, Message msg);
