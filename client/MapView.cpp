@@ -68,6 +68,9 @@ void MapView::setControlledObjectId(int controlledObjectId) {
     if (_controllingId == controlledObjectId) {
         return;
     }
+    if (_controlledObject) {
+        _controlledObject->setControlled(false);
+    }
     _controlledObject = nullptr;
     emit controlledObjectChanged(nullptr);
     qDebug() << "Controlling" << controlledObjectId;
@@ -213,6 +216,7 @@ void MapView::_doUpdate() {
                 }
                 if (!_controlledObject) {
                     _controlledObject = snapshot_iter->second.get();
+                    _controlledObject->setControlled(true);
                     connect(_controlledObject, &QObject::destroyed, this, &MapView::_controlledObjectDeleted);
                     emit controlledObjectChanged(_controlledObject);
                 }
