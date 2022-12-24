@@ -4,7 +4,6 @@
 #include "Queries.hpp"
 
 const float IMPULSE_TO_DAMAGE = 300.0f;
-const int SHELL_COLLISION_MASK = 0xffff & ~SHELL_CATEGORY;
 
 float ShellState::maxHealth() const { return 2; }
 
@@ -20,7 +19,7 @@ void ShellState::createBodies(b2World& world, b2BodyDef& bodyDef) {
     fixtureDef.shape = &circ;
     fixtureDef.density = 100.0;
     fixtureDef.filter.categoryBits = _category();
-    fixtureDef.filter.maskBits = SHELL_COLLISION_MASK;
+    fixtureDef.filter.maskBits = _collisionMask();
 
     body()->CreateFixture(&fixtureDef);
 }
@@ -61,6 +60,10 @@ void RocketState::destroy(Game* game) {
     ShellState::destroy(game);
 }
 
+void RocketState::collision(BaseObjectState* other, float impulse) {
+    die();
+}
+
 void HomingRocketState::prePhysics(Game* game) {
     RocketState::prePhysics(game);
     if (stunned()) {
@@ -92,7 +95,7 @@ void ExplosionState::prePhysics(Game* game) {
         b2Vec2 rayDir(std::cos(angle), std::sin(angle));
         b2Vec2 rayEnd = center + radius * rayDir;
         for (auto& obj : raycastAllObjects(game, center, rayEnd)) {
-            obj->damage(4, DamageType::IMPACT);
+            obj->damage(4 * _damageMultiplier, DamageType::IMPACT);
         }
     }
     die();

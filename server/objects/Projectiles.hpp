@@ -9,6 +9,7 @@ class ShellState : public BaseObjectState {
 protected:
     virtual float _bodyRadius() { return 0.25; }
     virtual int _category() { return SHELL_CATEGORY; }
+    virtual int _collisionMask() { return 0xffff & ~SHELL_CATEGORY; }
 
    public:
     using BaseObjectState::BaseObjectState;
@@ -33,11 +34,13 @@ class RocketState : public ShellState {
 protected:
     float _bodyRadius() override { return 0.5; }
     int _category() override { return ROCKET_CATEGORY; }
+    int _collisionMask() override { return 0xffff; }
 public:
     using ShellState::ShellState;
     constants::ObjectType type() const override { return constants::ObjectType::ROCKET; }
     void prePhysics(Game* game) override;
     void destroy(Game * game) override;
+    void collision(BaseObjectState * other, float impulse) override;
     Hostility hostility() const override { return Hostility::VAGELY_HOSTILE; }
 };
 
@@ -50,10 +53,12 @@ public:
 };
 
 class ExplosionState : public BaseObjectState {
+    float _damageMultiplier = 1;
 public:
     float maxHealth() const override { return 0; }
     constants::ObjectType type() const override { return constants::ObjectType::EXPLOSION; }
     void prePhysics(Game* game) override;
+    void setDamageMultiplier(float mul) { _damageMultiplier = mul; }
 };
 
 class StunWaveState : public BaseObjectState {

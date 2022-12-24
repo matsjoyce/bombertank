@@ -20,7 +20,6 @@ void MachineGun::act(Game* game, TankState* tank) {
     std::uniform_real_distribution<float> distribution(-maxSidewaysVelocity, maxSidewaysVelocity);
     auto velocity = speed * forward + distribution(game->randomGenerator()) * sideways;
     auto pos = tank->body()->GetPosition() + 3.5 * forward + 0.5 * sideways;
-    qDebug() << (tank->body()->GetPosition() - pos).Length();
     auto shell = game->addObject(constants::ObjectType::MG_SHELL, tank->body()->GetPosition() + 3.5 * forward + 0.5 * sideways,
                                     std::atan2(velocity.y, velocity.x), velocity);
     if (shell) {
