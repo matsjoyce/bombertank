@@ -36,10 +36,12 @@ void TurretState::prePhysics(Game* game) {
         return;
     }
     auto center = body()->GetPosition();
+    auto targetPosition = center;
     bool hasTarget = false;
     auto prioritisedTargets = getPrioritsedTargets(queryObjectsInCircle(game, center, _targettingRange), side(), center);
     if (prioritisedTargets.size()) {
-        auto targetVector = (prioritisedTargets.front()->body()->GetPosition() - center);
+        targetPosition = prioritisedTargets.front()->body()->GetPosition();
+        auto targetVector = (targetPosition - center);
         _targetTurretAngle = std::atan2(targetVector.y, targetVector.x);
         hasTarget = true;
     }
@@ -48,7 +50,10 @@ void TurretState::prePhysics(Game* game) {
     _turretAngle += std::min(_slewRate, std::max(-_slewRate, angleDiff));
 
     if (hasTarget && std::abs(angleDiff) < 0.1) {
-        fire(_turretAngle, game);
+        auto raycastResult = raycastNearestObject(game, center, targetPosition, [](auto obj) { return true; });
+        if (raycastResult && std::get<0>(*raycastResult) == prioritisedTargets.front()) {
+            fire(_turretAngle, game);
+        }
     }
 }
 
