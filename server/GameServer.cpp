@@ -75,6 +75,9 @@ void GameServer::removeGame(int gameId) {
     _games.erase(gameId);
     for (auto& connInfo : _connections) {
         connInfo.second.connection->sendMessage({{"cmd", "game_removed"}, {"id", gameId}});
+        if (connInfo.second.game == gameId) {
+            connInfo.second.game = 0;
+        }
     }
 }
 
@@ -124,14 +127,6 @@ void GameServer::handleClientMessage(int id, Message msg) {
             }
         }
     }
-    else if (connInfo.game > 0) {
-        auto gameIter = _games.find(connInfo.game);
-        if (gameIter == _games.end()) {
-            qWarning() << "Connection" << id << "is attached to non-existent game" << connInfo.game;
-            return;
-        }
-        gameIter->second->sendMessage(id, msg);
-    }
     else if (msg["cmd"].as_string() == "join_game") {
         auto iter = _games.find(msg["id"].as_uint64_t());
         if (iter == _games.end()) {
@@ -149,6 +144,14 @@ void GameServer::handleClientMessage(int id, Message msg) {
         for (auto& connInfo2 : _connections) {
             connInfo2.second.connection->sendMessage({{"cmd", "game_created"}, {"id", gameId}, {"title", _games[gameId]->title()}});
         }
+    }
+    else if (connInfo.game > 0) {
+        auto gameIter = _games.find(connInfo.game);
+        if (gameIter == _games.end()) {
+            qWarning() << "Connection" << id << "is attached to non-existent game" << connInfo.game;
+            return;
+        }
+        gameIter->second->sendMessage(id, msg);
     }
     else {
         qWarning() << "Unrecognised message from connection" << id;
