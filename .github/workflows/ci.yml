@@ -7,8 +7,6 @@ jobs:
     runs-on: macos-12
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: true
 
       - name: Install Qt
         uses: jurplel/install-qt-action@v3
@@ -23,7 +21,7 @@ jobs:
       
       - name: Install other deps
         run: |
-          brew install box2d boost
+          brew install box2d msgpack-cxx
         shell: bash
 
       - name: Configure
