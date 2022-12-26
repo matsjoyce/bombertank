@@ -1,0 +1,46 @@
+name: CI
+
+on: [workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: macos-12
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          aqtversion: '==2.1.*'
+          version: '6.4.1'
+          host: 'mac'
+          target: 'desktop'
+          arch: 'clang_64'
+          tools: 'tools_cmake'
+
+      - name: Configure
+        env:
+          CMAKE_PREFIX_PATH: ${{env.Qt6_Dir}}
+        run: |
+          mkdir build
+          cd build
+          cmake ..  -DCMAKE_BUILD_TYPE=Release
+        shell: bash
+
+      - name: Build
+        run: |
+          cd build
+          make -j3
+        shell: bash
+        
+      - name: Package
+        run: |
+          cd build/client
+          cp ../server/bt_server bt_client.app/Contents/MacOS
+          macdeployqt bt_client.app/ -qmldir=../../client/qml/UI -qmldir=../../client/qml/Theme/ -qmldir=../../client/qml/Sprite/ -dmg -executable=bt_client.app/Contents/MacOS/bt_server -verbose=3
+        shell: bash
+        
+      - uses: actions/upload-artifact@v3
+        with:
+          name: my-artifact
+          path: build/client/bt_client.*
