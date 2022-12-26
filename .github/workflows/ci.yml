@@ -4,7 +4,7 @@ on: [workflow_dispatch]
 
 jobs:
   build:
-    runs-on: macos-12
+    runs-on: macos-11
     steps:
       - uses: actions/checkout@v3
 
@@ -48,5 +48,5 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
-          name: my-artifact
-          path: build/client/bt_client.*
+          name: bt_client
+          path: build/client/bt_client.dmg
