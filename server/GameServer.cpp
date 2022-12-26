@@ -19,7 +19,7 @@ GameHandler::GameHandler(GameServer* gs,
 
         for (auto& obj : startingObjects) {
             auto go = game->addObject(static_cast<constants::ObjectType>(obj.at("type").as_uint64_t()),
-                                      {static_cast<float>(obj.at("x").as_double()), static_cast<float>(obj.at("y").as_double())}, 0, {0, 0});
+                                      {static_cast<float>(extractDouble(obj.at("x"))), static_cast<float>(extractDouble(obj.at("y")))}, 0, {0, 0});
             if (go) {
                 go->second->setSide(obj.at("side").as_uint64_t());
             }
@@ -35,7 +35,12 @@ GameHandler::GameHandler(GameServer* gs,
         connect(gameMode, &GameMode::sendMessage, gs, &GameServer::handleGameMessage);
         connect(gameMode, &GameMode::gameOver, game, &Game::end);
 
-        game->mainloop();
+        try {
+            game->mainloop();
+        }
+        catch (...) {
+            qFatal("Uncaught exception in game mainloop");
+        }
         game->deleteLater();
         emit gameOver(id);
         thread->quit();

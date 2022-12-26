@@ -199,7 +199,7 @@ EditorGameState* EditorGameState::load(QUrl fname, AppContext* context) {
     auto objs = extractVectorOfMap(oh.get().as<msgpack::type::variant>());
 
     for (auto& obj : objs) {
-        state->addObject(obj["type"].as_uint64_t(), obj["x"].as_double(), obj["y"].as_double());
+        state->addObject(obj["type"].as_uint64_t(), extractDouble(obj["x"]), extractDouble(obj["y"]));
     }
 
     QQmlEngine::setObjectOwnership(state, QQmlEngine::JavaScriptOwnership);

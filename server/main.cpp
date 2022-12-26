@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
 
     GameServer gs(QHostAddress::Any, 3000);
 
-    if (parser.isSet("--quit-when-no-clients")) {
+    if (parser.isSet("quit-when-no-clients")) {
         QObject::connect(&gs, &GameServer::lastClientDisconnected, &app, &QCoreApplication::quit);
     }
 

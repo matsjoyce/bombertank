@@ -16,4 +16,4 @@ qt_add_qml_module(bt_common
     URI BT.Common
     VERSION 1.0
 )
-target_link_libraries(bt_common PRIVATE Qt6::Core Qt6::Network Qt6::Qml)
+target_link_libraries(bt_common PRIVATE Qt6::Core Qt6::Network Qt6::Qml msgpackc-cxx)

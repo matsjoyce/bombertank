@@ -17,13 +17,14 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
 add_compile_definitions(MSGPACK_USE_BOOST)
+find_package(msgpack REQUIRED)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/deps/")
 include(GetGitRevisionDescription)
 
 find_package(box2d REQUIRED)
 
-include_directories("${PROJECT_SOURCE_DIR}" "${PROJECT_SOURCE_DIR}/deps/" "${PROJECT_SOURCE_DIR}/deps/msgpack-c/include/")
+include_directories("${PROJECT_SOURCE_DIR}" "${PROJECT_SOURCE_DIR}/deps/")
 
 add_subdirectory(common)
 add_subdirectory(server)

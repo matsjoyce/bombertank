@@ -5,6 +5,7 @@
 
 #include "../Game.hpp"
 #include "common/Constants.hpp"
+#include "common/MsgpackUtils.hpp"
 #include "actions/MainGun.hpp"
 #include "actions/MachineGun.hpp"
 #include "actions/RocketLauncher.hpp"
@@ -146,9 +147,9 @@ std::unique_ptr<TankModule> createModule(int type) {
 
 void TankState::handleMessage(const Message& msg) {
     if (msg.at("cmd").as_string() == "control_state") {
-        _targetTurretAngle = std::remainder(msg.at("turretAngle").as_double(), 2.0f * M_PI);
-        _leftTrack = msg.at("left_track").as_double();
-        _rightTrack = msg.at("right_track").as_double();
+        _targetTurretAngle = std::remainder(extractDouble(msg.at("turretAngle")), 2.0f * M_PI);
+        _leftTrack = extractDouble(msg.at("left_track"));
+        _rightTrack = extractDouble(msg.at("right_track"));
         auto actionsVec = msg.at("actions").as_vector();
         auto actionVecIter = actionsVec.begin();
         auto actionsIter = _actions.begin();
@@ -161,7 +162,7 @@ void TankState::handleMessage(const Message& msg) {
     else if (msg.at("cmd").as_string() == "join_game" && msg.at("tank_modules").is_vector()) {
         auto modulesVec = msg.at("tank_modules").as_vector();
         for (auto module : modulesVec) {
-            _actions.emplace_back(createModule(module.is_uint64_t() ? module.as_uint64_t() : module.as_int64_t()));
+            _actions.emplace_back(createModule(extractInt(module)));
         }
         _shield = maxShield();
     }
