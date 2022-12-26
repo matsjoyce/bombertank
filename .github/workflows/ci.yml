@@ -18,6 +18,11 @@ jobs:
           arch: 'clang_64'
           tools: 'tools_cmake'
           cache: true
+      
+      - name: Install other deps
+        run: |
+          brew install box2d
+        shell: bash
 
       - name: Configure
         env:
