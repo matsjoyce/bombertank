@@ -23,7 +23,7 @@ jobs:
       
       - name: Install other deps
         run: |
-          brew install box2d
+          brew install box2d boost
         shell: bash
 
       - name: Configure
