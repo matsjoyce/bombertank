@@ -23,7 +23,7 @@ target_link_libraries(
     Qt6::Qml
     bt_common
     bt_commonplugin
-    box2d # For editor BVH
+    box2d::box2d # For editor BVH
 )
 qt_add_qml_module(bt_client
     URI BT
