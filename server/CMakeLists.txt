@@ -23,4 +23,4 @@ set(SOURCE
 )
 
 add_executable(bt_server ${SOURCE})
-target_link_libraries(bt_server PRIVATE Qt6::Core Qt6::Network bt_common docopt box2d Qt6::Qml)
+target_link_libraries(bt_server PRIVATE Qt6::Core Qt6::Network bt_common box2d Qt6::Qml)

@@ -1,32 +1,31 @@
 #include <QCoreApplication>
+#include <QCommandLineParser>
 
 #include "GameServer.hpp"
-#include "docopt.h"
 #include "common/VCS.hpp"
-
-static const char USAGE[] =
-    R"(BT Server
-
-    Usage:
-      bt_server [--quit-when-no-clients]
-      bt_server (-h | --help)
-      bt_server --version
-
-    Options:
-      -h --help               Show this screen.
-      --version               Show version.
-      --quit-when-no-clients  Shutdown the server when all of the clients have disconnected.
-)";
 
 int main(int argc, char *argv[]) {
     QCoreApplication app(argc, argv);
+    QCoreApplication::setApplicationName("BomberTank2 Server");
     QCoreApplication::setApplicationVersion(GIT_NAME);
 
-    std::map<std::string, docopt::value> args = docopt::docopt(USAGE, {argv + 1, argv + argc}, true, std::string{"BomberTank2 Server "} + GIT_NAME);
+
+    QCommandLineParser parser;
+    parser.addHelpOption();
+    parser.addVersionOption();
+    parser.addOptions(
+        {
+            {
+                "quit-when-no-clients",
+                QCoreApplication::translate("main", "Shutdown the server when all of the clients have disconnected."),
+            }
+        }
+    );
+    parser.process(app);
 
     GameServer gs(QHostAddress::Any, 3000);
 
-    if (args["--quit-when-no-clients"].asBool()) {
+    if (parser.isSet("--quit-when-no-clients")) {
         QObject::connect(&gs, &GameServer::lastClientDisconnected, &app, &QCoreApplication::quit);
     }
 

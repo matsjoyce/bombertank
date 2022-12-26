@@ -21,7 +21,6 @@ add_compile_definitions(MSGPACK_USE_BOOST)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/deps/")
 include(GetGitRevisionDescription)
 
-find_package(docopt COMPONENTS CXX REQUIRED)
 find_package(box2d REQUIRED)
 
 include_directories("${PROJECT_SOURCE_DIR}" "${PROJECT_SOURCE_DIR}/deps/" "${PROJECT_SOURCE_DIR}/deps/msgpack-c/include/")

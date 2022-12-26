@@ -5,6 +5,7 @@
 #include <QQmlContext>
 #include <QQuickStyle>
 #include <QDir>
+#include <QCommandLineParser>
 #include <iostream>
 
 #include "AppContext.hpp"
@@ -14,32 +15,31 @@
 #include "common/TcpMessageSocket.hpp"
 #include "common/VCS.hpp"
 #include "objects/TankControl.hpp"
-#include "docopt.h"
-
-static const char USAGE[] =
-    R"(BT Client
-
-    Usage:
-      bt_client [--server-exe=<path>]
-      bt_client (-h | --help)
-      bt_client --version
-
-    Options:
-      -h --help               Show this screen.
-      --version               Show version.
-      --server-exe=<path>    Path to the server executable (for local games and hosting).
-)";
 
 int main(int argc, char *argv[]) {
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 #endif
 
-    std::map<std::string, docopt::value> args = docopt::docopt(USAGE, {argv + 1, argv + argc}, true, std::string{"BomberTank2 Client "} + GIT_NAME);
-
     QQuickStyle::setStyle("Theme");
-    QApplication::setApplicationVersion(GIT_NAME);
     QApplication app(argc, argv);
+    QApplication::setApplicationName("BomberTank2 Client");
+    QApplication::setApplicationVersion(GIT_NAME);
+
+    QCommandLineParser parser;
+    parser.addHelpOption();
+    parser.addVersionOption();
+    parser.addOptions(
+        {
+            {
+                "server-exe",
+                QCoreApplication::translate("main", "Path to the server executable (for local games and hosting)."),
+                QCoreApplication::translate("main", "path"),
+                ""
+            }
+        }
+    );
+    parser.process(app);
 
     QFontDatabase::addApplicationFont(":/data/fonts/Orbitron-Black.ttf");
     QFontDatabase::addApplicationFont(":/data/fonts/Orbitron-Bold.ttf");
@@ -50,10 +50,10 @@ int main(int argc, char *argv[]) {
 
     QDir selfDir(argc >= 1 ? argv[0] : "");
     selfDir.cdUp();
-    auto serverExePath = args["--server-exe"].isString() ? args["--server-exe"].asString() : selfDir.filePath("bt_server").toStdString();
-    qDebug() << "Server path" << QString::fromStdString(serverExePath);
+    auto serverExePath = parser.value("server-exe").isEmpty() ? selfDir.filePath("bt_server") : parser.value("server-exe");
+    qDebug() << "Server path" << serverExePath;
 
-    AppContext appContext(serverExePath);
+    AppContext appContext(serverExePath.toStdString());
 
     {
         QQmlApplicationEngine engine;
