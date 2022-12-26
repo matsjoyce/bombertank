@@ -4,6 +4,7 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QQuickStyle>
+#include <QDir>
 #include <iostream>
 
 #include "AppContext.hpp"
@@ -26,7 +27,7 @@ static const char USAGE[] =
     Options:
       -h --help               Show this screen.
       --version               Show version.
-      --server-exe=<-path>    Path to the server executable (for local games and hosting).
+      --server-exe=<path>    Path to the server executable (for local games and hosting).
 )";
 
 int main(int argc, char *argv[]) {
@@ -47,7 +48,12 @@ int main(int argc, char *argv[]) {
     QFontDatabase::addApplicationFont(":/data/fonts/Orbitron-Regular.ttf");
     QFontDatabase::addApplicationFont(":/data/fonts/Orbitron-SemiBold.ttf");
 
-    AppContext appContext(args["--server-exe"].asString());
+    QDir selfDir(argc >= 1 ? argv[0] : "");
+    selfDir.cdUp();
+    auto serverExePath = args["--server-exe"].isString() ? args["--server-exe"].asString() : selfDir.filePath("bt_server").toStdString();
+    qDebug() << "Server path" << QString::fromStdString(serverExePath);
+
+    AppContext appContext(serverExePath);
 
     {
         QQmlApplicationEngine engine;

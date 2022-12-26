@@ -96,7 +96,7 @@ void Game::mainloop() {
             obj->postPhysics(this);
         }
 
-        for (auto iter = _objects.begin(); iter != _objects.end(); ++iter) {
+        for (auto iter = _objects.begin(); iter != _objects.end();) {
             if (iter->second->dead()) {
                 auto& obj = iter->second;
                 auto msg = obj->message();
@@ -114,6 +114,9 @@ void Game::mainloop() {
                 }
                 _previousObjectMsg.erase(iter->first);
                 iter = _objects.erase(iter);
+            }
+            else {
+                ++iter;
             }
         }
 
