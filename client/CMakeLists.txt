@@ -21,6 +21,7 @@ target_link_libraries(
     Qt6::QuickControls2
     Qt6::Widgets # For file dialog support
     Qt6::Qml
+    Qt6::Svg
     bt_common
     bt_commonplugin
     box2d::box2d # For editor BVH
