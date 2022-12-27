@@ -63,9 +63,9 @@ jobs:
         with:
           aqtversion: '==2.1.*'
           version: '6.4.1'
-          host: 'mac'
+          host: 'windows'
           target: 'desktop'
-          arch: 'clang_64'
+          arch: 'win64_msvc2019_64'
           tools: 'tools_cmake'
           modules: 'qtmultimedia qt5compat qtshadertools'
           cache: true
