@@ -17,7 +17,7 @@ jobs:
           target: 'desktop'
           arch: 'clang_64'
           tools: 'tools_cmake'
-          modules: 'qtshadertools'
+          modules: 'qt5compat qtshadertools'
           cache: true
       
       - name: Install other deps
