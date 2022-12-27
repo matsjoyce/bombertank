@@ -3,7 +3,8 @@ name: CI
 on: [workflow_dispatch]
 
 jobs:
-  build:
+  build-macos:
+    if: ${{ false }}  # disable while I debug windoze
     runs-on: macos-11
     steps:
       - uses: actions/checkout@v3
@@ -19,7 +20,7 @@ jobs:
           tools: 'tools_cmake'
           modules: 'qtmultimedia qt5compat qtshadertools'
           cache: true
-      
+
       - name: Install other deps
         run: |
           brew install box2d msgpack-cxx
@@ -49,5 +50,58 @@ jobs:
 
       - uses: actions/upload-artifact@v3
         with:
-          name: bt_client
+          name: bt_client_macos
           path: build/client/bt_client.dmg
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v3
+        with:
+          aqtversion: '==2.1.*'
+          version: '6.4.1'
+          host: 'mac'
+          target: 'desktop'
+          arch: 'clang_64'
+          tools: 'tools_cmake'
+          modules: 'qtmultimedia qt5compat qtshadertools'
+          cache: true
+
+      - name: Install other deps
+        run: |
+          vcpkg install box2d msgpack
+        shell: bash
+
+      - name: Configure
+        env:
+          CMAKE_PREFIX_PATH: ${{env.Qt6_Dir}}
+        run: |
+          mkdir build
+          cd build
+          cmake ..  -DCMAKE_BUILD_TYPE=Release
+        shell: bash
+
+      - name: Build
+        run: |
+          cd build
+          make -j2
+        shell: bash
+
+      - name: Package
+        run: |
+          cd build
+          mkdir bt_client_app
+          cp client/bt_client.exe bt_client_app
+          cp server/bt_server.exe bt_client_app
+          cd bt_client_app
+          windeployqt bt_client.exe --qmldir=../../client/qml/UI --qmldir=../../client/qml/Theme/ --qmldir=../../client/qml/Sprite/ -verbose=2
+          windeployqt bt_server.exe --qmldir=../../client/qml/UI --qmldir=../../client/qml/Theme/ --qmldir=../../client/qml/Sprite/ -verbose=2
+        shell: bash
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: bt_client_windows
+          path: build/bt_client_app
