@@ -72,7 +72,7 @@ jobs:
 
       - name: Install other deps
         run: |
-          vcpkg install box2d msgpack
+          vcpkg install box2d msgpack --triplet x64-windows
         shell: bash
 
       - name: Configure
@@ -81,7 +81,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake ..  -DCMAKE_BUILD_TYPE=Release
+          cmake ..  -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
         shell: bash
 
       - name: Build
