@@ -34,5 +34,6 @@ qt_add_qml_module(bt_client
 target_include_directories(bt_client PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/objects)
 set_target_properties(bt_client PROPERTIES
     MACOSX_BUNDLE TRUE
+    # WIN32_EXECUTABLE TRUE
 )
 add_dependencies(bt_client bt_server)

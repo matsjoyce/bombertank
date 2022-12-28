@@ -1,6 +1,9 @@
 name: CI
 
-on: [workflow_dispatch]
+on: [workflow_dispatch, push]
+
+env:
+  BUILD_TYPE: Release
 
 jobs:
   build-macos:
@@ -32,13 +35,13 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake ..  -DCMAKE_BUILD_TYPE=Release
+          cmake .. -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
         shell: bash
 
       - name: Build
         run: |
           cd build
-          make -j3
+          cmake --build . --config ${{env.BUILD_TYPE}} -j3
         shell: bash
 
       - name: Package
@@ -62,7 +65,7 @@ jobs:
         uses: jurplel/install-qt-action@v3
         with:
           aqtversion: '==2.1.*'
-          version: '6.4.1'
+          version: '6.4.0'
           host: 'windows'
           target: 'desktop'
           arch: 'win64_msvc2019_64'
@@ -72,8 +75,8 @@ jobs:
 
       - name: Install other deps
         run: |
-          vcpkg install box2d msgpack --triplet x64-windows
-        shell: bash
+          vcpkg install box2d msgpack boost-variant boost-fusion boost-optional boost-core --triplet x64-windows
+        shell: pwsh
 
       - name: Configure
         env:
@@ -81,25 +84,25 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake ..  -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
-        shell: bash
+          cmake .. -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
+        shell: pwsh
 
       - name: Build
         run: |
           cd build
-          make -j2
-        shell: bash
+          cmake --build . --config ${{env.BUILD_TYPE}} -j2
+        shell: pwsh
 
       - name: Package
         run: |
           cd build
           mkdir bt_client_app
-          cp client/bt_client.exe bt_client_app
-          cp server/bt_server.exe bt_client_app
+          cp client/${{env.BUILD_TYPE}}/bt_client.exe bt_client_app
+          cp server/${{env.BUILD_TYPE}}/bt_server.exe bt_client_app
           cd bt_client_app
           windeployqt bt_client.exe --qmldir=../../client/qml/UI --qmldir=../../client/qml/Theme/ --qmldir=../../client/qml/Sprite/ -verbose=2
           windeployqt bt_server.exe --qmldir=../../client/qml/UI --qmldir=../../client/qml/Theme/ --qmldir=../../client/qml/Sprite/ -verbose=2
-        shell: bash
+        shell: pwsh
 
       - uses: actions/upload-artifact@v3
         with:

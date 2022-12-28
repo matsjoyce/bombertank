@@ -48,9 +48,10 @@ int main(int argc, char *argv[]) {
     QFontDatabase::addApplicationFont(":/data/fonts/Orbitron-Regular.ttf");
     QFontDatabase::addApplicationFont(":/data/fonts/Orbitron-SemiBold.ttf");
 
-    QDir selfDir(argc >= 1 ? argv[0] : "");
-    selfDir.cdUp();
-    auto serverExePath = parser.value("server-exe").isEmpty() ? selfDir.filePath("bt_server") : parser.value("server-exe");
+    QString selfName = argc >= 1 ? argv[0] : "";
+    QString serverName = selfName;
+    serverName.replace(serverName.lastIndexOf("bt_client"), 9, "bt_server");
+    auto serverExePath = parser.value("server-exe").isEmpty() ? serverName : parser.value("server-exe");
     qDebug() << "Server path" << serverExePath;
 
     AppContext appContext(serverExePath.toStdString());

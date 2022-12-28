@@ -1,4 +1,11 @@
 #include "TcpMessageSocket.hpp"
+#include <sstream>
+
+#ifdef _WIN32
+#include <winsock.h>
+#else
+#include <arpa/inet.h>
+#endif
 
 const auto READ_SIZE = 1024u;
 using MessageSizeType = decltype(htonl(0));

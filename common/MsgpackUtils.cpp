@@ -30,6 +30,6 @@ int extractInt(const msgpack::type::variant& obj) {
 void debugPrintMsgpackMap(const std::map<msgpack::type::variant, msgpack::type::variant>& obj) {
     for (auto& p : obj) {
         int s = 0;
-        qDebug() << p.first.as_string().c_str() << abi::__cxa_demangle(p.second.type().name(), 0, 0, &s);
+        qDebug() << p.first.as_string().c_str() << p.second.type().name();
     }
 }
