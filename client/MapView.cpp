@@ -8,60 +8,13 @@
 #include <QtQml>
 #include <QQuickWindow>
 #include <QSGImageNode>
-
-std::map<constants::ObjectType, QUrl> spriteFilesForObjectType = {
-    {constants::ObjectType::TANK, QUrl(QStringLiteral("qrc:/qml/Sprite/Tank.qml"))},
-    {constants::ObjectType::CRATE, QUrl(QStringLiteral("qrc:/qml/Sprite/Crate.qml"))},
-    {constants::ObjectType::WALL, QUrl(QStringLiteral("qrc:/qml/Sprite/Wall.qml"))},
-    {constants::ObjectType::INDESTRUCTABLE_WALL, QUrl(QStringLiteral("qrc:/qml/Sprite/IndestructableWall.qml"))},
-    {constants::ObjectType::SHELL, QUrl(QStringLiteral("qrc:/qml/Sprite/Shell.qml"))},
-    {constants::ObjectType::MG_SHELL, QUrl(QStringLiteral("qrc:/qml/Sprite/MGShell.qml"))},
-    {constants::ObjectType::ROCKET, QUrl(QStringLiteral("qrc:/qml/Sprite/Rocket.qml"))},
-    {constants::ObjectType::START_ZONE, QUrl(QStringLiteral("qrc:/qml/Sprite/StartZone.qml"))},
-    {constants::ObjectType::EXPLOSION, QUrl(QStringLiteral("qrc:/qml/Sprite/Explosion.qml"))},
-    {constants::ObjectType::BOMB, QUrl(QStringLiteral("qrc:/qml/Sprite/Bomb.qml"))},
-    {constants::ObjectType::TIMED_BOMB, QUrl(QStringLiteral("qrc:/qml/Sprite/TimedBomb.qml"))},
-    {constants::ObjectType::LASER_TURRET, QUrl(QStringLiteral("qrc:/qml/Sprite/LaserTurret.qml"))},
-    {constants::ObjectType::MG_TURRET, QUrl(QStringLiteral("qrc:/qml/Sprite/MGTurret.qml"))},
-    {constants::ObjectType::LASER, QUrl(QStringLiteral("qrc:/qml/Sprite/Laser.qml"))},
-    {constants::ObjectType::HOMING_ROCKET, QUrl(QStringLiteral("qrc:/qml/Sprite/Rocket.qml"))},
-    {constants::ObjectType::STUN_WAVE, QUrl(QStringLiteral("qrc:/qml/Sprite/StunWave.qml"))},
-};
-
-std::map<constants::ObjectType, QUrl> inputFilesForObjectType = {
-    {constants::ObjectType::TANK, QUrl(QStringLiteral("qrc:/qml/Sprite/TankInput.qml"))}
-};
-
+#include "AppContext.hpp"
 
 MapView::MapView() {
     _timer.start(16);
     _viewRotProp.setValue(M_PI_2);
 
     connect(&_timer, &QTimer::timeout, this, &MapView::_doUpdate);
-}
-
-void MapView::_checkComponentsLoaded() {
-    if (!_spriteComponents.size()) {
-        auto engine = qmlEngine(this);
-
-        for (auto& [type, url] : spriteFilesForObjectType) {
-            auto component = new QQmlComponent(engine, this);
-            auto urlCopy = url; // For clang
-            connect(component, &QQmlComponent::statusChanged, this,
-                    [=](QQmlComponent::Status status) { qInfo() << urlCopy << status << component->errorString(); });
-            component->loadUrl(url);
-            _spriteComponents[type] = component;
-        }
-
-        for (auto& [type, url] : inputFilesForObjectType) {
-            auto component = new QQmlComponent(engine, this);
-            auto urlCopy = url; // For clang
-            connect(component, &QQmlComponent::statusChanged, this,
-                    [=](QQmlComponent::Status status) { qInfo() << urlCopy << status << component->errorString(); });
-            component->loadUrl(url);
-            _inputComponents[type] = component;
-        }
-    }
 }
 
 void MapView::setControlledObjectId(int controlledObjectId) {
@@ -84,7 +37,7 @@ void MapView::setControlledObjectId(int controlledObjectId) {
 
 void MapView::_attachToObject(int id, BaseObjectState* obj) {
     qDebug() << "Preparing controller for" << id << "of type" << static_cast<int>(obj->type());
-    auto iter = _inputComponents.find(obj->type());
+    auto iter = _inputComponents.find(static_cast<int>(obj->type()));
     if (iter == _inputComponents.end() || !iter->second->isReady()) {
         qWarning() << "Could not load input for type since it is not loaded yet or does not exist";
         return;
@@ -107,8 +60,6 @@ void MapView::_attachToObject(int id, BaseObjectState* obj) {
 }
 
 void MapView::setState(BaseGameState* state) {
-    _checkComponentsLoaded();
-
     if (auto controllableState = dynamic_cast<GameState*>(_state)) {
         disconnect(this, &MapView::controlStateChanged, controllableState, &GameState::setControlState);
     }
@@ -124,6 +75,41 @@ void MapView::setState(BaseGameState* state) {
 
     emit stateChanged(_state);
 }
+
+void MapView::setContext(AppContext* context) {
+    for (auto [_, comp] : _spriteComponents) {
+        comp->deleteLater();
+    }
+    _spriteComponents.clear();
+    for (auto [_, comp] : _inputComponents) {
+        comp->deleteLater();
+    }
+    _inputComponents.clear();
+    _context = context;
+    if (_context) {
+        auto engine = qmlEngine(this);
+
+        for (auto& [type, data] : _context->objectTypeDatas()) {
+            if (!data.client.renderer.isEmpty()) {
+                auto component = new QQmlComponent(engine, this);
+                auto url = "qrc:/qml/Sprite/" + data.client.renderer;
+                connect(component, &QQmlComponent::statusChanged, this,
+                        [=](QQmlComponent::Status status) { qInfo() << url << status << component->errorString(); });
+                component->loadUrl(url);
+                _spriteComponents[type] = component;
+            }
+            if (!data.client.controller.isEmpty()) {
+                auto component = new QQmlComponent(engine, this);
+                auto url = "qrc:/qml/Sprite/" + data.client.controller;
+                connect(component, &QQmlComponent::statusChanged, this,
+                        [=](QQmlComponent::Status status) { qInfo() << url << status << component->errorString(); });
+                component->loadUrl(url);
+                _inputComponents[type] = component;
+            }
+        }
+    }
+}
+
 
 void MapView::_handleControlsUpdated() { _controlsUpdated = true; }
 
@@ -178,7 +164,7 @@ void MapView::_doUpdate() {
         if (snapshot_iter != snapshot.end() &&
             (sprites_iter == _sprites.end() || sprites_iter->first > snapshot_iter->first)) {
             // Added
-            auto iter = _spriteComponents.find(snapshot_iter->second->type());
+            auto iter = _spriteComponents.find(static_cast<int>(snapshot_iter->second->type()));
             if (iter == _spriteComponents.end() || !iter->second->isReady()) {
                 // qWarning() << "Could not create item for" << snapshot_iter->first << "since its type"
                 //            << static_cast<int>(snapshot_iter->second->type()) << "is not loaded or does not exist";

@@ -11,6 +11,7 @@ Page {
     property alias controlledObjectId: map.controlledObjectId
     property alias controlledObject: map.controlledObject
     id: view
+    property var appContext: context
 
     Image {
         source: "qrc:/data/images/tiles.png"
@@ -26,6 +27,7 @@ Page {
     MapView {
         id: map
         anchors.fill: parent
+        context: appContext
     }
 
     Repeater {

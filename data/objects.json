@@ -6,7 +6,7 @@
             "image": "images/wall.png",
             "editor_placable": true,
             "editor_bounds": [9, 9],
-            "renderer": "Wall"
+            "renderer": "Wall.qml"
         },
         "server": {
             "class": "Wall",
@@ -24,7 +24,7 @@
             "image": "images/iwall.png",
             "editor_placable": true,
             "editor_bounds": [9, 9],
-            "renderer": "Wall"
+            "renderer": "IndestructableWall.qml"
         },
         "server": {
             "class": "Wall",
@@ -42,7 +42,8 @@
         "client": {
             "image": "images/pwall.png",
             "editor_placable": true,
-            "editor_bounds": [6, 6]
+            "editor_bounds": [6, 6],
+            "renderer": "Crate.qml"
         }
     },
     {
@@ -52,14 +53,7 @@
             "image": "images/start_zone.png",
             "editor_placable": true,
             "editor_bounds": [9, 9],
-            "renderer": "Tank"
-        }
-    },
-    {
-        "id": 4,
-        "name": "Lava",
-        "client": {
-            "image": "images/lava.png"
+            "renderer": "StartZone.qml"
         }
     },
     {
@@ -68,63 +62,32 @@
         "client": {
             "image": "images/charge.png",
             "editor_placable": true,
-            "editor_bounds": [6, 6]
+            "editor_bounds": [6, 6],
+            "renderer": "Bomb.qml"
         }
     },
     {
         "id": 6,
         "name": "Timed_Bomb",
         "client": {
-            "image": "images/bomb.png"
-        }
-    },
-    {
-        "id": 7,
-        "name": "Robo_Bomb",
-        "client": {
-            "image": "images/robobomb.png"
-        }
-    },
-    {
-        "id": 8,
-        "name": "Chest",
-        "client": {
-            "image": "images/chest.png"
-        }
-    },
-    {
-        "id": 9,
-        "name": "Mine",
-        "client": {
-            "image": "images/mine.png"
+            "image": "images/bomb.png",
+            "renderer": "TimedBomb.qml"
         }
     },
     {
         "id": 10,
         "name": "Rocket",
         "client": {
-            "image": "images/rocket.png"
-        }
-    },
-    {
-        "id": 11,
-        "name": "Mini_Rocket",
-        "client": {
-            "image": "images/rocket.png"
+            "image": "images/rocket.png",
+            "renderer": "Rocket.qml"
         }
     },
     {
         "id": 12,
         "name": "Shell",
         "client": {
-            "image": "images/bomb.png"
-        }
-    },
-    {
-        "id": 13,
-        "name": "Laser_Robo",
-        "client": {
-            "image": "images/laserrobo.png"
+            "image": "images/bomb.png",
+            "renderer": "Shell.qml"
         }
     },
     {
@@ -133,39 +96,37 @@
         "client": {
             "image": "images/mg_turret_icon.png",
             "editor_placable": true,
-            "editor_bounds": [6, 6]
+            "editor_bounds": [6, 6],
+            "renderer": "MGTurret.qml"
         }
     },
     {
-        "id": 15,
-        "name": "Health_Drop_Item",
+        "id": 12,
+        "name": "Shell",
         "client": {
-            "image": "images/health_box.png"
-        }
-    },
-    {
-        "id": 16,
-        "name": "Speed_Drop_Item",
-        "client": {
-            "image": "images/speed_box.png"
+            "renderer": "Shell.qml"
         }
     },
     {
         "id": 17,
-        "name": "Thin Indestructable_Wall",
+        "name": "MG shell",
         "client": {
-            "image": "images/iwall_thin.png",
-            "editor_grid": [9, 9],
-            "renderer": "Wall"
-        },
-        "server": {
-            "class": "Wall",
-            "geometry": {
-                "type": "box",
-                "hw": 4.5,
-                "hh": 1.125
-            },
-            "indestructable": true
+            "renderer": "MGShell.qml"
+        }
+    },
+    {
+        "id": 18,
+        "name": "Tank",
+        "client": {
+            "renderer": "Tank.qml",
+            "controller": "TankInput.qml"
+        }
+    },
+    {
+        "id": 19,
+        "name": "Explosion",
+        "client": {
+            "renderer": "Explosion.qml"
         }
     },
     {
@@ -174,7 +135,29 @@
         "client": {
             "image": "images/laser_turret_icon.png",
             "editor_placable": true,
-            "editor_bounds": [6, 6]
+            "editor_bounds": [6, 6],
+            "renderer": "LaserTurret.qml"
+        }
+    },
+    {
+        "id": 21,
+        "name": "Laser",
+        "client": {
+            "renderer": "Laser.qml"
+        }
+    },
+    {
+        "id": 22,
+        "name": "Homing rocket",
+        "client": {
+            "renderer": "Rocket.qml"
+        }
+    },
+    {
+        "id": 23,
+        "name": "StunWave",
+        "client": {
+            "renderer": "StunWave.qml"
         }
     }
 ]

@@ -28,6 +28,7 @@ std::map<int, ObjectTypeData> loadObjectTypeData(QString fname) {
                 client["image"].toString(),
                 client["editor_placable"].toBool(),
                 client["renderer"].toString(),
+                client["controller"].toString(),
                 QSizeF{
                     client["editor_bounds"].toArray().at(0).toDouble(),
                     client["editor_bounds"].toArray().at(1).toDouble(),

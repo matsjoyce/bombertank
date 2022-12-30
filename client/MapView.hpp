@@ -11,9 +11,13 @@
 #include "common/Constants.hpp"
 #include "objects/TankControl.hpp"
 
+class AppContext;
+
 class MapView : public QQuickItem {
     Q_OBJECT
     Q_PROPERTY(BaseGameState* state READ state WRITE setState NOTIFY stateChanged)
+    Q_MOC_INCLUDE("AppContext.hpp")
+    Q_PROPERTY(AppContext* context READ context WRITE setContext NOTIFY contextChanged)
     Q_PROPERTY(
         int controlledObjectId READ controlledObjectId WRITE setControlledObjectId NOTIFY controlledObjectIdChanged)
     Q_PROPERTY(BaseObjectState* controlledObject READ controlledObject NOTIFY controlledObjectChanged)
@@ -25,8 +29,9 @@ class MapView : public QQuickItem {
 
     QTimer _timer;
     BaseGameState* _state = nullptr;
-    std::map<constants::ObjectType, QQmlComponent*> _spriteComponents;
-    std::map<constants::ObjectType, QQmlComponent*> _inputComponents;
+    AppContext* _context = nullptr;
+    std::map<int, QQmlComponent*> _spriteComponents;
+    std::map<int, QQmlComponent*> _inputComponents;
 
     struct SpriteDetails {
         QQuickItem* item;
@@ -42,7 +47,6 @@ class MapView : public QQuickItem {
 
     void _doUpdate();
     void _handleControlsUpdated();
-    void _checkComponentsLoaded();
     void _attachToObject(int id, BaseObjectState* obj);
     void _controlledObjectDeleted();
     QTransform _viewTransform();
@@ -51,6 +55,9 @@ class MapView : public QQuickItem {
     MapView();
     BaseGameState* state() { return _state; }
     void setState(BaseGameState* state);
+
+    AppContext* context() { return _context; }
+    void setContext(AppContext* context);
 
     int controlledObjectId() { return _controllingId; }
     void setControlledObjectId(int controlledObjectId);
@@ -73,6 +80,7 @@ class MapView : public QQuickItem {
 
 signals:
     void stateChanged(BaseGameState* state);
+    void contextChanged(AppContext* state);
     void controlledObjectIdChanged(int controlledObjectId);
     void controlledObjectChanged(BaseObjectState* controlledObject);
     void controlStateChanged(int objectId, TankControlState* controlState);

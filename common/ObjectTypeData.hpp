@@ -15,12 +15,13 @@ struct ClientOTD {
     Q_PROPERTY(QString image MEMBER image CONSTANT)
     Q_PROPERTY(bool editorPlacable MEMBER editorPlacable CONSTANT)
     Q_PROPERTY(QString renderer MEMBER renderer CONSTANT)
+    Q_PROPERTY(QString controller MEMBER controller CONSTANT)
     Q_PROPERTY(QSizeF editorBounds MEMBER editorBounds CONSTANT)
 
 public:
     QString image;
     bool editorPlacable;
-    QString renderer;
+    QString renderer, controller;
     QSizeF editorBounds;
 };
 
