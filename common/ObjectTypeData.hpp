@@ -30,6 +30,10 @@ struct BoxGeometry {
     float width, height;
 };
 
+struct PolyGeometry {
+    std::vector<std::pair<float, float>> points;
+};
+
 struct ServerOTD {
     Q_GADGET
     QML_ELEMENT
@@ -37,7 +41,7 @@ struct ServerOTD {
 
 public:
     QString impl;
-    std::variant<std::monostate, BoxGeometry> geometry;
+    std::variant<std::monostate, BoxGeometry, PolyGeometry> geometry;
 };
 
 struct ObjectTypeData {

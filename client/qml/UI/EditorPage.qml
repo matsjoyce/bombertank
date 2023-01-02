@@ -20,6 +20,7 @@ Page {
     property url fname: ""
     property int selectedObjectType: (md => md !== null ? md.id : -1)(objectList.model[objectList.currentIndex])
     property AppContext appContext: context
+    property double rotation: rotationSlider.value * Math.PI / 2
 
     signal exit()
 
@@ -88,7 +89,7 @@ Page {
                 if (selectedObjectType !== -1) {
                     for (var x = dragRect.dragRectPoints.startX; x <= dragRect.dragRectPoints.endX; ++x) {
                         for (var y = dragRect.dragRectPoints.startY; y <= dragRect.dragRectPoints.endY; ++y) {
-                            view.state.addObject(selectedObjectType, x * view.gridSize, y * view.gridSize);
+                            view.state.addObject(selectedObjectType, x * view.gridSize, y * view.gridSize, view.rotation);
                         }
                     }
                 }
@@ -248,6 +249,21 @@ Page {
 
                 onMoved: view.gridSize = view.gridSizes[value]
             }
+
+            Label {
+                text: "Rotation"
+                Layout.alignment: Qt.AlignVCenter
+                font.pixelSize: 18
+            }
+
+            Slider {
+                id: rotationSlider
+                from: 0
+                to: 3
+                stepSize: 1
+                snapMode: Slider.SnapAlways
+                focusPolicy: Qt.NoFocus
+            }
         }
     }
 
@@ -278,6 +294,7 @@ Page {
                         width: 72
                         height: 72
                         smooth: false
+                        rotation: 90 - view.rotation / Math.PI * 180
                     }
 
                     Label {

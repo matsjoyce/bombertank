@@ -5,13 +5,24 @@
 
 #include "ObjectTypeData.hpp"
 
-std::variant<std::monostate, BoxGeometry> parseGeometry(QJsonValueRef data) {
+std::variant<std::monostate, BoxGeometry, PolyGeometry> parseGeometry(QJsonValueRef data) {
     if (!data.isObject()) {
         return {};
     }
     auto obj = data.toObject();
     if (obj["type"].toString() == "box") {
         return {BoxGeometry{static_cast<float>(obj["width"].toDouble()), static_cast<float>(obj["height"].toDouble())}};
+    }
+    else if (obj["type"].toString() == "poly") {
+        std::vector<std::pair<float, float>> points;
+        for (auto point : obj["points"].toArray()) {
+            auto pointAsArr = point.toArray();
+            points.emplace_back(std::make_pair(
+                static_cast<float>(pointAsArr.at(0).toDouble()),
+                static_cast<float>(pointAsArr.at(1).toDouble())
+            ));
+        }
+        return {PolyGeometry{points}};
     }
     return {};
 }

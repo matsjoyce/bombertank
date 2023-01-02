@@ -20,7 +20,7 @@ GameHandler::GameHandler(GameServer* gs,
 
         for (auto& obj : startingObjects) {
             auto go = game->addObject(static_cast<constants::ObjectType>(obj.at("type").as_uint64_t()),
-                                      {static_cast<float>(extractDouble(obj.at("x"))), static_cast<float>(extractDouble(obj.at("y")))}, 0, {0, 0});
+                                      {static_cast<float>(extractDouble(obj.at("x"))), static_cast<float>(extractDouble(obj.at("y")))}, static_cast<float>(extractDouble(obj.at("rotation"))), {0, 0});
             if (go) {
                 go->second->setSide(obj.at("side").as_uint64_t());
             }

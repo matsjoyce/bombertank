@@ -12,8 +12,9 @@ void BaseObjectState::loadMessage(Message& msg) {
     _statusProp.setValue(msg["status"].as_uint64_t());
 }
 
-void BaseObjectState::setFromEditor(constants::ObjectType type, float x, float y) {
+void BaseObjectState::setFromEditor(constants::ObjectType type, float x, float y, float rotation) {
     _typeProp.setValue(static_cast<int>(type));
     _xProp.setValue(x);
     _yProp.setValue(y);
+    _rotationProp.setValue(rotation);
 }

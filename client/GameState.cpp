@@ -116,9 +116,14 @@ void EditorGameState::clear() {
 
 constexpr float AABB_REDUCTION = 0.05; // To prevent side-by-side objects removing each other
 
-int EditorGameState::addObject(int type, float x, float y) {
+int EditorGameState::addObject(int type, float x, float y, float rotation) {
     if (!context()) return -1;
 
+    auto& objectDatas = context()->objectTypeDatas();
+    if (!objectDatas.count(type)) {
+        qWarning() << "Could not load type" << type;
+        return -1;
+    }
     auto bounds = context()->objectTypeData(type).client.editorBounds;
     if (bounds.isEmpty()) {
         qWarning() << "Type" << type << "used in the editor has empty bounds, this will mess with object removal";
@@ -131,7 +136,7 @@ int EditorGameState::addObject(int type, float x, float y) {
 
     auto id = _nextId++;
     _objectStates[id] = std::make_shared<BaseObjectState>();
-    _objectStates[id]->setFromEditor(static_cast<constants::ObjectType>(type), x, y);
+    _objectStates[id]->setFromEditor(static_cast<constants::ObjectType>(type), x, y, rotation);
     _objectTreeData.emplace(id, ObjectTreeData{id, aabb, 0});
     _objectTreeData[id].proxyId = _queryTree.CreateProxy(aabb, &_objectTreeData[id]);
     return id;
@@ -199,7 +204,7 @@ EditorGameState* EditorGameState::load(QUrl fname, AppContext* context) {
     auto objs = extractVectorOfMap(oh.get().as<msgpack::type::variant>());
 
     for (auto& obj : objs) {
-        state->addObject(obj["type"].as_uint64_t(), extractDouble(obj["x"]), extractDouble(obj["y"]));
+        state->addObject(obj["type"].as_uint64_t(), extractDouble(obj["x"]), extractDouble(obj["y"]), extractDouble(obj["rotation"]));
     }
 
     QQmlEngine::setObjectOwnership(state, QQmlEngine::JavaScriptOwnership);

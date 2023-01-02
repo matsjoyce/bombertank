@@ -25,7 +25,7 @@ class BaseObjectState : public QObject {
    public:
     using QObject::QObject;
     virtual void loadMessage(Message& msg);
-    void setFromEditor(constants::ObjectType type, float x, float y);
+    void setFromEditor(constants::ObjectType type, float x, float y, float rotation);
 
     int type() { return _typeProp.value(); }
     QBindable<int> bindableType() { return &_typeProp; }

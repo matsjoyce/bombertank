@@ -14,7 +14,7 @@
     },
     {
         "id": 1,
-        "name": "Indestructable_Wall",
+        "name": "Indestructable Wall",
         "client": {
             "image": "images/iwall.png",
             "editor_placable": true,
@@ -184,7 +184,7 @@
     },
     {
         "id": 23,
-        "name": "StunWave",
+        "name": "Stun Wave",
         "client": {
             "renderer": "StunWave.qml"
         },
@@ -194,7 +194,7 @@
     },
     {
         "id": 24,
-        "name": "Thin Indestructable_Wall",
+        "name": "Thin Indestructable Wall",
         "client": {
             "image": "images/iwall_thin.png",
             "editor_placable": true,
@@ -207,6 +207,40 @@
                 "type": "box",
                 "width": 9,
                 "height": 3
+            }
+        }
+    },
+    {
+        "id": 25,
+        "name": "Thin Indestructable Wall Half",
+        "client": {
+            "image": "images/iwall_half.png",
+            "editor_placable": true,
+            "editor_bounds": [9, 9],
+            "renderer": "IndestructableWall.qml"
+        },
+        "server": {
+            "impl": "IndestructableWallState",
+            "geometry": {
+                "type": "poly",
+                "points": [[-4.5, -4.5], [-4.5, 4.5], [4.5, 4.5]]
+            }
+        }
+    },
+    {
+        "id": 26,
+        "name": "Thin Indestructable Wall",
+        "client": {
+            "image": "images/iwall_point.png",
+            "editor_placable": true,
+            "editor_bounds": [9, 9],
+            "renderer": "IndestructableWall.qml"
+        },
+        "server": {
+            "impl": "IndestructableWallState",
+            "geometry": {
+                "type": "poly",
+                "points": [[-4.5, 4.5], [4.5, 4.5], [0, 0]]
             }
         }
     }

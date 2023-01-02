@@ -96,7 +96,7 @@ class EditorGameState : public BaseGameState {
 
     const std::map<int, std::shared_ptr<BaseObjectState>>& snapshot() const override;
     Q_INVOKABLE void clear();
-    Q_INVOKABLE int addObject(int type, float x, float y);
+    Q_INVOKABLE int addObject(int type, float x, float y, float rotation);
     Q_INVOKABLE void removeObjects(float x1, float y1, float x2, float y2);
     Q_INVOKABLE void save(QUrl fname) const;
     Q_INVOKABLE static EditorGameState* load(QUrl fname, AppContext* context);
