@@ -4,17 +4,18 @@
 #include <QDebug>
 #include <QElapsedTimer>
 #include <QThread>
-#include <functional>
-
-#include "objects/Objects.hpp"
 
 constexpr float LOGIC_FPS = 20;
 constexpr float PHYSICS_FPS = 100;
 
-Game::Game() : _randomGen(std::random_device()()), _world(b2Vec2(0, 0)) { _world.SetContactListener(this); }
+Game::Game(const std::map<int, ObjectTypeData>& objectTypeData, const std::map<int, TankModuleData>& tankModuleData) : _randomGen(std::random_device()()), _objectTypeData(objectTypeData), _tankModuleData(tankModuleData), _world(b2Vec2(0, 0)) { _world.SetContactListener(this); }
 
 std::optional<std::pair<int, BaseObjectState*>> Game::addObject(constants::ObjectType type, b2Vec2 position, float rotation, b2Vec2 velocity) {
-    auto objmove = createObjectFromType(type);
+    if (!_objectTypeData.count(static_cast<int>(type))) {
+        qWarning() << "Could not create object of unknown type" << static_cast<int>(type);
+        return {};
+    }
+    auto objmove = ObjectStateRegister::createObject(_objectTypeData.at(static_cast<int>(type)).server.impl.toStdString(), static_cast<int>(type));
     if (!objmove) {
         qWarning() << "Could not create object of type" << static_cast<int>(type);
         return {};
@@ -28,7 +29,7 @@ std::optional<std::pair<int, BaseObjectState*>> Game::addObject(constants::Objec
     bodyDef.angle = rotation;
     bodyDef.linearVelocity = velocity;
 
-    obj->createBodies(_world, bodyDef);
+    obj->createBodies(this, _world, bodyDef);
     return {{id, obj.get()}};
 }
 
@@ -174,7 +175,7 @@ std::vector<int> Game::objectsOnSide(int side) const {
     return res;
 }
 
-std::vector<int> Game::objectsOfType(constants::ObjectType type) const {
+std::vector<int> Game::objectsOfType(int type) const {
     std::vector<int> res;
     for (auto& obj : _objects) {
         if (obj.second->type() == type) {
@@ -202,4 +203,8 @@ std::optional<int> Game::attachedObjectForPlayer(int id) const {
 
 float Game::timestep() const {
     return 1 / LOGIC_FPS;
+}
+
+const ServerOTD& Game::dataForType(int type) const {
+    return _objectTypeData.at(type).server;
 }

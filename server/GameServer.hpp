@@ -4,6 +4,7 @@
 #include <QTcpServer>
 
 #include "common/TcpMessageSocket.hpp"
+#include "common/ObjectTypeData.hpp"
 
 class GameServer;
 
@@ -13,7 +14,7 @@ class GameHandler : public QObject {
     std::string _title;
 
    public:
-    GameHandler(GameServer* gs, std::vector<std::map<msgpack::type::variant, msgpack::type::variant>> startingObjects, int id, std::string title);
+    GameHandler(GameServer* gs, const std::map<int, ObjectTypeData>& objectTypeData, const std::map<int, TankModuleData>& tankModuleData, std::vector<std::map<msgpack::type::variant, msgpack::type::variant>> startingObjects, int id, std::string title);
     void addConnection(int id, Message msg);
     void removeConnection(int id);
     void sendMessage(int id, Message msg);
@@ -38,6 +39,9 @@ class GameServer : public QObject {
     int _nextConnectionId = 1, _nextGameId = 1;
     std::map<int, ConnectionInfo> _connections;
     std::map<int, GameHandler*> _games;
+
+    std::map<int, ObjectTypeData> _objectTypeData;
+    std::map<int, TankModuleData> _tankModuleData;
 
     void _sendStats();
 

@@ -9,12 +9,13 @@
 #include "common/VCS.hpp"
 
 GameHandler::GameHandler(GameServer* gs,
+                         const std::map<int, ObjectTypeData>& objectTypeData, const std::map<int, TankModuleData>& tankModuleData,
                          std::vector<std::map<msgpack::type::variant, msgpack::type::variant>> startingObjects,
                          int id, std::string title)
     : QObject(gs), _title(title) {
     auto thread = new QThread();
     connect(thread, &QThread::started, [=]() {
-        auto game = new Game();
+        auto game = new Game(objectTypeData, tankModuleData);
         qInfo() << "Loading objects" << startingObjects.size();
 
         for (auto& obj : startingObjects) {
@@ -55,7 +56,10 @@ void GameHandler::removeConnection(int id) { emit _removeConnection(id); }
 
 void GameHandler::sendMessage(int id, Message msg) { emit _sendMessage(id, msg); }
 
-GameServer::GameServer(const QHostAddress& address, quint16 port) {
+GameServer::GameServer(const QHostAddress& address, quint16 port) : _objectTypeData(loadObjectTypeData(":/data/objects.json")), _tankModuleData(loadTankModuleData(":/data/tank_modules.json")) {
+    ObjectStateRegister::dumpRegistry();
+    qDebug() << "Loaded" << _objectTypeData.size() << "object types and" << _tankModuleData.size() << "tank module types";
+
     _server = new QTcpServer(this);
     if (!_server->listen(address, port)) {
         qWarning() << "Failed to bind to server port";
@@ -68,7 +72,7 @@ GameServer::GameServer(const QHostAddress& address, quint16 port) {
 
 int GameServer::addGame(const std::vector<std::map<msgpack::type::variant, msgpack::type::variant>>& startingObjects, std::string title) {
     auto id = _nextGameId++;
-    auto handler = new GameHandler(this, startingObjects, id, title);
+    auto handler = new GameHandler(this, _objectTypeData, _tankModuleData, startingObjects, id, title);
     connect(handler, &GameHandler::gameOver, this, &GameServer::removeGame);
     _games[id] = handler;
     return id;

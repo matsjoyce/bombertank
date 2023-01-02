@@ -4,11 +4,12 @@ BaseSprite {
     id: base
 
     Image {
-        source: "qrc:/data/images/iwall.png"
+        source: base.itemData && "qrc:/data/" + base.itemData.client.image
         x: -36
         y: -36
         width: 72
         height: 72
         smooth: false
+        fillMode: Image.PreserveAspectFit
     }
 }

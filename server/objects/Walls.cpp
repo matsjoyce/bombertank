@@ -1,17 +1,37 @@
 #include "Walls.hpp"
+#include "../Game.hpp"
 
 #include <QDebug>
 
-void AbstractWallState::createBodies(b2World& world, b2BodyDef& bodyDef) {
+template<class> inline constexpr bool always_false_v = false;
+
+void AbstractWallState::createBodies(Game* game, b2World& world, b2BodyDef& bodyDef) {
     bodyDef.type = b2_staticBody;
 
-    BaseObjectState::createBodies(world, bodyDef);
+    BaseObjectState::createBodies(game, world, bodyDef);
 
-    b2PolygonShape box;
-    // Half-size
-    box.SetAsBox(4.5f, 4.5f);
+    auto& data = game->dataForType(type());
 
-    body()->CreateFixture(&box, 1.0);
+    std::visit([this](auto&& arg) {
+        using T = std::decay_t<decltype(arg)>;
+        if constexpr (std::is_same_v<T, std::monostate>) {
+            b2PolygonShape box;
+            // Half-size
+            box.SetAsBox(4.5f, 4.5f);
+
+            body()->CreateFixture(&box, 1.0);
+        }
+        else if constexpr (std::is_same_v<T, BoxGeometry>) {
+            b2PolygonShape box;
+            // Half-size
+            box.SetAsBox(arg.width / 2, arg.height / 2);
+
+            body()->CreateFixture(&box, 1.0);
+        }
+        else {
+            static_assert(always_false_v<T>, "non-exhaustive visitor!");
+        }
+    }, data.geometry);
 }
 
 float WallState::maxHealth() const { return 100; }

@@ -16,4 +16,9 @@ qt_add_qml_module(bt_common
     URI BT.Common
     VERSION 1.0
 )
+qt_add_resources(bt_common "data_files"
+    PREFIX "/"
+    FILES
+        ../data/objects.json
+        ../data/tank_modules.json)
 target_link_libraries(bt_common PRIVATE Qt6::Core Qt6::Network Qt6::Qml msgpackc-cxx)

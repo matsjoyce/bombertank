@@ -14,9 +14,6 @@
 #include "actions/StunModule.hpp"
 #include "actions/MineDetector.hpp"
 
-TankState::TankState() {
-}
-
 float TankState::maxHealth() const {
     float total = 50;
     for (auto& action : _actions) {
@@ -47,10 +44,10 @@ float TankState::maxShield() const {
     return total;
 }
 
-void TankState::createBodies(b2World& world, b2BodyDef& bodyDef) {
+void TankState::createBodies(Game* game, b2World& world, b2BodyDef& bodyDef) {
     bodyDef.type = b2_dynamicBody;
 
-    BaseObjectState::createBodies(world, bodyDef);
+    BaseObjectState::createBodies(game, world, bodyDef);
 
     b2CircleShape box;
     // Half-size

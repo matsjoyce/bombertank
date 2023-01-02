@@ -9,12 +9,7 @@
             "renderer": "Wall.qml"
         },
         "server": {
-            "class": "Wall",
-            "geometry": {
-                "type": "box",
-                "hw": 4.5,
-                "hh": 4.5
-            }
+            "impl": "WallState"
         }
     },
     {
@@ -27,13 +22,7 @@
             "renderer": "IndestructableWall.qml"
         },
         "server": {
-            "class": "Wall",
-            "geometry": {
-                "type": "box",
-                "hw": 4.5,
-                "hh": 4.5
-            },
-            "indestructable": true
+            "impl": "IndestructableWallState"
         }
     },
     {
@@ -44,6 +33,9 @@
             "editor_placable": true,
             "editor_bounds": [6, 6],
             "renderer": "Crate.qml"
+        },
+        "server": {
+            "impl": "CrateState"
         }
     },
     {
@@ -54,24 +46,42 @@
             "editor_placable": true,
             "editor_bounds": [9, 9],
             "renderer": "StartZone.qml"
+        },
+        "server": {
+            "impl": "StartZoneState"
         }
     },
     {
         "id": 5,
-        "name": "Static_Bomb",
+        "name": "Static Bomb",
         "client": {
             "image": "images/charge.png",
             "editor_placable": true,
             "editor_bounds": [6, 6],
             "renderer": "Bomb.qml"
+        },
+        "server": {
+            "impl": "BombState"
         }
     },
     {
         "id": 6,
-        "name": "Timed_Bomb",
+        "name": "Timed Bomb",
         "client": {
             "image": "images/bomb.png",
             "renderer": "TimedBomb.qml"
+        },
+        "server": {
+            "impl": "TimedBombState"
+        }
+    },
+    {
+        "id": 9,
+        "name": "Mine",
+        "client": {
+        },
+        "server": {
+            "impl": "MineState"
         }
     },
     {
@@ -80,14 +90,19 @@
         "client": {
             "image": "images/rocket.png",
             "renderer": "Rocket.qml"
+        },
+        "server": {
+            "impl": "RocketState"
         }
     },
     {
         "id": 12,
         "name": "Shell",
         "client": {
-            "image": "images/bomb.png",
             "renderer": "Shell.qml"
+        },
+        "server": {
+            "impl": "ShellState"
         }
     },
     {
@@ -98,13 +113,9 @@
             "editor_placable": true,
             "editor_bounds": [6, 6],
             "renderer": "MGTurret.qml"
-        }
-    },
-    {
-        "id": 12,
-        "name": "Shell",
-        "client": {
-            "renderer": "Shell.qml"
+        },
+        "server": {
+            "impl": "MachineGunTurretState"
         }
     },
     {
@@ -112,6 +123,9 @@
         "name": "MG shell",
         "client": {
             "renderer": "MGShell.qml"
+        },
+        "server": {
+            "impl": "MGShellState"
         }
     },
     {
@@ -120,6 +134,9 @@
         "client": {
             "renderer": "Tank.qml",
             "controller": "TankInput.qml"
+        },
+        "server": {
+            "impl": "TankState"
         }
     },
     {
@@ -127,6 +144,9 @@
         "name": "Explosion",
         "client": {
             "renderer": "Explosion.qml"
+        },
+        "server": {
+            "impl": "ExplosionState"
         }
     },
     {
@@ -137,6 +157,9 @@
             "editor_placable": true,
             "editor_bounds": [6, 6],
             "renderer": "LaserTurret.qml"
+        },
+        "server": {
+            "impl": "LaserTurretState"
         }
     },
     {
@@ -144,6 +167,9 @@
         "name": "Laser",
         "client": {
             "renderer": "Laser.qml"
+        },
+        "server": {
+            "impl": "LaserState"
         }
     },
     {
@@ -151,6 +177,9 @@
         "name": "Homing rocket",
         "client": {
             "renderer": "Rocket.qml"
+        },
+        "server": {
+            "impl": "HomingRocketState"
         }
     },
     {
@@ -158,6 +187,27 @@
         "name": "StunWave",
         "client": {
             "renderer": "StunWave.qml"
+        },
+        "server": {
+            "impl": "StunWaveState"
+        }
+    },
+    {
+        "id": 24,
+        "name": "Thin Indestructable_Wall",
+        "client": {
+            "image": "images/iwall_thin.png",
+            "editor_placable": true,
+            "editor_bounds": [9, 3],
+            "renderer": "IndestructableWall.qml"
+        },
+        "server": {
+            "impl": "IndestructableWallState",
+            "geometry": {
+                "type": "box",
+                "width": 9,
+                "height": 3
+            }
         }
     }
 ]

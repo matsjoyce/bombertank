@@ -16,6 +16,7 @@ constexpr int ROCKET_CATEGORY = 0x4;
 class Game;
 
 class BaseObjectState {
+    int _type;
     bool _dead = false;
     b2Body* _body = nullptr;
     float _damageTaken = 0;
@@ -25,9 +26,9 @@ class BaseObjectState {
     int _stunnedFor = 0, _invisibleFor = 0;
 
    public:
-    BaseObjectState();
+    BaseObjectState(int type);
     virtual ~BaseObjectState();
-    virtual constants::ObjectType type() const = 0;
+    int type() const { return _type; }
     virtual float maxHealth() const = 0;
     b2Body* body() const { return _body; }
     float health() const { return maxHealth() - _damageTaken; }
@@ -37,7 +38,7 @@ class BaseObjectState {
     int side() const { return _side; }
     void setSide(int side) { _side = side; }
     virtual Message message() const;
-    virtual void createBodies(b2World& world, b2BodyDef& bodyDef);
+    virtual void createBodies(Game* game, b2World& world, b2BodyDef& bodyDef);
     virtual void prePhysics(Game* game);
     virtual void postPhysics(Game* game);
     virtual void handleMessage(const Message& msg);
@@ -50,5 +51,20 @@ class BaseObjectState {
     virtual Hostility hostility() const;
     void die();
 };
+
+typedef std::unique_ptr<BaseObjectState>(*ObjectStateFn)(int type);
+
+class ObjectStateRegister {
+    static std::map<std::string, ObjectStateFn>& _registry();
+public:
+    template<class T> static int registerObjectState(std::string name) {
+        _registry()[name] = +[](int type) -> std::unique_ptr<BaseObjectState>{ return std::make_unique<T>(type); };
+        return 0;
+    }
+    static std::unique_ptr<BaseObjectState> createObject(std::string name, int type);
+    static void dumpRegistry();
+};
+
+#define REGISTER_STATE(cls) static const int _##cls##Registration = ObjectStateRegister::registerObjectState<cls>(#cls);
 
 #endif  // OBJECTS_BASE_HPP

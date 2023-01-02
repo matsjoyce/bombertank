@@ -9,17 +9,14 @@
 #include "Utils.hpp"
 #include "Queries.hpp"
 
-TurretState::TurretState() {
-}
-
 float TurretState::maxHealth() const {
     return 50;
 }
 
-void TurretState::createBodies(b2World& world, b2BodyDef& bodyDef) {
+void TurretState::createBodies(Game* game, b2World& world, b2BodyDef& bodyDef) {
     bodyDef.type = b2_staticBody;
 
-    BaseObjectState::createBodies(world, bodyDef);
+    BaseObjectState::createBodies(game, world, bodyDef);
 
     b2PolygonShape box;
     // Half-size

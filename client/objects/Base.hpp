@@ -10,6 +10,7 @@
 
 class BaseObjectState : public QObject {
     Q_OBJECT
+    Q_PROPERTY(int type READ type BINDABLE bindableType)
     Q_PROPERTY(float x READ x BINDABLE bindableX)
     Q_PROPERTY(float y READ y BINDABLE bindableY)
     Q_PROPERTY(float rotation READ rotation BINDABLE bindableRotation)
@@ -21,14 +22,13 @@ class BaseObjectState : public QObject {
     Q_PROPERTY(int status READ status BINDABLE bindableStatus)
     QML_ELEMENT
 
-    constants::ObjectType _type;
-
    public:
     using QObject::QObject;
     virtual void loadMessage(Message& msg);
     void setFromEditor(constants::ObjectType type, float x, float y);
 
-    constants::ObjectType type() { return _type; }
+    int type() { return _typeProp.value(); }
+    QBindable<int> bindableType() { return &_typeProp; }
     float x() { return _xProp.value(); }
     QBindable<float> bindableX() { return &_xProp; }
     float y() { return _yProp.value(); }
@@ -51,6 +51,7 @@ class BaseObjectState : public QObject {
     QBindable<bool> bindableControlled() { return &_controlledProp; }
 
 private:
+    Q_OBJECT_BINDABLE_PROPERTY(BaseObjectState, int, _typeProp)
     Q_OBJECT_BINDABLE_PROPERTY(BaseObjectState, float, _xProp)
     Q_OBJECT_BINDABLE_PROPERTY(BaseObjectState, float, _yProp)
     Q_OBJECT_BINDABLE_PROPERTY(BaseObjectState, float, _rotationProp)

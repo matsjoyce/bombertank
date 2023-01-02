@@ -6,7 +6,7 @@
 void MineDetector::act(Game* game, TankState* tank) {
     TankModule::act(game, tank);
     for (auto obj : queryObjectsInCircle(game, tank->body()->GetPosition(), 25)) {
-        if (obj->type() == constants::ObjectType::MINE) {
+        if (obj->type() == static_cast<int>(constants::ObjectType::MINE)) {
             _points.push_back(obj->body()->GetPosition());
         }
     }

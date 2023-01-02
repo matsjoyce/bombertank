@@ -63,6 +63,7 @@ Page {
         id: map
         state: view.state
         anchors.fill: parent
+        context: appContext
     }
 
     MouseArea {

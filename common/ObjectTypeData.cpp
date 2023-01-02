@@ -5,6 +5,16 @@
 
 #include "ObjectTypeData.hpp"
 
+std::variant<std::monostate, BoxGeometry> parseGeometry(QJsonValueRef data) {
+    if (!data.isObject()) {
+        return {};
+    }
+    auto obj = data.toObject();
+    if (obj["type"].toString() == "box") {
+        return {BoxGeometry{static_cast<float>(obj["width"].toDouble()), static_cast<float>(obj["height"].toDouble())}};
+    }
+    return {};
+}
 
 std::map<int, ObjectTypeData> loadObjectTypeData(QString fname) {
      std::map<int, ObjectTypeData> ret;
@@ -35,7 +45,8 @@ std::map<int, ObjectTypeData> loadObjectTypeData(QString fname) {
                 }
             },
             {
-                "?"
+                server["impl"].toString(),
+                parseGeometry(server["geometry"])
             }
         };
         ret.emplace(std::make_pair(data.id, std::move(data)));

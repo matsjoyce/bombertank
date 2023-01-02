@@ -6,6 +6,7 @@
 #include <QObject>
 #include <QQmlEngine>
 
+#include <variant>
 
 struct ClientOTD {
     Q_GADGET
@@ -25,6 +26,10 @@ public:
     QSizeF editorBounds;
 };
 
+struct BoxGeometry {
+    float width, height;
+};
+
 struct ServerOTD {
     Q_GADGET
     QML_ELEMENT
@@ -32,6 +37,7 @@ struct ServerOTD {
 
 public:
     QString impl;
+    std::variant<std::monostate, BoxGeometry> geometry;
 };
 
 struct ObjectTypeData {

@@ -6,9 +6,9 @@
 class StartZoneState : public BaseObjectState {
    public:
     using BaseObjectState::BaseObjectState;
-    constants::ObjectType type() const override { return constants::ObjectType::START_ZONE; }
     float maxHealth() const override { return 1.0f; }
 };
+REGISTER_STATE(StartZoneState)
 
 
 #endif  // OBJECTS_MARKERS_HPP

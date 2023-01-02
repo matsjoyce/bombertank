@@ -108,6 +108,7 @@ void MapView::setContext(AppContext* context) {
             }
         }
     }
+    emit contextChanged(_context);
 }
 
 
@@ -143,7 +144,7 @@ QTransform MapView::_viewTransform() {
 }
 
 void MapView::_doUpdate() {
-    if (!_state) return;
+    if (!_state || !_context) return;
     QElapsedTimer timer;
     timer.start();
     auto engine = qmlEngine(this);

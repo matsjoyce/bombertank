@@ -12,12 +12,11 @@ class TankState : public BaseObjectState {
     float _leftTrack = 0, _rightTrack = 0, _leftTrackMovement = 0, _rightTrackMovement = 0;
 
    public:
-    TankState();
+    using BaseObjectState::BaseObjectState;
     float maxHealth() const override;
     float maxSpeed() const;
     float maxShield() const;
-    constants::ObjectType type() const override { return constants::ObjectType::TANK; }
-    void createBodies(b2World& world, b2BodyDef& bodyDef) override;
+    void createBodies(Game* game, b2World& world, b2BodyDef& bodyDef) override;
     void prePhysics(Game* game) override;
     void postPhysics(Game* game) override;
     void handleMessage(const Message& msg) override;
@@ -29,5 +28,6 @@ class TankState : public BaseObjectState {
     float turretAngle() const { return _turretAngle; }
     b2Vec2 turretVector() const { return {std::cos(_turretAngle), std::sin(_turretAngle)}; }
 };
+REGISTER_STATE(TankState)
 
 #endif  // OBJECTS_TANK_HPP

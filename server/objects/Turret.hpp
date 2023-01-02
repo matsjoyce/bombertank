@@ -13,9 +13,9 @@ class TurretState : public BaseObjectState {
     virtual void fire(float angle, Game* game) = 0;
 
    public:
-    TurretState();
+    using BaseObjectState::BaseObjectState;
     float maxHealth() const override;
-    void createBodies(b2World& world, b2BodyDef& bodyDef) override;
+    void createBodies(Game* game, b2World& world, b2BodyDef& bodyDef) override;
     void prePhysics(Game* game) override;
     Message message() const override;
     Hostility hostility() const override { return Hostility::HOSTILE; }
@@ -32,8 +32,8 @@ class LaserTurretState : public TurretState {
     using TurretState::TurretState;
     void prePhysics(Game* game) override;
     void postPhysics(Game* game) override;
-    constants::ObjectType type() const override { return constants::ObjectType::LASER_TURRET; }
 };
+REGISTER_STATE(LaserTurretState)
 
 class MachineGunTurretState : public TurretState {
     int _reload = 0;
@@ -42,7 +42,7 @@ class MachineGunTurretState : public TurretState {
    public:
     using TurretState::TurretState;
     void prePhysics(Game* game) override;
-    constants::ObjectType type() const override { return constants::ObjectType::MG_TURRET; }
 };
+REGISTER_STATE(MachineGunTurretState)
 
 #endif  // OBJECTS_TURRET_HPP

@@ -181,7 +181,7 @@ void EditorGameState::save(QUrl fname) const {
             {"x", obj.second->x()},
             {"y", obj.second->y()},
             {"rotation", obj.second->rotation()},
-            {"side", obj.second->type() == constants::ObjectType::START_ZONE ? tankSide++ : 0}
+            {"side", obj.second->type() == static_cast<int>(constants::ObjectType::START_ZONE) ? tankSide++ : 0}
         });
     }
     msgpack::pack(mapFile, objs);

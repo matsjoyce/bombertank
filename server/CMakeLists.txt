@@ -4,7 +4,6 @@ set(SOURCE
     Game.cpp
     GameMode.cpp
     objects/Base.cpp
-    objects/Objects.cpp
     objects/Tank.cpp
     objects/Crate.cpp
     objects/Walls.cpp
@@ -12,6 +11,7 @@ set(SOURCE
     objects/Turret.cpp
     objects/Utils.cpp
     objects/Queries.cpp
+    objects/Markers.cpp
     objects/actions/TankModule.cpp
     objects/actions/MainGun.cpp
     objects/actions/MachineGun.cpp

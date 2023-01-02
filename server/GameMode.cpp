@@ -15,7 +15,7 @@ void IndividualDeathMatch::setGame(Game* game) {
 }
 
 void IndividualDeathMatch::_onPlayerConnected(int id, Message msg) {
-    auto startZones = game()->objectsOfType(constants::ObjectType::START_ZONE);
+    auto startZones = game()->objectsOfType(static_cast<int>(constants::ObjectType::START_ZONE));
 
     if (!startZones.size()) {
         qWarning() << "No start zones";

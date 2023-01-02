@@ -6,7 +6,7 @@
 const float IMPULSE_TO_DAMAGE = 10000.0f;
 const float MIN_IMPULSE_DAMAGE = 1.0f;
 
-BaseObjectState::BaseObjectState() {}
+BaseObjectState::BaseObjectState(int type) : _type(type) {}
 
 Message BaseObjectState::message() const {
     constants::StatusTypes status;
@@ -29,7 +29,7 @@ Message BaseObjectState::message() const {
     };
 }
 
-void BaseObjectState::createBodies(b2World& world, b2BodyDef& bodyDef) {
+void BaseObjectState::createBodies(Game* game, b2World& world, b2BodyDef& bodyDef) {
     bodyDef.userData.pointer = reinterpret_cast<uintptr_t>(this);
     _body = world.CreateBody(&bodyDef);
 }
@@ -85,3 +85,22 @@ Hostility BaseObjectState::hostility() const {
     return Hostility::NON_HOSTILE;
 }
 
+std::map<std::string, ObjectStateFn>& ObjectStateRegister::_registry() {
+    static std::map<std::string, ObjectStateFn> r;
+    return r;
+}
+
+std::unique_ptr<BaseObjectState> ObjectStateRegister::createObject(std::string name, int type) {
+    if (!_registry().count(name)) {
+        return {};
+    }
+    ObjectStateFn fn = _registry()[name];
+    return fn(type);
+}
+
+void ObjectStateRegister::dumpRegistry() {
+    auto dbg = qDebug() << "State registry" << _registry().size() << "list:";
+    for (auto& [name, _] : _registry()) {
+        dbg << QString::fromStdString(name);
+    }
+}

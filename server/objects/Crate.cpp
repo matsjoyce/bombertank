@@ -5,12 +5,12 @@
 
 float CrateState::maxHealth() const { return 50; }
 
-void CrateState::createBodies(b2World& world, b2BodyDef& bodyDef) {
+void CrateState::createBodies(Game* game, b2World& world, b2BodyDef& bodyDef) {
     bodyDef.type = b2_dynamicBody;
     // Prevent the crate spinning endlessly
     bodyDef.angularDamping = 30;
 
-    BaseObjectState::createBodies(world, bodyDef);
+    BaseObjectState::createBodies(game, world, bodyDef);
 
     b2PolygonShape box;
     // Half-size
@@ -52,10 +52,10 @@ void TimedBombState::prePhysics(Game* game) {
     }
 }
 
-void MineState::createBodies(b2World& world, b2BodyDef& bodyDef) {
+void MineState::createBodies(Game* game, b2World& world, b2BodyDef& bodyDef) {
     bodyDef.type = b2_staticBody;
 
-    BaseObjectState::createBodies(world, bodyDef);
+    BaseObjectState::createBodies(game, world, bodyDef);
 
     b2CircleShape circ;
     circ.m_radius = 1;

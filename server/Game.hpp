@@ -11,6 +11,7 @@
 #include "box2d/box2d.h"
 #include "common/Constants.hpp"
 #include "common/TcpMessageSocket.hpp"
+#include "common/ObjectTypeData.hpp"
 #include "objects/Base.hpp"
 
 class Game : public QObject, public b2ContactListener {
@@ -26,22 +27,26 @@ class Game : public QObject, public b2ContactListener {
     int _nextId = 1;
     bool _active = true;
 
+    const std::map<int, ObjectTypeData>& _objectTypeData;
+    const std::map<int, TankModuleData>& _tankModuleData;
+
     b2World _world;
 
    public:
-    Game();
+    Game(const std::map<int, ObjectTypeData>& objectTypeData, const std::map<int, TankModuleData>& tankModuleData);
     void mainloop();
     std::optional<std::pair<int, BaseObjectState*>> addObject(constants::ObjectType type, b2Vec2 position, float rotation, b2Vec2 velocity);
     void PreSolve(b2Contact *contact, const b2Manifold* oldManifold) override;
     void PostSolve(b2Contact *contact, const b2ContactImpulse *impulse) override;
     BaseObjectState *object(int id);
     std::vector<int> objectsOnSide(int side) const;
-    std::vector<int> objectsOfType(constants::ObjectType type) const;
+    std::vector<int> objectsOfType(int type) const;
     void attachPlayerToObject(int id, int objId);
     std::optional<int> attachedObjectForPlayer(int id) const;
     std::mt19937& randomGenerator() { return _randomGen; }
     const b2World* world() const { return &_world; }
     float timestep() const;
+    const ServerOTD& dataForType(int type) const;
 
    public slots:
     void addConnection(int id, Message msg);

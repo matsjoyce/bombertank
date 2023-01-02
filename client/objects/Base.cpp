@@ -2,7 +2,7 @@
 #include "common/MsgpackUtils.hpp"
 
 void BaseObjectState::loadMessage(Message& msg) {
-    _type = static_cast<constants::ObjectType>(msg["type"].as_uint64_t());
+    _typeProp.setValue(msg["type"].as_uint64_t());
     _xProp.setValue(extractDouble(msg["x"]));
     _yProp.setValue(extractDouble(msg["y"]));
     _rotationProp.setValue(extractDouble(msg["rotation"]));
@@ -13,7 +13,7 @@ void BaseObjectState::loadMessage(Message& msg) {
 }
 
 void BaseObjectState::setFromEditor(constants::ObjectType type, float x, float y) {
-    _type = type;
+    _typeProp.setValue(static_cast<int>(type));
     _xProp.setValue(x);
     _yProp.setValue(y);
 }

@@ -2,13 +2,13 @@
 #include <QCommandLineParser>
 
 #include "GameServer.hpp"
+#include "objects/Base.hpp"
 #include "common/VCS.hpp"
 
 int main(int argc, char *argv[]) {
     QCoreApplication app(argc, argv);
     QCoreApplication::setApplicationName("BomberTank2 Server");
     QCoreApplication::setApplicationVersion(GIT_NAME);
-
 
     QCommandLineParser parser;
     parser.addHelpOption();

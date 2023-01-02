@@ -7,11 +7,11 @@ const float IMPULSE_TO_DAMAGE = 300.0f;
 
 float ShellState::maxHealth() const { return 2; }
 
-void ShellState::createBodies(b2World& world, b2BodyDef& bodyDef) {
+void ShellState::createBodies(Game* game, b2World& world, b2BodyDef& bodyDef) {
     bodyDef.type = b2_dynamicBody;
     bodyDef.bullet = true;
 
-    BaseObjectState::createBodies(world, bodyDef);
+    BaseObjectState::createBodies(game, world, bodyDef);
 
     b2CircleShape circ;
     circ.m_radius = _bodyRadius();
