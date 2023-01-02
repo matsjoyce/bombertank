@@ -128,9 +128,16 @@ int EditorGameState::addObject(int type, float x, float y, float rotation) {
     if (bounds.isEmpty()) {
         qWarning() << "Type" << type << "used in the editor has empty bounds, this will mess with object removal";
     }
-    b2AABB aabb = {
-        {static_cast<float>(x - bounds.width() / 2 + AABB_REDUCTION), static_cast<float>(y - bounds.height() / 2 + AABB_REDUCTION)},
-        {static_cast<float>(x + bounds.width() / 2 - AABB_REDUCTION), static_cast<float>(y + bounds.height() / 2 - AABB_REDUCTION)}
+    b2Vec2 trCorner{static_cast<float>(bounds.width() / 2 - AABB_REDUCTION), static_cast<float>(bounds.height() / 2 - AABB_REDUCTION)};
+    b2Vec2 brCorner{trCorner.x, -trCorner.y};
+    b2Rot rot(rotation);
+    trCorner = b2Mul(rot, trCorner);
+    brCorner = b2Mul(rot, brCorner);
+    b2Vec2 center{x, y};
+
+    b2AABB aabb{
+        center + b2Min(b2Min(trCorner, brCorner), b2Min(-trCorner, -brCorner)),
+        center + b2Max(b2Max(trCorner, brCorner), b2Max(-trCorner, -brCorner))
     };
     removeObjects(aabb.lowerBound.x, aabb.lowerBound.y, aabb.upperBound.x, aabb.upperBound.y);
 
