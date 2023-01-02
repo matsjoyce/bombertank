@@ -28,15 +28,41 @@ Page {
         horizontalAlignment: Qt.AlignRight
     }
 
+    Item {
+        height: page.height - page.header.height - page.footer.height
+        width: page.width
+        clip: true
+        id: bg
+        Column {
+            Repeater {
+                model: Math.floor(bg.height / 72)
+                Row {
+                    id: row
+                    property int rowIdx: index
+                    Repeater {
+                        model: Math.ceil(bg.width / 72)
+                        Image {
+                            source: index & row.rowIdx ? "" : "qrc:/data/images/wall.png"
+                            width: 72
+                            height: 72
+                            smooth: false
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     ColumnLayout {
         spacing: 10
-        x: 10
+        x: 20
         anchors.verticalCenter: parent.verticalCenter
-        width: 300
+        width: 440
 
         Button {
             text: qsTr("Start local game")
             Layout.fillWidth: true
+            Layout.preferredHeight: 50
             onClicked: {
                 context.startLocalServer()
                 page.state = "CONNECTING";
@@ -46,6 +72,7 @@ Page {
         Button {
             text: qsTr("Join server")
             Layout.fillWidth: true
+            Layout.preferredHeight: 50
             onClicked: {
                 serverAddressDialog.open();
             }
@@ -54,6 +81,7 @@ Page {
         Button {
             text: qsTr("Map editor")
             Layout.fillWidth: true
+            Layout.preferredHeight: 50
             onClicked: startEditor()
         }
 
@@ -61,12 +89,14 @@ Page {
         Button {
             text: qsTr("Controls cheatsheet")
             Layout.fillWidth: true
+            Layout.preferredHeight: 50
             onClicked: helpDialog.open()
         }
 
         Button {
             text: qsTr("Exit")
             Layout.fillWidth: true
+            Layout.preferredHeight: 50
             onClicked: exit()
         }
     }

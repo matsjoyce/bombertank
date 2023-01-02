@@ -21,7 +21,7 @@ BaseSprite {
         width: 48
         height: 48
         smooth: false
-        rotation: -(object.turretAngle || 0) / Math.PI * 180;
+        rotation: -(object.turretAngle - object.rotation || 0) / Math.PI * 180;
     }
 
     StunnedAnimation {
