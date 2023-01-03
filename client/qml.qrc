@@ -100,7 +100,5 @@
         <file>data/fonts/Orbitron-Medium.ttf</file>
         <file>data/fonts/Orbitron-Regular.ttf</file>
         <file>data/fonts/Orbitron-SemiBold.ttf</file>
-        <file>data/objects.json</file>
-        <file>data/tank_modules.json</file>
     </qresource>
 </RCC>

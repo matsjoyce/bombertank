@@ -34,7 +34,7 @@ void TimedBombModule::act(Game* game, TankState* tank) {
 }
 
 float MGTurretModule::maxReload() {
-    return 100;
+    return 400;
 }
 
 void MGTurretModule::act(Game* game, TankState* tank) {

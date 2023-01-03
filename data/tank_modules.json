@@ -38,7 +38,8 @@
         "id": 5,
         "name": "Shield module",
         "image": "images/shield_box.png",
-        "for_slots": [3, 4]
+        "for_slots": [3, 4],
+        "description": "Add a damage buffer (equivalent to half of a health module) which regenerates over time. Most effective against nearby explosions."
     },
     {
         "id": 6,

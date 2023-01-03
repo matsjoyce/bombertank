@@ -15,21 +15,16 @@ float SpeedModule::speedContribution() {
 }
 
 void ShieldModule::prePhysics(Game* game, TankState* tank) {
-//     tank->addShield(-1);
     TankModule::prePhysics(game, tank);
-}
-
-void ShieldModule::act(Game* game, TankState* tank) {
-    TankModule::act(game, tank);
-    tank->addShield(maxShieldContribution());
-}
-
-float ShieldModule::maxReload() {
-    return 100;
+    ++_timer;
+    if (_timer >= 10) {
+        _timer = 0;
+        tank->addShield(1);
+    }
 }
 
 float ShieldModule::maxShieldContribution() {
-    return 50;
+    return 25;
 }
 
 void InvisibiltyModule::act(Game* game, TankState* tank) {

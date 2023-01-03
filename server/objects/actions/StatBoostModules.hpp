@@ -17,11 +17,10 @@ public:
 };
 
 class ShieldModule : public TankModule {
+    int _timer = 0;
 public:
     int type() override { return 5; }
     void prePhysics(Game * game, TankState * tank) override;
-    void act(Game* game, TankState* tank) override;
-    float maxReload() override;
     float maxShieldContribution() override;
 };
 
