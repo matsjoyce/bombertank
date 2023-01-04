@@ -47,7 +47,7 @@ void TurretState::prePhysics(Game* game) {
     _turretAngle += std::min(_slewRate, std::max(-_slewRate, angleDiff));
 
     if (hasTarget && std::abs(angleDiff) < 0.1) {
-        auto raycastResult = raycastNearestObject(game, center, targetPosition, [](auto obj) { return true; });
+        auto raycastResult = raycastNearestObject(game, center, targetPosition, [](auto obj){ return hasCollisionCategory(obj, SHELL_CATEGORY); });
         if (raycastResult && std::get<0>(*raycastResult) == prioritisedTargets.front()) {
             fire(_turretAngle, game);
         }
