@@ -1,5 +1,6 @@
 import QtQuick 2.15
 import BT.Common
+import BT
 
 BaseSprite {
     id: base
@@ -21,11 +22,11 @@ BaseSprite {
         width: 48
         height: 48
         smooth: false
-        rotation: -(object.turretAngle - object.rotation || 0) / Math.PI * 180;
+        rotation: -(base.MapView.object.turretAngle - base.MapView.object.rotation || 0) / Math.PI * 180;
     }
 
     StunnedAnimation {
-        running: object.status & Constants.STUNNED
+        running: base.MapView.object.status & Constants.STUNNED
     }
 }
 

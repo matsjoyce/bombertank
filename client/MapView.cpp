@@ -43,13 +43,13 @@ void MapView::_attachToObject(int id, BaseObjectState* obj) {
         return;
     }
     auto engine = qmlEngine(this);
-    auto context = new QQmlContext(engine->rootContext(), this);
-    context->setContextProperty("object", obj);
-    _controls = qobject_cast<QQuickItem*>(iter->second->create(context));
+    _controls = qobject_cast<QQuickItem*>(iter->second->beginCreate(engine->rootContext()));
     if (!_controls) {
         qWarning() << "Could not create input";
         return;
     }
+    _setupAttached(_controls, obj);
+    iter->second->completeCreate();
     _controls->setParentItem(this);
     auto controlsState = qvariant_cast<TankControlState*>(_controls->property("controls"));
     if (!controlsState) {
@@ -57,6 +57,19 @@ void MapView::_attachToObject(int id, BaseObjectState* obj) {
         return;
     }
     connect(controlsState, &TankControlState::controlsChanged, this, &MapView::_handleControlsUpdated);
+}
+
+void MapView::_setupAttached(QObject* object, BaseObjectState* obj) {
+    if (!_state || !_context) {
+        qWarning("Could not setup attached object because context or state is missing");
+        return;
+    }
+    auto attached = qobject_cast<MapViewAttachedType*>(qmlAttachedPropertiesObject<MapView>(object));
+    if (!attached) {
+        qWarning("Could not setup attached object because cast failed");
+        return;
+    }
+    attached->setData(obj, &_context->objectTypeDatas().at(obj->type()).client);
 }
 
 void MapView::setState(BaseGameState* state) {
@@ -171,13 +184,13 @@ void MapView::_doUpdate() {
                 //            << static_cast<int>(snapshot_iter->second->type()) << "is not loaded or does not exist";
             }
             else {
-                auto context = new QQmlContext(engine->rootContext(), this);
-                context->setContextProperty("object", snapshot_iter->second.get());
-                auto a = qobject_cast<QQuickItem*>(iter->second->create(context));
+                auto a = qobject_cast<QQuickItem*>(iter->second->beginCreate(engine->rootContext()));
                 if (!a) {
                     qWarning() << "Could not create item, null was returned";
                 }
                 else {
+                    _setupAttached(a, snapshot_iter->second.get());
+                    iter->second->completeCreate();
                     _sprites.emplace(snapshot_iter->first, MapView::SpriteDetails{a, snapshot_iter->second});
                     a->setParentItem(this);
                 }

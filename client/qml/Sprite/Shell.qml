@@ -1,5 +1,6 @@
 import QtQuick 2.15
 import QtMultimedia
+import BT
 
 BaseSprite {
     id: base
@@ -23,7 +24,7 @@ BaseSprite {
             GradientStop { position: 0.0; color: "#ffbb00" }
             GradientStop { position: 1.0; color: "transparent" }
         }
-        visible: !object.destroyed
+        visible: !base.MapView.object.destroyed
     }
     Rectangle {
         id: hitCircle
@@ -34,11 +35,11 @@ BaseSprite {
         radius: 2
         color: "white"
         opacity: 1
-        visible: object.destroyed
+        visible: base.MapView.object.destroyed
 
         ParallelAnimation {
             id: deathAnim
-            running: object.destroyed
+            running: base.MapView.object.destroyed
             NumberAnimation { target: hitCircle; property: "radius"; to: 20; duration: 500 }
             NumberAnimation { target: hitCircle; property: "opacity"; to: 0; duration: 500 }
         }

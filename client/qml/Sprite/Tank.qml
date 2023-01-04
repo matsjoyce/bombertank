@@ -25,14 +25,14 @@ BaseSprite {
 
         Image {
             source: "qrc:/data/images/tank_track_marks.png"
-            y: ((-object.leftTrackMovement * 8) % 8 + 8) % 8
+            y: ((-base.MapView.object.leftTrackMovement * 8) % 8 + 8) % 8
             width: 48
             height: 48
             smooth: false
         }
         Image {
             source: "qrc:/data/images/tank_track_marks.png"
-            y: ((-object.rightTrackMovement * 8) % 8 + 8) % 8
+            y: ((-base.MapView.object.rightTrackMovement * 8) % 8 + 8) % 8
             width: 48
             height: 48
             smooth: false
@@ -55,7 +55,7 @@ BaseSprite {
         id: color
         anchors.fill: overlay
         source: overlay
-        hue: (object.side - 1) / 4
+        hue: (base.MapView.object.side - 1) / 4
         lightness: -0.5
     }
 
@@ -66,15 +66,15 @@ BaseSprite {
         width: 48
         height: 48
         smooth: false
-        rotation: -(object.turretAngle - object.rotation || 0) / Math.PI * 180;
+        rotation: -(base.MapView.object.turretAngle - base.MapView.object.rotation || 0) / Math.PI * 180;
     }
 
     StunnedAnimation {
-        running: object.status & Constants.STUNNED
+        running: base.MapView.object.status & Constants.STUNNED
     }
 
     Repeater {
-        model: object.modules
+        model: base.MapView.object.modules
         Loader {
             property TankModuleState module: modelData
             property var data: modelData.type == -1 ? null : context.tankModuleData(modelData.type)
