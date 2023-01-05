@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package bt_messages;
+
+message FromServer {
+    oneof contents {
+        JoinGame joinGame = 1;
+    }
+
+    message JoinGame {
+        int32 gameId = 1;
+    }
+}
+

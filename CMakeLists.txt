@@ -21,6 +21,8 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
+find_package(Protobuf REQUIRED)
+
 add_compile_definitions(MSGPACK_USE_BOOST)
 find_package(msgpack REQUIRED)
 
