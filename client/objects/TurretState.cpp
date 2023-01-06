@@ -1,5 +1,4 @@
 #include "TurretState.hpp"
-#include "common/MsgpackUtils.hpp"
 
 void TurretState::loadMessage(const bt_messages::ToClientMessage_ObjectUpdated& msg) {
     BaseObjectState::loadMessage(msg);

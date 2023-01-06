@@ -2,7 +2,6 @@ configure_file("VCS.cpp.in" "VCS.cpp" @ONLY)
 set(SOURCE
     TcpMessageSocket.cpp
     Constants.cpp
-    MsgpackUtils.cpp
     ObjectTypeData.cpp
 )
 
@@ -27,5 +26,5 @@ qt_add_resources(bt_common "data_files"
     FILES
         ../data/objects.json
         ../data/tank_modules.json)
-target_link_libraries(bt_common PRIVATE Qt6::Core Qt6::Network Qt6::Qml msgpackc-cxx ${PROTOBUF_LIBRARY})
+target_link_libraries(bt_common PRIVATE Qt6::Core Qt6::Network Qt6::Qml ${PROTOBUF_LIBRARY})
 target_include_directories(bt_common PUBLIC ${CMAKE_CURRENT_BINARY_DIR})

@@ -5,7 +5,6 @@
 
 #include "../Game.hpp"
 #include "common/Constants.hpp"
-#include "common/MsgpackUtils.hpp"
 #include "actions/MainGun.hpp"
 #include "actions/MachineGun.hpp"
 #include "actions/RocketLauncher.hpp"
@@ -200,7 +199,6 @@ void TankState::fillMessage(bt_messages::ToClientMessage_ObjectUpdated& msg) con
     auto& tank_updates = *msg.mutable_tank_updates();
     tank_updates.set_shield(_shield / maxShield());
     msg.set_turret_angle(_turretAngle);
-    std::vector<msgpack::type::variant> moduleMsgs;
     for (auto& action : _actions) {
         auto& module_updates = *tank_updates.add_modules();
         if (action) {

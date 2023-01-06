@@ -1,5 +1,4 @@
 #include "Base.hpp"
-#include "common/MsgpackUtils.hpp"
 
 void BaseObjectState::loadMessage(const bt_messages::ToClientMessage_ObjectUpdated& msg) {
     _typeProp.setValue(msg.type());

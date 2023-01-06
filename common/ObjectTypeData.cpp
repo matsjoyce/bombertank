@@ -28,8 +28,8 @@ std::variant<std::monostate, BoxGeometry, PolyGeometry> parseGeometry(QJsonValue
 }
 
 std::map<int, ObjectTypeData> loadObjectTypeData(QString fname) {
-     std::map<int, ObjectTypeData> ret;
-     QFile f(fname);
+    std::map<int, ObjectTypeData> ret;
+    QFile f(fname);
 
     if (!f.open(QIODevice::ReadOnly)) {
         qWarning("Couldn't open type data file");
@@ -67,8 +67,8 @@ std::map<int, ObjectTypeData> loadObjectTypeData(QString fname) {
 
 
 std::map<int, TankModuleData> loadTankModuleData(QString fname) {
-     std::map<int, TankModuleData> ret;
-     QFile f(fname);
+    std::map<int, TankModuleData> ret;
+    QFile f(fname);
 
     if (!f.open(QIODevice::ReadOnly)) {
         qWarning("Couldn't open type data file");

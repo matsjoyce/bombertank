@@ -5,9 +5,11 @@
 #include <QQmlEngine>
 #include <QTimer>
 #include <algorithm>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
 
 #include "GameState.hpp"
-#include "common/MsgpackUtils.hpp"
 
 GameServer::GameServer(ToServerMessageSocket* msgconn, QObject* parent)
     : QObject(parent), _msgconn(msgconn), _listedGamesModel(new ListedGameModel(this)) {
@@ -63,20 +65,19 @@ void GameServer::createGame(QUrl mapFilePath, QString title) {
         qWarning() << "Could not open map file" << mapFilePath;
         return;
     }
-    QByteArray mapData = mapFile.readAll();
-    msgpack::object_handle oh = msgpack::unpack(mapData.constData(), mapData.size());
-    auto objs = extractVectorOfMap(oh.get().as<msgpack::type::variant>());
+    QJsonDocument loadDoc(QJsonDocument::fromJson(mapFile.readAll()));
 
     auto msg = std::make_shared<bt_messages::ToServerMessage>();
     auto create_game = msg->mutable_create_game();
     create_game->set_title(title.toStdString());
-    for (auto obj : objs) {
+    for (auto item : loadDoc.array()) {
+        auto obj = item.toObject();
         auto starting_obj = create_game->add_starting_objects();
-        starting_obj->set_type(obj.at("type").as_uint64_t());
-        starting_obj->set_x(extractDouble(obj.at("x")));
-        starting_obj->set_y(extractDouble(obj.at("y")));
-        starting_obj->set_rotation(extractDouble(obj.at("rotation")));
-        starting_obj->set_side(obj.at("side").as_uint64_t());
+        starting_obj->set_type(obj["type"].toInt());
+        starting_obj->set_x(obj["x"].toDouble());
+        starting_obj->set_y(obj["y"].toDouble());
+        starting_obj->set_rotation(obj["rotation"].toDouble());
+        starting_obj->set_side(obj["side"].toInt());
     }
     _msgconn->sendMessage(msg);
 }

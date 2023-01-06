@@ -5,7 +5,6 @@
 
 #include "Game.hpp"
 #include "GameMode.hpp"
-#include "common/MsgpackUtils.hpp"
 #include "common/VCS.hpp"
 
 GameHandler::GameHandler(GameServer* gs,

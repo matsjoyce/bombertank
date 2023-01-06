@@ -2,9 +2,11 @@
 
 #include <QDebug>
 #include <QFile>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
 
 #include "GameServer.hpp"
-#include "common/MsgpackUtils.hpp"
 #include "objects/TankState.hpp"
 #include "objects/TurretState.hpp"
 #include "AppContext.hpp"
@@ -189,18 +191,20 @@ void EditorGameState::save(QUrl fname) const {
         qWarning() << "Could not open map file" << fname;
         return;
     }
-    std::vector<std::map<std::string, msgpack::type::variant>> objs;
+    QJsonArray objs;
     int tankSide = 1;
     for (auto& obj : _objectStates) {
-        objs.emplace_back(std::map<std::string, msgpack::type::variant>{
+        objs.append(QJsonObject({
             {"type", static_cast<int>(obj.second->type())},
             {"x", obj.second->x()},
             {"y", obj.second->y()},
             {"rotation", obj.second->rotation()},
             {"side", obj.second->type() == static_cast<int>(constants::ObjectType::START_ZONE) ? tankSide++ : 0}
-        });
+        }));
     }
-    msgpack::pack(mapFile, objs);
+    QJsonDocument doc;
+    doc.setArray(objs);
+    mapFile.write(doc.toJson(QJsonDocument::Compact));
 }
 
 EditorGameState* EditorGameState::load(QUrl fname, AppContext* context) {
@@ -210,12 +214,11 @@ EditorGameState* EditorGameState::load(QUrl fname, AppContext* context) {
         qWarning() << "Could not open map file" << fname;
         return state;
     }
-    QByteArray mapData = mapFile.readAll();
-    msgpack::object_handle oh = msgpack::unpack(mapData.constData(), mapData.size());
-    auto objs = extractVectorOfMap(oh.get().as<msgpack::type::variant>());
+    QJsonDocument loadDoc(QJsonDocument::fromJson(mapFile.readAll()));
 
-    for (auto& obj : objs) {
-        state->addObject(obj["type"].as_uint64_t(), extractDouble(obj["x"]), extractDouble(obj["y"]), extractDouble(obj["rotation"]));
+    for (auto item : loadDoc.array()) {
+        auto obj = item.toObject();
+        state->addObject(obj["type"].toInt(), obj["x"].toDouble(), obj["y"].toDouble(), obj["rotation"].toDouble());
     }
 
     QQmlEngine::setObjectOwnership(state, QQmlEngine::JavaScriptOwnership);

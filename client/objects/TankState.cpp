@@ -1,5 +1,4 @@
 #include "TankState.hpp"
-#include "common/MsgpackUtils.hpp"
 
 void TankState::loadMessage(const bt_messages::ToClientMessage_ObjectUpdated& msg) {
     BaseObjectState::loadMessage(msg);
@@ -38,7 +37,7 @@ void TankModuleState::loadMessage(const bt_messages::ToClientMessage_TankModuleU
         _pointsProp.setValue({});
     }
     else {
-        _reloadProp.setValue(extractDouble(msg.reload()));
+        _reloadProp.setValue(msg.reload());
         int beforeUses = _usesProp.value();
         _usesProp.setValue(msg.uses());
         if (beforeUses < _usesProp.value()) {
