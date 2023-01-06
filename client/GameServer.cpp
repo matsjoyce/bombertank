@@ -7,42 +7,52 @@
 #include <algorithm>
 
 #include "GameState.hpp"
+#include "common/MsgpackUtils.hpp"
 
-GameServer::GameServer(TcpMessageSocket* msgconn, QObject* parent)
+GameServer::GameServer(ToServerMessageSocket* msgconn, QObject* parent)
     : QObject(parent), _msgconn(msgconn), _listedGamesModel(new ListedGameModel(this)) {
-    connect(_msgconn, &TcpMessageSocket::messageRecieved, this, &GameServer::_handleMessage);
+    connect(_msgconn, &ToServerMessageSocket::messageRecieved, this, &GameServer::_handleMessage);
 }
 
 void GameServer::disconnect() {
     _msgconn->close();
-    QObject::disconnect(_msgconn, &TcpMessageSocket::messageRecieved, this, &GameServer::_handleMessage);
+    QObject::disconnect(_msgconn, &ToServerMessageSocket::messageRecieved, this, &GameServer::_handleMessage);
 }
 
 
-void GameServer::_handleMessage(int id, const Message& msg) {
-    if (msg.at("cmd").as_string() == "game_created") {
-        _listedGamesModel->_updateGame(msg.at("id").as_uint64_t(), QString::fromStdString(msg.at("title").as_string()));
-    }
-    else if (msg.at("cmd").as_string() == "game_updated") {
-        _listedGamesModel->_updateGame(msg.at("id").as_uint64_t(), QString::fromStdString(msg.at("title").as_string()));
-    }
-    else if (msg.at("cmd").as_string() == "game_removed") {
-        _listedGamesModel->_removeGame(msg.at("id").as_uint64_t());
-    }
-    else if (msg.at("cmd").as_string() == "server_stats") {
-        _connectedCountProp.setValue(msg.at("connected").as_uint64_t());
-        _serverVersionProp.setValue(QString::fromStdString(msg.at("version").as_string()));
-    }
-    else if (_gameState) {
-        _gameState->handleMessage(id, msg);
+void GameServer::_handleMessage(int id, std::shared_ptr<bt_messages::ToClientMessage> msg) {
+    switch (msg->contents_case()) {
+        case bt_messages::ToClientMessage::kGameUpdated: {
+            _listedGamesModel->_updateGame(msg->game_updated().game_id(), QString::fromStdString(msg->game_updated().title()));
+            break;
+        }
+        case bt_messages::ToClientMessage::kGameRemoved: {
+            _listedGamesModel->_removeGame(msg->game_removed().game_id());
+            break;
+        }
+        case bt_messages::ToClientMessage::kServerStats: {
+            _connectedCountProp.setValue(msg->server_stats().connected());
+            _serverVersionProp.setValue(QString::fromStdString(msg->server_stats().version()));
+            break;
+        }
+        default: {
+            _gameState->handleMessage(id, msg);
+            break;
+        }
     }
 }
 
 GameState* GameServer::joinGame(int id, std::vector<int> modulesForSlots) {
-    _msgconn->sendMessage({{"cmd", "join_game"}, {"id", id}, {"tank_modules", std::vector<msgpack::type::variant>(modulesForSlots.begin(), modulesForSlots.end())}});
+    auto msg = std::make_shared<bt_messages::ToServerMessage>();
+    auto join_game = msg->mutable_join_game();
+    join_game->set_game_id(id);
+    for (auto module : modulesForSlots) {
+        join_game->add_tank_modules(module);
+    }
+    _msgconn->sendMessage(msg);
 
     _gameState = new GameState(this, id);
-    connect(_gameState, &GameState::sendMessage, _msgconn, &TcpMessageSocket::sendMessage);
+    connect(_gameState, &GameState::sendMessage, _msgconn, &ToServerMessageSocket::sendMessage);
     QQmlEngine::setObjectOwnership(_gameState, QQmlEngine::CppOwnership);
     return _gameState;
 }
@@ -55,9 +65,20 @@ void GameServer::createGame(QUrl mapFilePath, QString title) {
     }
     QByteArray mapData = mapFile.readAll();
     msgpack::object_handle oh = msgpack::unpack(mapData.constData(), mapData.size());
-    auto objs = oh.get().as<std::vector<msgpack::type::variant>>();
+    auto objs = extractVectorOfMap(oh.get().as<msgpack::type::variant>());
 
-    _msgconn->sendMessage({{"cmd", "create_game"}, {"starting_objects", objs}, {"title", title.toStdString()}});
+    auto msg = std::make_shared<bt_messages::ToServerMessage>();
+    auto create_game = msg->mutable_create_game();
+    create_game->set_title(title.toStdString());
+    for (auto obj : objs) {
+        auto starting_obj = create_game->add_starting_objects();
+        starting_obj->set_type(obj.at("type").as_uint64_t());
+        starting_obj->set_x(extractDouble(obj.at("x")));
+        starting_obj->set_y(extractDouble(obj.at("y")));
+        starting_obj->set_rotation(extractDouble(obj.at("rotation")));
+        starting_obj->set_side(obj.at("side").as_uint64_t());
+    }
+    _msgconn->sendMessage(msg);
 }
 
 int ListedGameModel::rowCount(const QModelIndex& parent) const { return _listedGames.size(); }

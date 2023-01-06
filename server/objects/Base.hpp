@@ -37,11 +37,11 @@ class BaseObjectState {
     bool invisible() const { return _invisibleFor != 0; }
     int side() const { return _side; }
     void setSide(int side) { _side = side; }
-    virtual Message message() const;
+    virtual void fillMessage(bt_messages::ToClientMessage_ObjectUpdated& msg) const;
     virtual void createBodies(Game* game, b2World& world, b2BodyDef& bodyDef);
     virtual void prePhysics(Game* game);
     virtual void postPhysics(Game* game);
-    virtual void handleMessage(const Message& msg);
+    virtual void handleMessage(const bt_messages::ToServerMessage_ControlState& msg);
     virtual void collision(BaseObjectState* other, float impulse);
     virtual void damage(float amount, DamageType type);
     virtual void stun(int amount);

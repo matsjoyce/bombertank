@@ -1,4 +1,5 @@
 #include "GameMode.hpp"
+#include "objects/Tank.hpp"
 
 #include<QDebug>
 
@@ -14,7 +15,7 @@ void IndividualDeathMatch::setGame(Game* game) {
     }
 }
 
-void IndividualDeathMatch::_onPlayerConnected(int id, Message msg) {
+void IndividualDeathMatch::_onPlayerConnected(int id, std::shared_ptr<bt_messages::ToServerMessage> msg) {
     auto startZones = game()->objectsOfType(static_cast<int>(constants::ObjectType::START_ZONE));
 
     if (!startZones.size()) {
@@ -33,10 +34,12 @@ void IndividualDeathMatch::_onPlayerConnected(int id, Message msg) {
         auto startZone = game()->object(startZones[side]);
         auto tank = game()->addObject(constants::ObjectType::TANK, startZone->body()->GetPosition(), startZone->body()->GetAngle(), {0, 0});
         if (tank) {
-            auto [tankId, tankObj] = *tank;
-            tankObj->setSide(side + 1);
-            tankObj->handleMessage(msg);
-            game()->attachPlayerToObject(id, tankId);
+            if (auto tankObj = dynamic_cast<TankState*>(tank->second)) {
+                tankObj->setSide(side + 1);
+                auto& tank_modules = msg->join_game().tank_modules();
+                tankObj->setModules(std::vector<int>(tank_modules.begin(), tank_modules.end()));
+            }
+            game()->attachPlayerToObject(id, tank->first);
         }
     }
     _sendDeathStats();
@@ -47,7 +50,9 @@ void IndividualDeathMatch::_onPlayerAttachedObjectDied(int id) {
         ++_sideToDeaths[_playerToSide[id]];
         _sendDeathStats();
         if (_sideToDeaths[_playerToSide[id]] < _maxDeaths) {
-            emit sendMessage(id, {{"cmd", "deadRejoin"}});
+            auto msg = std::make_shared<bt_messages::ToClientMessage>();
+            msg->mutable_dead_can_rejoin();
+            emit sendMessage(id, msg);
         }
         else {
             _checkGameOver();
@@ -60,7 +65,11 @@ void IndividualDeathMatch::_sendDeathStats() {
         qDebug() << "For side" << deaths.first << deaths.second << "deaths";
     }
     for (auto& player : _playerToSide) {
-        emit sendMessage(player.first, {{"cmd", "livesLeft"}, {"left", std::max(0, _maxDeaths - _sideToDeaths[player.second])}, {"total", _maxDeaths}});
+        auto msg = std::make_shared<bt_messages::ToClientMessage>();
+        auto game_mode_update = msg->mutable_game_mode_update();
+        game_mode_update->set_lives_left(std::max(0, _maxDeaths - _sideToDeaths[player.second]));
+        game_mode_update->set_lives_total(_maxDeaths);
+        emit sendMessage(player.first, msg);
     }
 }
 
@@ -72,7 +81,10 @@ void IndividualDeathMatch::_checkGameOver() {
         }
     }
     for (auto& player : _playerToSide) {
-        emit sendMessage(player.first, {{"cmd", "gameOver"}, {"winner", winners.count(player.second) == 1}});
+        auto msg = std::make_shared<bt_messages::ToClientMessage>();
+        auto game_over = msg->mutable_game_over();
+        game_over->set_winner(winners.count(player.second) == 1);
+        emit sendMessage(player.first, msg);
     }
     emit gameOver();
 }

@@ -11,7 +11,7 @@ class TurretState : public BaseObjectState {
 public:
     float turretAngle() { return _turretAngleProp.value(); }
     QBindable<float> bindableTurretAngle() { return &_turretAngleProp; }
-    void loadMessage(Message& msg) override;
+    void loadMessage(const bt_messages::ToClientMessage_ObjectUpdated& msg) override;
 
 private:
     Q_OBJECT_BINDABLE_PROPERTY(TurretState, float, _turretAngleProp)
@@ -25,7 +25,7 @@ class LaserState : public BaseObjectState {
 public:
     float length() { return _lengthProp.value(); }
     QBindable<float> bindableLength() { return &_lengthProp; }
-    void loadMessage(Message& msg) override;
+    void loadMessage(const bt_messages::ToClientMessage_ObjectUpdated& msg) override;
 
 signals:
     void lengthChanged(float value);

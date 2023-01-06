@@ -14,21 +14,21 @@ class GameHandler : public QObject {
     std::string _title;
 
    public:
-    GameHandler(GameServer* gs, const std::map<int, ObjectTypeData>& objectTypeData, const std::map<int, TankModuleData>& tankModuleData, std::vector<std::map<msgpack::type::variant, msgpack::type::variant>> startingObjects, int id, std::string title);
-    void addConnection(int id, Message msg);
+    GameHandler(GameServer* gs, const std::map<int, ObjectTypeData>& objectTypeData, const std::map<int, TankModuleData>& tankModuleData, std::vector<bt_messages::ToServerMessage_CreateGame_StartingObject> startingObjects, int id, std::string title);
+    void addConnection(int id, std::shared_ptr<bt_messages::ToServerMessage> msg);
     void removeConnection(int id);
-    void sendMessage(int id, Message msg);
+    void sendMessage(int id, std::shared_ptr<bt_messages::ToServerMessage> msg);
     std::string title() const { return _title; }
 
    signals:
-    void _addConnection(int id, Message msg);
+    void _addConnection(int id, std::shared_ptr<bt_messages::ToServerMessage> msg);
     void _removeConnection(int id);
-    void _sendMessage(int id, Message msg);
+    void _sendMessage(int id, std::shared_ptr<bt_messages::ToServerMessage> msg);
     void gameOver(int gameId);
 };
 
 struct ConnectionInfo {
-    TcpMessageSocket* connection;
+    ToClientMessageSocket* connection;
     int game = -1;
 };
 
@@ -48,14 +48,14 @@ class GameServer : public QObject {
    private slots:
     void handleConnection();
     void handleDisconnection(int id);
-    void handleClientMessage(int id, Message msg);
-    void handleGameMessage(int id, Message msg);
+    void handleClientMessage(int id, std::shared_ptr<bt_messages::ToServerMessage> msg);
+    void handleGameMessage(int id, std::shared_ptr<bt_messages::ToClientMessage> msg);
     void removeGame(int gameId);
 
    public:
     GameServer(const QHostAddress& address = QHostAddress::Any, quint16 port = 0);
 
-    int addGame(const std::vector<std::map<msgpack::type::variant, msgpack::type::variant>>& startingObjects, std::string title);
+    int addGame(std::vector<bt_messages::ToServerMessage_CreateGame_StartingObject> startingObjects, std::string title);
 
     friend class GameHandler;
 

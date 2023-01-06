@@ -125,8 +125,7 @@ void LaserState::prePhysics(Game* game) {
     }
 }
 
-Message LaserState::message() const {
-    auto msg = BaseObjectState::message();
-    msg["length"] = _length;
-    return msg;
+void LaserState::fillMessage(bt_messages::ToClientMessage_ObjectUpdated& msg) const {
+    BaseObjectState::fillMessage(msg);
+    msg.set_length(_length);
 }

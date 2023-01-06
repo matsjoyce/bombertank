@@ -5,36 +5,36 @@
 
 class CrateModule : public TankModule {
 public:
-    int type() override { return 7; }
-    float maxReload() override;
+    int type() const override { return 7; }
+    float maxReload() const override;
     void act(Game* game, TankState* tank) override;
 };
 
 class BombModule : public TankModule {
 public:
-    int type() override { return 8; }
-    float maxReload() override;
+    int type() const override { return 8; }
+    float maxReload() const override;
     void act(Game* game, TankState* tank) override;
 };
 
 class TimedBombModule : public TankModule {
 public:
-    int type() override { return 12; }
-    float maxReload() override;
+    int type() const override { return 12; }
+    float maxReload() const override;
     void act(Game* game, TankState* tank) override;
 };
 
 class MGTurretModule : public TankModule {
 public:
-    int type() override { return 13; }
-    float maxReload() override;
+    int type() const override { return 13; }
+    float maxReload() const override;
     void act(Game* game, TankState* tank) override;
 };
 
 class MineModule : public TankModule {
 public:
-    int type() override { return 14; }
-    float maxReload() override;
+    int type() const override { return 14; }
+    float maxReload() const override;
     void act(Game* game, TankState* tank) override;
 };
 

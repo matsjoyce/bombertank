@@ -1,11 +1,12 @@
 #include "TankControl.hpp"
 
-Message TankControlState::message() const {
-    return {
-        {"turretAngle", _turretAngleProp.value()},
-        {"left_track", _leftTrackProp.value()},
-        {"right_track", _rightTrackProp.value()},
-        {"actions", std::vector<msgpack::type::variant>(_actions.begin(), _actions.end())}};
+void TankControlState::fillMessage(bt_messages::ToServerMessage_ControlState& msg) const {
+    msg.set_turret_angle(_turretAngleProp.value());
+    msg.set_left_track(_leftTrackProp.value());
+    msg.set_right_track(_rightTrackProp.value());
+    for (auto action : _actions) {
+        msg.add_actions(action);
+    }
 }
 
 void TankControlState::setAction(int idx, bool active) {

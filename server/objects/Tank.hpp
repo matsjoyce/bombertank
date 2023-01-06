@@ -19,11 +19,12 @@ class TankState : public BaseObjectState {
     void createBodies(Game* game, b2World& world, b2BodyDef& bodyDef) override;
     void prePhysics(Game* game) override;
     void postPhysics(Game* game) override;
-    void handleMessage(const Message& msg) override;
+    void handleMessage(const bt_messages::ToServerMessage_ControlState& msg) override;
+    void setModules(const std::vector<int>& modules);
     void damage(float amount, DamageType type) override;
     void stun(int amount) override;
     void addShield(float amount);
-    Message message() const override;
+    void fillMessage(bt_messages::ToClientMessage_ObjectUpdated& msg) const override;
     Hostility hostility() const override { return Hostility::HOSTILE; }
     float turretAngle() const { return _turretAngle; }
     b2Vec2 turretVector() const { return {std::cos(_turretAngle), std::sin(_turretAngle)}; }

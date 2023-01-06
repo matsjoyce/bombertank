@@ -12,18 +12,17 @@ void MineDetector::act(Game* game, TankState* tank) {
     }
 }
 
-float MineDetector::maxReload() {
+float MineDetector::maxReload() const {
     return 20;
 }
 
-Message MineDetector::message() {
-    auto msg = TankModule::message();
-    std::vector<msgpack::type::variant> encodedPoints;
+void MineDetector::fillMessage(bt_messages::ToClientMessage_TankModuleUpdates& msg) const {
+    TankModule::fillMessage(msg);
     for (auto point: _points) {
-        encodedPoints.push_back(std::vector<msgpack::type::variant>{point.x, point.y});
+        auto p = msg.add_points();
+        p->set_x(point.x);
+        p->set_y(point.y);
     }
-    msg["points"] = encodedPoints;
-    return msg;
 }
 
 void MineDetector::reloaded() {

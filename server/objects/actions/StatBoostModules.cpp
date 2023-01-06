@@ -6,11 +6,11 @@
 #include "../Tank.hpp"
 #include "common/Constants.hpp"
 
-float HealthModule::healthContribution() {
+float HealthModule::healthContribution() const {
     return 50;
 }
 
-float SpeedModule::speedContribution() {
+float SpeedModule::speedContribution() const {
     return 10;
 }
 
@@ -23,7 +23,7 @@ void ShieldModule::prePhysics(Game* game, TankState* tank) {
     }
 }
 
-float ShieldModule::maxShieldContribution() {
+float ShieldModule::maxShieldContribution() const {
     return 25;
 }
 
@@ -31,6 +31,6 @@ void InvisibiltyModule::act(Game* game, TankState* tank) {
     tank->invisiblize(100);
 }
 
-float InvisibiltyModule::maxReload() {
+float InvisibiltyModule::maxReload() const {
     return 200;
 }

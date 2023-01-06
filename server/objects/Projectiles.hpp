@@ -75,7 +75,7 @@ public:
     using BaseObjectState::BaseObjectState;
     float maxHealth() const override { return 0; }
     void prePhysics(Game* game) override;
-    Message message() const override;
+    virtual void fillMessage(bt_messages::ToClientMessage_ObjectUpdated& msg) const;
     void setMaxLength(float maxLength) { _maxLength = maxLength; }
 };
 REGISTER_STATE(LaserState)

@@ -1,19 +1,19 @@
 #include "TankState.hpp"
 #include "common/MsgpackUtils.hpp"
 
-void TankState::loadMessage(Message& msg) {
+void TankState::loadMessage(const bt_messages::ToClientMessage_ObjectUpdated& msg) {
     BaseObjectState::loadMessage(msg);
-    _shieldProp.setValue(extractDouble(msg["shield"]));
-    _turretAngleProp.setValue(extractDouble(msg["turretAngle"]));
-    _leftTrackMovementProp.setValue(extractDouble(msg["left_track_movement"]));
-    _rightTrackMovementProp.setValue(extractDouble(msg["right_track_movement"]));
-    auto modules = msg.at("modules").as_vector();
+    auto& tank_updates = msg.tank_updates();
+    _shieldProp.setValue(tank_updates.shield());
+    _turretAngleProp.setValue(msg.turret_angle());
+    _leftTrackMovementProp.setValue(tank_updates.left_track_movement());
+    _rightTrackMovementProp.setValue(tank_updates.right_track_movement());
     bool updateBinding = false;
-    while (_modulesPtrs.size() < modules.size()) {
+    while (_modulesPtrs.size() < tank_updates.modules().size()) {
         _modulesPtrs.emplace_back(std::make_unique<TankModuleState>());
         updateBinding = true;
     }
-    while (_modulesPtrs.size() > modules.size()) {
+    while (_modulesPtrs.size() > tank_updates.modules().size()) {
         _modulesPtrs.pop_back();
         updateBinding = true;
     }
@@ -25,38 +25,28 @@ void TankState::loadMessage(Message& msg) {
         _modulesProp.setValue(ptrs);
     }
     int idx = 0;
-    for (auto moduleMsg : modules) {
-        auto moduleData = moduleMsg.as_multimap();
-        Message convertedData;
-        for (auto p : moduleData) {
-            convertedData[p.first.as_string()] = p.second;
-        }
-        _modulesPtrs[idx]->loadMessage(convertedData);
-        ++idx;
+    for (auto& module_ : tank_updates.modules()) {
+        _modulesPtrs[idx++]->loadMessage(module_);
     }
 }
 
-void TankModuleState::loadMessage(Message& msg) {
-    int type = extractInt(msg.at("type"));
-    _typeProp.setValue(type);
-    if (type == -1) {
+void TankModuleState::loadMessage(const bt_messages::ToClientMessage_TankModuleUpdates& msg) {
+    _typeProp.setValue(msg.type());
+    if (msg.type() == -1) {
         _reloadProp.setValue(0);
         _usesProp.setValue(0);
         _pointsProp.setValue({});
     }
     else {
-        _reloadProp.setValue(extractDouble(msg.at("reload")));
+        _reloadProp.setValue(extractDouble(msg.reload()));
         int beforeUses = _usesProp.value();
-        _usesProp.setValue(msg.at("uses").as_uint64_t());
+        _usesProp.setValue(msg.uses());
         if (beforeUses < _usesProp.value()) {
             emit used();
         }
         std::vector<QPointF> points;
-        if (msg.count("points")) {
-            for (auto p : msg["points"].as_vector()) {
-                auto pv = p.as_vector();
-                points.push_back({extractDouble(pv.at(0)), extractDouble(pv.at(1))});
-            }
+        for (auto p : msg.points()) {
+            points.push_back({p.x(), p.y()});
         }
         _pointsProp.setValue(points);
     }

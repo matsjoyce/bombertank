@@ -54,10 +54,9 @@ void TurretState::prePhysics(Game* game) {
     }
 }
 
-Message TurretState::message() const {
-    auto msg = BaseObjectState::message();
-    msg["turretAngle"] = _turretAngle;
-    return msg;
+void TurretState::fillMessage(bt_messages::ToClientMessage_ObjectUpdated& msg) const {
+    BaseObjectState::fillMessage(msg);
+    msg.set_turret_angle(_turretAngle);
 }
 
 void LaserTurretState::prePhysics(Game* game) {

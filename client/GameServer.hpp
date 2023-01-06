@@ -44,17 +44,18 @@ class GameServer : public QObject {
     QML_ELEMENT
     QML_UNCREATABLE("Uncreatable!")
 
-    TcpMessageSocket* _msgconn;
+    ToServerMessageSocket* _msgconn;
     ListedGameModel* _listedGamesModel;
     GameState* _gameState = nullptr;
 
     Q_OBJECT_BINDABLE_PROPERTY(GameServer, int, _connectedCountProp)
     Q_OBJECT_BINDABLE_PROPERTY(GameServer, QString, _serverVersionProp)
 
-    void _handleMessage(int id, const Message& msg);
+    private slots:
+    void _handleMessage(int id, std::shared_ptr<bt_messages::ToClientMessage> msg);
 
    public:
-    GameServer(TcpMessageSocket* msgconn, QObject* parent);
+    GameServer(ToServerMessageSocket* msgconn, QObject* parent);
     ListedGameModel* listedGamesModel() const { return _listedGamesModel; }
 
     int connectedCount() const { return _connectedCountProp.value(); }
@@ -65,6 +66,7 @@ class GameServer : public QObject {
     Q_INVOKABLE GameState* joinGame(int id, std::vector<int> modulesForSlots);
     Q_INVOKABLE void createGame(QUrl mapFilePath, QString title);
     Q_INVOKABLE void disconnect();
+
 };
 
 #endif  // GAME_SERVER_HPP

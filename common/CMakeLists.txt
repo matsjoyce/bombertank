@@ -14,7 +14,7 @@ list(APPEND SOURCE "${CMAKE_CURRENT_BINARY_DIR}/VCS.cpp")
 
 # Protobuf
 
-PROTOBUF_GENERATE_CPP(ProtoSources ProtoHeaders ToServer.proto FromServer.proto)
+PROTOBUF_GENERATE_CPP(ProtoSources ProtoHeaders ToServer.proto ToClient.proto)
 list(APPEND SOURCE ${ProtoSources} ${ProtoHeaders})
 
 add_library(bt_common STATIC ${SOURCE})

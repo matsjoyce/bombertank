@@ -7,10 +7,10 @@
 class MineDetector : public TankModule {
     std::vector<b2Vec2> _points;
 public:
-    int type() override { return 15; }
+    int type() const override { return 15; }
     void act(Game* game, TankState* tank) override;
-    float maxReload() override;
-    Message message() override;
+    float maxReload() const override;
+    void fillMessage(bt_messages::ToClientMessage_TankModuleUpdates& msg) const override;
     void reloaded() override;
 };
 

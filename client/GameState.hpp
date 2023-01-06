@@ -40,7 +40,7 @@ class GameState : public BaseGameState {
 
     std::map<int, std::shared_ptr<BaseObjectState>> _objectStates;
 
-    std::shared_ptr<BaseObjectState>& _getOrCreateObject(const Message& msg);
+    std::shared_ptr<BaseObjectState>& _getOrCreateObject(const bt_messages::ToClientMessage_ObjectUpdated& msg);
 
    public:
     GameState(GameServer* parent, int id);
@@ -55,12 +55,12 @@ class GameState : public BaseGameState {
     QBindable<int> bindableLivesTotal() const { return &_livesTotalProp; }
 
    public slots:
-    void handleMessage(int id, Message msg);
+    void handleMessage(int id, std::shared_ptr<bt_messages::ToClientMessage> msg);
     void setControlState(int objectId, TankControlState* controlState);
     void exitGame();
 
    signals:
-    void sendMessage(Message msg);
+    void sendMessage(std::shared_ptr<bt_messages::ToServerMessage> msg);
     void attachToObject(int id);
     void deadRejoin();
     void gameOver(bool winner);

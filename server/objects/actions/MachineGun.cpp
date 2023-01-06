@@ -27,11 +27,11 @@ void MachineGun::act(Game* game, TankState* tank) {
     }
 }
 
-float MachineGun::maxReload() {
+float MachineGun::maxReload() const {
     return 2;
 }
 
-float Laser::maxReload() {
+float Laser::maxReload() const {
     return 1;
 }
 

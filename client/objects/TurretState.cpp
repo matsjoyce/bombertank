@@ -1,12 +1,12 @@
 #include "TurretState.hpp"
 #include "common/MsgpackUtils.hpp"
 
-void TurretState::loadMessage(Message& msg) {
+void TurretState::loadMessage(const bt_messages::ToClientMessage_ObjectUpdated& msg) {
     BaseObjectState::loadMessage(msg);
-    _turretAngleProp.setValue(extractDouble(msg["turretAngle"]));
+    _turretAngleProp.setValue(msg.turret_angle());
 }
 
-void LaserState::loadMessage(Message& msg) {
+void LaserState::loadMessage(const bt_messages::ToClientMessage_ObjectUpdated& msg) {
     BaseObjectState::loadMessage(msg);
-    _lengthProp.setValue(extractDouble(msg["length"]));
+    _lengthProp.setValue(msg.length());
 }

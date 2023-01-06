@@ -2,12 +2,40 @@ syntax = "proto3";
 
 package bt_messages;
 
-message ToServer {
+message ToServerMessage {
     oneof contents {
-        JoinGame joinGame = 1;
+        JoinGame join_game = 1;
+        ExitGame exit_game = 2;
+        CreateGame create_game = 3;
+        ControlState control_state = 4;
     }
 
     message JoinGame {
-        int32 gameId = 1;
+        uint32 game_id = 1;
+        repeated int32 tank_modules = 2;
+    }
+
+    message ExitGame {
+    }
+
+    message CreateGame {
+        string title = 1;
+        repeated StartingObject starting_objects = 2;
+
+        message StartingObject {
+            uint32 type = 1;
+            float x = 2;
+            float y = 3;
+            float rotation = 4;
+            uint32 side = 5;
+        }
+    }
+
+    message ControlState {
+        uint32 object_id = 1;
+        float turret_angle = 2;
+        float left_track = 3;
+        float right_track = 4;
+        repeated bool actions = 5;
     }
 }

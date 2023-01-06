@@ -17,7 +17,7 @@ class TurretState : public BaseObjectState {
     float maxHealth() const override;
     void createBodies(Game* game, b2World& world, b2BodyDef& bodyDef) override;
     void prePhysics(Game* game) override;
-    Message message() const override;
+    virtual void fillMessage(bt_messages::ToClientMessage_ObjectUpdated& msg) const;
     Hostility hostility() const override { return Hostility::HOSTILE; }
 };
 

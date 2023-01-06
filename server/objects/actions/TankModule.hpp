@@ -18,15 +18,15 @@ public:
     virtual void prePhysics(Game* game, TankState* tank);
     virtual void postPhysics(Game* game, TankState* tank) {};
     virtual void act(Game* game, TankState* tank);
-    virtual int type() = 0;
+    virtual int type() const = 0;
     void setActive(bool active) { _active = active; }
     bool active() const { return _active; }
-    virtual float healthContribution() { return 0; }
-    virtual float speedContribution() { return 0; }
-    virtual float maxShieldContribution() { return 0; }
-    virtual float stunResistanceMultiplier() { return 1; }
-    virtual Message message();
-    virtual float maxReload();
+    virtual float healthContribution() const { return 0; }
+    virtual float speedContribution() const { return 0; }
+    virtual float maxShieldContribution() const { return 0; }
+    virtual float stunResistanceMultiplier() const { return 1; }
+    virtual void fillMessage(bt_messages::ToClientMessage_TankModuleUpdates& msg) const;
+    virtual float maxReload() const;
     virtual void reloaded() {};
 };
 

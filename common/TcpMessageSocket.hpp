@@ -3,12 +3,9 @@
 
 #include <QByteArray>
 #include <QTcpSocket>
-#include <msgpack.hpp>
 #include "ToServer.pb.h"
-#include "FromServer.pb.h"
+#include "ToClient.pb.h"
 #include <memory>
-
-using Message = std::map<std::string, msgpack::type::variant>;
 
 class BaseTcpMessageSocket : public QObject {
     Q_OBJECT
@@ -34,19 +31,6 @@ protected:
     void disconnected(int id);
 };
 
-class TcpMessageSocket : public BaseTcpMessageSocket {
-    Q_OBJECT
-   public:
-    using BaseTcpMessageSocket::BaseTcpMessageSocket;
-    void parseBuffer(QByteArrayView buf) override;
-
-   public slots:
-    void sendMessage(const Message message);
-
-   signals:
-    void messageRecieved(int id, Message message);
-};
-
 class ToServerMessageSocket : public BaseTcpMessageSocket {
     Q_OBJECT
    public:
@@ -54,23 +38,23 @@ class ToServerMessageSocket : public BaseTcpMessageSocket {
     void parseBuffer(QByteArrayView buf) override;
 
    public slots:
-    void sendMessage(std::shared_ptr<const bt_messages::ToServer> message);
+    void sendMessage(std::shared_ptr<const bt_messages::ToServerMessage> message);
 
    signals:
-    void messageRecieved(int id, std::shared_ptr<bt_messages::FromServer> message);
+    void messageRecieved(int id, std::shared_ptr<bt_messages::ToClientMessage> message);
 };
 
-class FromServerMessageSocket : public BaseTcpMessageSocket {
+class ToClientMessageSocket : public BaseTcpMessageSocket {
     Q_OBJECT
    public:
     using BaseTcpMessageSocket::BaseTcpMessageSocket;
     void parseBuffer(QByteArrayView buf) override;
 
    public slots:
-    void sendMessage(std::shared_ptr<const bt_messages::FromServer> message);
+    void sendMessage(std::shared_ptr<const bt_messages::ToClientMessage> message);
 
    signals:
-    void messageRecieved(int id, std::shared_ptr<bt_messages::ToServer> message);
+    void messageRecieved(int id, std::shared_ptr<bt_messages::ToServerMessage> message);
 };
 
 #endif  // TCP_MESSAGE_SOCKET_HPP

@@ -10,7 +10,7 @@
 
 GameHandler::GameHandler(GameServer* gs,
                          const std::map<int, ObjectTypeData>& objectTypeData, const std::map<int, TankModuleData>& tankModuleData,
-                         std::vector<std::map<msgpack::type::variant, msgpack::type::variant>> startingObjects,
+                         std::vector<bt_messages::ToServerMessage_CreateGame_StartingObject> startingObjects,
                          int id, std::string title)
     : QObject(gs), _title(title) {
     auto thread = new QThread();
@@ -19,10 +19,10 @@ GameHandler::GameHandler(GameServer* gs,
         qInfo() << "Loading objects" << startingObjects.size();
 
         for (auto& obj : startingObjects) {
-            auto go = game->addObject(static_cast<constants::ObjectType>(obj.at("type").as_uint64_t()),
-                                      {static_cast<float>(extractDouble(obj.at("x"))), static_cast<float>(extractDouble(obj.at("y")))}, static_cast<float>(extractDouble(obj.at("rotation"))), {0, 0});
+            auto go = game->addObject(static_cast<constants::ObjectType>(obj.type()),
+                                      {obj.x(), obj.y()}, obj.rotation(), {0, 0});
             if (go) {
-                go->second->setSide(obj.at("side").as_uint64_t());
+                go->second->setSide(obj.side());
             }
         }
         connect(game, &Game::sendMessage, gs, &GameServer::handleGameMessage);
@@ -50,11 +50,11 @@ GameHandler::GameHandler(GameServer* gs,
     thread->start();
 }
 
-void GameHandler::addConnection(int id, Message msg) { emit _addConnection(id, msg); }
+void GameHandler::addConnection(int id, std::shared_ptr<bt_messages::ToServerMessage> msg) { emit _addConnection(id, msg); }
 
 void GameHandler::removeConnection(int id) { emit _removeConnection(id); }
 
-void GameHandler::sendMessage(int id, Message msg) { emit _sendMessage(id, msg); }
+void GameHandler::sendMessage(int id, std::shared_ptr<bt_messages::ToServerMessage> msg) { emit _sendMessage(id, msg); }
 
 GameServer::GameServer(const QHostAddress& address, quint16 port) : _objectTypeData(loadObjectTypeData(":/data/objects.json")), _tankModuleData(loadTankModuleData(":/data/tank_modules.json")) {
     ObjectStateRegister::dumpRegistry();
@@ -70,7 +70,7 @@ GameServer::GameServer(const QHostAddress& address, quint16 port) : _objectTypeD
     connect(_server, &QTcpServer::newConnection, this, &GameServer::handleConnection);
 }
 
-int GameServer::addGame(const std::vector<std::map<msgpack::type::variant, msgpack::type::variant>>& startingObjects, std::string title) {
+int GameServer::addGame(std::vector<bt_messages::ToServerMessage_CreateGame_StartingObject> startingObjects, std::string title) {
     auto id = _nextGameId++;
     auto handler = new GameHandler(this, _objectTypeData, _tankModuleData, startingObjects, id, title);
     connect(handler, &GameHandler::gameOver, this, &GameServer::removeGame);
@@ -83,7 +83,9 @@ void GameServer::removeGame(int gameId) {
     _games[gameId]->deleteLater();
     _games.erase(gameId);
     for (auto& connInfo : _connections) {
-        connInfo.second.connection->sendMessage({{"cmd", "game_removed"}, {"id", gameId}});
+        auto msg = std::make_shared<bt_messages::ToClientMessage>();
+        msg->mutable_game_removed()->set_game_id(gameId);
+        connInfo.second.connection->sendMessage(msg);
         if (connInfo.second.game == gameId) {
             connInfo.second.game = 0;
         }
@@ -91,83 +93,105 @@ void GameServer::removeGame(int gameId) {
 }
 
 void GameServer::_sendStats() {
+    auto msg = std::make_shared<bt_messages::ToClientMessage>();
+    auto server_stats = msg->mutable_server_stats();
+    server_stats->set_connected(_connections.size());
+    server_stats->set_version(GIT_NAME);
     for (auto& conn : _connections) {
-        conn.second.connection->sendMessage({{"cmd", "server_stats"}, {"connected", _connections.size()}, {"version", GIT_NAME}});
+        conn.second.connection->sendMessage(msg);
     }
 }
 
 void GameServer::handleConnection() {
     auto conn = _server->nextPendingConnection();
-    auto msgconn = new TcpMessageSocket(conn, _nextConnectionId++, this);
+    auto msgconn = new ToClientMessageSocket(conn, _nextConnectionId++, this);
     qInfo() << "New connection, id is" << msgconn->id();
     _connections[msgconn->id()] = {msgconn};
 
-    connect(msgconn, &TcpMessageSocket::messageRecieved, this, &GameServer::handleClientMessage);
-    connect(msgconn, &TcpMessageSocket::disconnected, this, &GameServer::handleDisconnection);
+    connect(msgconn, &ToClientMessageSocket::messageRecieved, this, &GameServer::handleClientMessage);
+    connect(msgconn, &ToClientMessageSocket::disconnected, this, &GameServer::handleDisconnection);
 
     qInfo() << "Sending game list";
     for (auto game : _games) {
-        msgconn->sendMessage({{"cmd", "game_updated"}, {"id", game.first}, {"title", game.second->title()}});
+        auto msg = std::make_shared<bt_messages::ToClientMessage>();
+        auto game_updated = msg->mutable_game_updated();
+        game_updated->set_game_id(game.first);
+        game_updated->set_title(game.second->title());
+        msgconn->sendMessage(msg);
     }
     _sendStats();
 }
 
-void GameServer::handleClientMessage(int id, Message msg) {
+void GameServer::handleClientMessage(int id, std::shared_ptr<bt_messages::ToServerMessage> msg) {
     auto iter = _connections.find(id);
     if (iter == _connections.end()) {
         qWarning() << "Message from non-existent connection" << id;
         return;
     }
     auto& connInfo = iter->second;
-    if (msg["cmd"].as_string() == "exit_game") {
-        if (!connInfo.game) {
-            qWarning() << "Tried to exit a game when not in one";
-        }
-        else {
-            qInfo() << "Exiting game";
-            auto iter = _games.find(connInfo.game);
-            if (iter == _games.end()) {
-                qWarning() << "Tried to leave a non-existent game" << connInfo.game;
+    switch (msg->contents_case()) {
+        case bt_messages::ToServerMessage::kExitGame: {
+            if (!connInfo.game) {
+                qWarning() << "Tried to exit a game when not in one";
             }
             else {
-                qInfo() << "Removing connection" << id << "to game" << connInfo.game;
-                iter->second->removeConnection(id);
-                connInfo.game = 0;
+                qInfo() << "Exiting game";
+                auto iter = _games.find(connInfo.game);
+                if (iter == _games.end()) {
+                    qWarning() << "Tried to leave a non-existent game" << connInfo.game;
+                }
+                else {
+                    qInfo() << "Removing connection" << id << "to game" << connInfo.game;
+                    iter->second->removeConnection(id);
+                    connInfo.game = 0;
+                }
             }
+            break;
         }
-    }
-    else if (msg["cmd"].as_string() == "join_game") {
-        auto iter = _games.find(msg["id"].as_uint64_t());
-        if (iter == _games.end()) {
-            qWarning() << "Tried to join a non-existent game" << msg["id"].as_uint64_t();
+        case bt_messages::ToServerMessage::kJoinGame: {
+            auto iter = _games.find(msg->join_game().game_id());
+            if (iter == _games.end()) {
+                qWarning() << "Tried to join a non-existent game" << msg->join_game().game_id();
+            }
+            else {
+                qInfo() << "Adding connection" << id << "to game" << msg->join_game().game_id();
+                iter->second->addConnection(id, msg);
+                connInfo.game = msg->join_game().game_id();
+            }
+            break;
         }
-        else {
-            qInfo() << "Adding connection" << id << "to game" << msg["id"].as_uint64_t();
-            iter->second->addConnection(id, msg);
-            connInfo.game = msg["id"].as_uint64_t();
+        case bt_messages::ToServerMessage::kCreateGame: {
+            qInfo() << "Creating new game";
+            auto& startingObjects = msg->create_game().starting_objects();
+
+            auto gameId = addGame(std::vector<bt_messages::ToServerMessage_CreateGame_StartingObject>(startingObjects.begin(), startingObjects.end()), msg->create_game().title());
+            auto msg = std::make_shared<bt_messages::ToClientMessage>();
+            auto game_updated = msg->mutable_game_updated();
+            game_updated->set_game_id(gameId);
+            game_updated->set_title(_games[gameId]->title());
+            for (auto& connInfo2 : _connections) {
+                connInfo2.second.connection->sendMessage(msg);
+            }
+            break;
         }
-    }
-    else if (msg["cmd"].as_string() == "create_game") {
-        qInfo() << "Creating new game";
-        auto gameId = addGame(extractVectorOfMap(msg["starting_objects"]), msg["title"].as_string());
-        for (auto& connInfo2 : _connections) {
-            connInfo2.second.connection->sendMessage({{"cmd", "game_created"}, {"id", gameId}, {"title", _games[gameId]->title()}});
+        case bt_messages::ToServerMessage::kControlState: {
+            if (connInfo.game > 0) {
+                auto gameIter = _games.find(connInfo.game);
+                if (gameIter == _games.end()) {
+                    qWarning() << "Connection" << id << "is attached to non-existent game" << connInfo.game;
+                    return;
+                }
+                gameIter->second->sendMessage(id, msg);
+            }
+            else {
+                qWarning() << "Unrecognised message from connection" << id;
+            }
+            break;
         }
-    }
-    else if (connInfo.game > 0) {
-        auto gameIter = _games.find(connInfo.game);
-        if (gameIter == _games.end()) {
-            qWarning() << "Connection" << id << "is attached to non-existent game" << connInfo.game;
-            return;
-        }
-        gameIter->second->sendMessage(id, msg);
-    }
-    else {
-        qWarning() << "Unrecognised message from connection" << id;
     }
 }
 
-void GameServer::handleGameMessage(int id, Message msg) {
+void GameServer::handleGameMessage(int id, std::shared_ptr<bt_messages::ToClientMessage> msg) {
     auto iter = _connections.find(id);
     if (iter == _connections.end()) {
         qWarning() << "Message to non-existent connection" << id;
@@ -188,6 +212,7 @@ void GameServer::handleDisconnection(int id) {
                 gameIter->second->removeConnection(id);
             }
         }
+        iter->second.connection->deleteLater();
     }
     _connections.erase(id);
     _sendStats();

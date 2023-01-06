@@ -8,7 +8,7 @@ const float MIN_IMPULSE_DAMAGE = 1.0f;
 
 BaseObjectState::BaseObjectState(int type) : _type(type) {}
 
-Message BaseObjectState::message() const {
+void BaseObjectState::fillMessage(bt_messages::ToClientMessage_ObjectUpdated& msg) const {
     constants::StatusTypes status;
     if (stunned()) {
         status |= constants::STUNNED;
@@ -16,17 +16,17 @@ Message BaseObjectState::message() const {
     if (invisible()) {
         status |= constants::INVISIBLE;
     }
-    return {
-        {"type", static_cast<uint64_t>(type())},
-        {"health", health() / maxHealth()},
-        {"side", side()},
-        {"x", _dead ? _deathPosition.x : body()->GetPosition().x},
-        {"y", _dead ? _deathPosition.y : body()->GetPosition().y},
-        {"rotation", _dead ? _deathAngle : body()->GetAngle()},
-        {"vx", _dead ? 0 : body()->GetLinearVelocity().x},
-        {"vy", _dead ? 0 : body()->GetLinearVelocity().y},
-        {"status", status.toInt()}
-    };
+
+    msg.set_type(static_cast<uint64_t>(type()));
+    msg.set_health(health() / maxHealth());
+    msg.set_side(side());
+    msg.set_x(_dead ? _deathPosition.x : body()->GetPosition().x);
+    msg.set_y(_dead ? _deathPosition.y : body()->GetPosition().y);
+    msg.set_rotation(_dead ? _deathAngle : body()->GetAngle());
+    msg.set_vx(_dead ? 0 : body()->GetLinearVelocity().x);
+    msg.set_vy(_dead ? 0 : body()->GetLinearVelocity().y);
+    msg.set_status(status.toInt());
+    msg.set_destroyed(_dead);
 }
 
 void BaseObjectState::createBodies(Game* game, b2World& world, b2BodyDef& bodyDef) {
@@ -47,7 +47,7 @@ void BaseObjectState::prePhysics(Game* game) {
 
 void BaseObjectState::postPhysics(Game* game) {}
 
-void BaseObjectState::handleMessage(const Message& msg) {}
+void BaseObjectState::handleMessage(const bt_messages::ToServerMessage_ControlState& msg) {}
 
 void BaseObjectState::collision(BaseObjectState* other, float impulse) {}
 

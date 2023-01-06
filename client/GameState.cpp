@@ -24,12 +24,11 @@ void GameState::cleanup() {
     }
 }
 
-std::shared_ptr<BaseObjectState>& GameState::_getOrCreateObject(const Message& msg) {
-    auto id = msg.at("id").as_uint64_t();
-    auto iter = _objectStates.find(id);
+std::shared_ptr<BaseObjectState>& GameState::_getOrCreateObject(const bt_messages::ToClientMessage_ObjectUpdated& msg) {
+    auto iter = _objectStates.find(msg.object_id());
     if (iter == _objectStates.end()) {
         std::shared_ptr<BaseObjectState> objState;
-        auto objType = static_cast<constants::ObjectType>(msg.at("type").as_uint64_t());
+        auto objType = static_cast<constants::ObjectType>(msg.type());
         if (objType == constants::ObjectType::TANK) {
             objState = std::make_shared<TankState>();
         }
@@ -42,47 +41,52 @@ std::shared_ptr<BaseObjectState>& GameState::_getOrCreateObject(const Message& m
         else {
             objState = std::make_shared<BaseObjectState>();
         }
-        iter = _objectStates.insert(std::make_pair(id, std::move(objState))).first;
+        iter = _objectStates.insert(std::make_pair(msg.object_id(), std::move(objState))).first;
     }
     return iter->second;
 }
 
-void GameState::handleMessage(int id, Message msg) {
-    if (msg["cmd"].as_string() == "object") {
-        _getOrCreateObject(msg)->loadMessage(msg);
-    }
-    else if (msg["cmd"].as_string() == "destroy_object") {
-        auto obj = _getOrCreateObject(msg);
-        obj->loadMessage(msg);
-        obj->setDestroyed(true);
-    }
-    else if (msg["cmd"].as_string() == "attach") {
-        emit attachToObject(msg["id"].as_uint64_t());
-    }
-    else if (msg["cmd"].as_string() == "livesLeft") {
-        _livesLeftProp.setValue(msg["left"].as_uint64_t());
-        _livesTotalProp.setValue(msg["total"].as_uint64_t());
-    }
-    else if (msg["cmd"].as_string() == "deadRejoin") {
-        emit deadRejoin();
-    }
-    else if (msg["cmd"].as_string() == "gameOver") {
-        emit gameOver(msg["winner"].as_bool());
-    }
-    else {
-        qWarning() << "Unknown cmd sent to GameState" << msg["cmd"].as_string().c_str();
+void GameState::handleMessage(int id, std::shared_ptr<bt_messages::ToClientMessage> msg) {
+    switch (msg->contents_case()) {
+        case bt_messages::ToClientMessage::kObjectUpdated: {
+            _getOrCreateObject(msg->object_updated())->loadMessage(msg->object_updated());
+            break;
+        }
+        case bt_messages::ToClientMessage::kAttachToObject: {
+            emit attachToObject(msg->attach_to_object().object_id());
+            break;
+        }
+        case bt_messages::ToClientMessage::kGameModeUpdate: {
+            _livesLeftProp.setValue(msg->game_mode_update().lives_left());
+            _livesTotalProp.setValue(msg->game_mode_update().lives_total());
+            break;
+        }
+        case bt_messages::ToClientMessage::kDeadCanRejoin: {
+            emit deadRejoin();
+            break;
+        }
+        case bt_messages::ToClientMessage::kGameOver: {
+            emit gameOver(msg->game_over().winner());
+            break;
+        }
+        default: {
+            qWarning() << "Unknown cmd sent to GameState" << msg->contents_case();
+            break;
+        }
     }
 }
 
 void GameState::setControlState(int objectId, TankControlState* controlState) {
-    auto msg = controlState->message();
-    msg["cmd"] = "control_state";
-    msg["id"] = objectId;
+    auto msg = std::make_shared<bt_messages::ToServerMessage>();
+    auto& control_state = *msg->mutable_control_state();
+    control_state.set_object_id(objectId);
+    controlState->fillMessage(control_state);
     emit sendMessage(msg);
 }
 
 void GameState::exitGame() {
-    Message msg = {{"cmd", "exit_game"}};
+    auto msg = std::make_shared<bt_messages::ToServerMessage>();
+    msg->mutable_exit_game();
     emit sendMessage(msg);
 }
 

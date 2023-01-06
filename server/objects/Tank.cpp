@@ -142,27 +142,24 @@ std::unique_ptr<TankModule> createModule(int type) {
     return {};
 }
 
-void TankState::handleMessage(const Message& msg) {
-    if (msg.at("cmd").as_string() == "control_state") {
-        _targetTurretAngle = std::remainder(extractDouble(msg.at("turretAngle")), 2.0f * M_PI);
-        _leftTrack = extractDouble(msg.at("left_track"));
-        _rightTrack = extractDouble(msg.at("right_track"));
-        auto actionsVec = msg.at("actions").as_vector();
-        auto actionVecIter = actionsVec.begin();
-        auto actionsIter = _actions.begin();
-        for (; actionVecIter != actionsVec.end() && actionsIter != _actions.end(); ++actionVecIter, ++actionsIter) {
-            if (*actionsIter) {
-                (*actionsIter)->setActive(actionVecIter->as_bool());
-            }
+void TankState::handleMessage(const bt_messages::ToServerMessage_ControlState& msg) {
+    _targetTurretAngle = std::remainder(msg.turret_angle(), 2.0f * M_PI);
+    _leftTrack = msg.left_track();
+    _rightTrack = msg.right_track();
+    auto actionVecIter = msg.actions().begin();
+    auto actionsIter = _actions.begin();
+    for (; actionVecIter != msg.actions().end() && actionsIter != _actions.end(); ++actionVecIter, ++actionsIter) {
+        if (*actionsIter) {
+            (*actionsIter)->setActive(*actionVecIter);
         }
     }
-    else if (msg.at("cmd").as_string() == "join_game" && msg.at("tank_modules").is_vector()) {
-        auto modulesVec = msg.at("tank_modules").as_vector();
-        for (auto module : modulesVec) {
-            _actions.emplace_back(createModule(extractInt(module)));
-        }
-        _shield = maxShield();
+}
+
+void TankState::setModules(const std::vector<int>& modules) {
+    for (auto module : modules) {
+        _actions.emplace_back(createModule(module));
     }
+    _shield = maxShield();
 }
 
 void TankState::damage(float amount, DamageType type) {
@@ -198,26 +195,21 @@ void TankState::addShield(float amount) {
     _shield = std::max(0.0f, std::min(_shield + amount, maxShield()));
 }
 
-Message TankState::message() const {
-    auto msg = BaseObjectState::message();
-    msg["shield"] = _shield / maxShield();
-    msg["turretAngle"] = _turretAngle;
+void TankState::fillMessage(bt_messages::ToClientMessage_ObjectUpdated& msg) const {
+    BaseObjectState::fillMessage(msg);
+    auto& tank_updates = *msg.mutable_tank_updates();
+    tank_updates.set_shield(_shield / maxShield());
+    msg.set_turret_angle(_turretAngle);
     std::vector<msgpack::type::variant> moduleMsgs;
     for (auto& action : _actions) {
+        auto& module_updates = *tank_updates.add_modules();
         if (action) {
-            auto msg = action->message();
-            std::map<msgpack::type::variant, msgpack::type::variant> convertedMsg;
-            for (auto& item : msg) {
-                convertedMsg.emplace(item);
-            }
-            moduleMsgs.emplace_back(convertedMsg);
+            action->fillMessage(module_updates);
         }
         else {
-            moduleMsgs.emplace_back(std::map<msgpack::type::variant, msgpack::type::variant>{{"type", -1}});
+            module_updates.set_type(-1);
         }
     }
-    msg["modules"] = moduleMsgs;
-    msg["left_track_movement"] = _leftTrackMovement;
-    msg["right_track_movement"] = _rightTrackMovement;
-    return msg;
+    tank_updates.set_left_track_movement(_leftTrackMovement);
+    tank_updates.set_right_track_movement(_rightTrackMovement);
 }

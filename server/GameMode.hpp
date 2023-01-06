@@ -17,7 +17,7 @@ class GameMode : public QObject {
     Game* game() { return _game; }
 
    signals:
-    void sendMessage(int id, Message msg);
+    void sendMessage(int id, std::shared_ptr<bt_messages::ToClientMessage> msg);
     void gameOver();
 };
 
@@ -32,7 +32,7 @@ class IndividualDeathMatch : public GameMode {
     void _checkGameOver();
 
    private slots:
-    void _onPlayerConnected(int id, Message msg);
+    void _onPlayerConnected(int id, std::shared_ptr<bt_messages::ToServerMessage> msg);
     void _onPlayerAttachedObjectDied(int id);
 
    public:

@@ -32,7 +32,7 @@ class TankControlState : public QObject {
     Q_INVOKABLE bool action(int idx) { return _actions.size() < idx ? _actions[idx] : false; }
     Q_INVOKABLE void setAction(int idx, bool active);
 
-    Message message() const;
+    void fillMessage(bt_messages::ToServerMessage_ControlState& msg) const;
 
    signals:
     void actionChanged(int idx);

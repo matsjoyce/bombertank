@@ -69,18 +69,18 @@ void Game::mainloop() {
         timer.start();
         QCoreApplication::processEvents();
         for (auto& m : _messages) {
-            if (m.second["cmd"].as_string() == "control_state") {
+            if (m.second->contents_case() == bt_messages::ToServerMessage::kControlState) {
                 // TODO check permissions
-                auto iter = _objects.find(m.second["id"].as_uint64_t());
+                auto iter = _objects.find(m.second->control_state().object_id());
                 if (iter != _objects.end()) {
-                    iter->second->handleMessage(m.second);
+                    iter->second->handleMessage(m.second->control_state());
                 }
                 else {
-                    qWarning() << "Message to non-existant object" << m.second["id"].as_uint64_t();
+                    qWarning() << "Message to non-existant object" << m.second->control_state().object_id();
                 }
             }
             else {
-                qWarning() << "Game got unknown cmd" << m.second["cmd"].as_string().c_str();
+                qWarning() << "Game got unknown cmd" << m.second->contents_case();
             }
         }
         _messages.clear();
@@ -100,9 +100,9 @@ void Game::mainloop() {
         for (auto iter = _objects.begin(); iter != _objects.end();) {
             if (iter->second->dead()) {
                 auto& obj = iter->second;
-                auto msg = obj->message();
-                msg["cmd"] = "destroy_object";
-                msg["id"] = iter->first;
+                auto msg = std::make_shared<bt_messages::ToClientMessage>();
+                obj->fillMessage(*msg->mutable_object_updated());
+                msg->mutable_object_updated()->set_object_id(iter->first);
                 if (_objToAttachedPlayer.count(iter->first)) {
                     auto playerId = _objToAttachedPlayer[iter->first];
                     _objToAttachedPlayer.erase(iter->first);
@@ -121,14 +121,21 @@ void Game::mainloop() {
             }
         }
 
+        auto updateMsg = std::make_shared<bt_messages::ToClientMessage>();
         for (auto& [id, obj] : _objects) {
-            auto msg = obj->message();
-            msg["cmd"] = "object";
-            msg["id"] = id;
-            if (msg != _previousObjectMsg[id]) {
-                _previousObjectMsg[id] = msg;
+            updateMsg->clear_object_updated();
+            obj->fillMessage(*updateMsg->mutable_object_updated());
+            updateMsg->mutable_object_updated()->set_object_id(id);
+            if (!_previousObjectMsg[id] || updateMsg->object_updated().SerializeAsString() != _previousObjectMsg[id]->object_updated().SerializeAsString()) {
                 for (auto c : _connections) {
-                    emit sendMessage(c, msg);
+                    emit sendMessage(c, updateMsg);
+                }
+                if (_previousObjectMsg[id]) {
+                    std::swap(_previousObjectMsg[id], updateMsg);
+                }
+                else {
+                    _previousObjectMsg[id] = std::move(updateMsg);
+                    updateMsg = std::make_shared<bt_messages::ToClientMessage>();
                 }
             }
         }
@@ -143,7 +150,7 @@ void Game::end() {
     _active = false;
 }
 
-void Game::addConnection(int id, Message msg) {
+void Game::addConnection(int id, std::shared_ptr<bt_messages::ToServerMessage> msg) {
     _connections.push_back(id);
     emit playerConnected(id, msg);
     for (auto [objId, objMsg] : _previousObjectMsg) {
@@ -155,7 +162,7 @@ void Game::removeConnection(int id) {
     _connections.erase(std::remove(_connections.begin(), _connections.end(), id), _connections.end());
 }
 
-void Game::recieveMessage(int id, Message msg) { _messages.push_back(std::make_pair(id, msg)); }
+void Game::recieveMessage(int id, std::shared_ptr<bt_messages::ToServerMessage> msg) { _messages.push_back(std::make_pair(id, msg)); }
 
 BaseObjectState* Game::object(int id) {
     auto iter = _objects.find(id);
@@ -189,7 +196,9 @@ void Game::attachPlayerToObject(int id, int objId) {
     if (_playerToAttachedObj.count(id)) {
         _objToAttachedPlayer.erase(_playerToAttachedObj[id]);
     }
-    emit sendMessage(id, {{"cmd", "attach"}, {"id", objId}});
+    auto msg = std::make_shared<bt_messages::ToClientMessage>();
+    msg->mutable_attach_to_object()->set_object_id(objId);
+    emit sendMessage(id, msg);
     _objToAttachedPlayer[objId] = id;
     _playerToAttachedObj[id] = objId;
 }

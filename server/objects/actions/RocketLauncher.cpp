@@ -37,10 +37,10 @@ void HomingRocketLauncher::act(Game* game, TankState* tank) {
     }
 }
 
-float RocketLauncher::maxReload() {
+float RocketLauncher::maxReload() const {
     return 60;
 }
 
-float HomingRocketLauncher::maxReload() {
+float HomingRocketLauncher::maxReload() const {
     return 100;
 }

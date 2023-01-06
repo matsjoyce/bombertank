@@ -14,7 +14,7 @@ class TankModuleState : public QObject {
 
    public:
     using QObject::QObject;
-    virtual void loadMessage(Message& msg);
+    virtual void loadMessage(const bt_messages::ToClientMessage_TankModuleUpdates& msg);
 
     int type() { return _typeProp.value(); }
     QBindable<int> bindableType() { return &_typeProp; }
@@ -58,7 +58,7 @@ public:
     float rightTrackMovement() const { return _rightTrackMovementProp.value(); }
     QBindable<float> bindableRightTrackMovement() { return &_rightTrackMovementProp; }
 
-    void loadMessage(Message& msg) override;
+    void loadMessage(const bt_messages::ToClientMessage_ObjectUpdated& msg) override;
 
 private:
     Q_OBJECT_BINDABLE_PROPERTY(TankState, float, _shieldProp)

@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+package bt_messages;
+
+message Point {
+    float x = 1;
+    float y = 2;
+}
+
+message ToClientMessage {
+    oneof contents {
+        GameUpdated game_updated = 1;
+        GameRemoved game_removed = 2;
+        ServerStats server_stats = 3;
+        ObjectUpdated object_updated = 4;
+        AttachToObject attach_to_object = 5;
+        GameModeUpdate game_mode_update = 6;
+        DeadCanRejoin dead_can_rejoin = 7;
+        GameOver game_over = 8;
+    }
+
+    message GameUpdated {
+        uint32 game_id = 1;
+        string title = 2;
+    }
+
+    message GameRemoved {
+        uint32 game_id = 1;
+    }
+
+    message ServerStats {
+        uint32 connected = 1;
+        string version = 2;
+    }
+
+    message ObjectUpdated {
+        uint32 object_id = 1;
+        uint32 type = 2;
+        float health = 3;
+        uint32 side = 4;
+        float x = 5;
+        float y = 6;
+        float rotation = 7;
+        float vx = 8;
+        float vy = 9;
+        uint32 status = 10;
+        float turret_angle = 11;
+        float length = 12;
+        bool destroyed = 13;
+        optional TankUpdates tank_updates = 14;
+    }
+
+    message TankUpdates {
+        float shield = 1;
+        repeated TankModuleUpdates modules = 2;
+        float left_track_movement = 3;
+        float right_track_movement = 4;
+    }
+
+    message TankModuleUpdates {
+        int32 type = 1;
+        float reload = 2;
+        uint32 uses = 3;
+        repeated Point points = 4;
+    }
+
+    message AttachToObject {
+        uint32 object_id = 1;
+    }
+
+    message GameModeUpdate {
+        uint32 lives_left = 1;
+        uint32 lives_total = 2;
+    }
+
+    message DeadCanRejoin {
+    }
+
+    message GameOver {
+        bool winner = 1;
+    }
+}
+

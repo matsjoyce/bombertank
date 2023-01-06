@@ -5,16 +5,16 @@
 
 class RocketLauncher : public TankModule {
 public:
-    int type() override { return 1; }
+    int type() const override { return 1; }
     void act(Game* game, TankState* tank) override;
-    float maxReload() override;
+    float maxReload() const override;
 };
 
 class HomingRocketLauncher : public RocketLauncher {
 public:
-    int type() override { return 9; }
+    int type() const override { return 9; }
     void act(Game* game, TankState* tank) override;
-    float maxReload() override;
+    float maxReload() const override;
 };
 
 #endif // OBJECTS_ACTIONS_ROCKET_LAUNCHER_HPP

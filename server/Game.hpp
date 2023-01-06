@@ -18,11 +18,11 @@ class Game : public QObject, public b2ContactListener {
     Q_OBJECT
 
     std::vector<int> _connections;
-    std::vector<std::pair<int, Message>> _messages;
+    std::vector<std::pair<int, std::shared_ptr<bt_messages::ToServerMessage>>> _messages;
     std::map<int, std::unique_ptr<BaseObjectState>> _objects;
     std::map<int, int> _objToAttachedPlayer;
     std::map<int, int> _playerToAttachedObj;
-    std::map<int, Message> _previousObjectMsg;
+    std::map<int, std::shared_ptr<bt_messages::ToClientMessage>> _previousObjectMsg;
     std::mt19937 _randomGen;
     int _nextId = 1;
     bool _active = true;
@@ -49,14 +49,14 @@ class Game : public QObject, public b2ContactListener {
     const ServerOTD& dataForType(int type) const;
 
    public slots:
-    void addConnection(int id, Message msg);
+    void addConnection(int id, std::shared_ptr<bt_messages::ToServerMessage> msg);
     void removeConnection(int id);
-    void recieveMessage(int id, Message msg);
+    void recieveMessage(int id, std::shared_ptr<bt_messages::ToServerMessage> msg);
     void end();
 
    signals:
-    void sendMessage(int id, Message msg);
-    void playerConnected(int id, Message msg);
+    void sendMessage(int id, std::shared_ptr<bt_messages::ToClientMessage> msg);
+    void playerConnected(int id, std::shared_ptr<bt_messages::ToServerMessage> msg);
     void playerAttachedObjectDied(int id);
 };
 

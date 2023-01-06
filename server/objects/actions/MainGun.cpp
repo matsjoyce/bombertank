@@ -25,11 +25,11 @@ void MainGun::act(Game* game, TankState* tank) {
     }
 }
 
-float MainGun::maxReload() {
+float MainGun::maxReload() const {
     return 20;
 }
 
 
-float MainGun::healthContribution() {
+float MainGun::healthContribution() const {
     return 50;
 }

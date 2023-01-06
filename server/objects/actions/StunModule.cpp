@@ -8,10 +8,10 @@ void StunModule::act(Game* game, TankState* tank) {
     game->addObject(constants::ObjectType::STUN_WAVE, tank->body()->GetPosition(), 0, {0, 0});
 }
 
-float StunModule::maxReload() {
+float StunModule::maxReload() const {
     return 125;
 }
 
-float StunModule::stunResistanceMultiplier() {
+float StunModule::stunResistanceMultiplier() const {
     return 0;
 }

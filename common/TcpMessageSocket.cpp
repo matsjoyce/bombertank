@@ -7,6 +7,12 @@
 #include <arpa/inet.h>
 #endif
 
+// #define USE_TEXT_FORMAT
+
+#ifdef USE_TEXT_FORMAT
+#include <google/protobuf/text_format.h>
+#endif
+
 const auto READ_SIZE = 1024u;
 using MessageSizeType = decltype(htonl(0));
 const qsizetype MESSAGE_SIZE_SIZE = sizeof(MessageSizeType);
@@ -21,14 +27,6 @@ void BaseTcpMessageSocket::close() {
     _socket->disconnectFromHost();
     disconnect(_socket, &QTcpSocket::readyRead, this, &BaseTcpMessageSocket::readData);
     disconnect(_socket, &QTcpSocket::disconnected, this, &BaseTcpMessageSocket::handleDisconnected);
-}
-
-
-void TcpMessageSocket::sendMessage(const Message message) {
-    std::stringstream buffer;
-    msgpack::pack(buffer, message);
-    auto data = buffer.str();
-    sendBuffer(data);
 }
 
 void BaseTcpMessageSocket::sendBuffer(QByteArrayView buf) {
@@ -53,37 +51,53 @@ void BaseTcpMessageSocket::readData() {
         if (_recvBuffer.size() - MESSAGE_SIZE_SIZE < size) {
             return;
         }
-        parseBuffer(QByteArrayView(buf).sliced(MESSAGE_SIZE_SIZE, size));
+        parseBuffer(QByteArrayView(_recvBuffer).sliced(MESSAGE_SIZE_SIZE, size));
         _recvBuffer.remove(0, size + MESSAGE_SIZE_SIZE);
     }
 }
-
-void TcpMessageSocket::parseBuffer(QByteArrayView buf) {
-    msgpack::object_handle oh = msgpack::unpack(buf.constData(), buf.size());
-    emit messageRecieved(id(), oh.get().as<Message>());
-}
-
 
 void BaseTcpMessageSocket::handleDisconnected() {
     emit disconnected(_id);
 }
 
 void ToServerMessageSocket::parseBuffer(QByteArrayView buf) {
-    auto msg = std::make_shared<bt_messages::FromServer>();
+    auto msg = std::make_shared<bt_messages::ToClientMessage>();
+#ifdef USE_TEXT_FORMAT
+    google::protobuf::io::ArrayInputStream s(buf.constData(), buf.size());
+    google::protobuf::TextFormat::Parse(&s, msg.get());
+#else
     msg->ParseFromArray(buf.constData(), buf.size());
+#endif
     emit messageRecieved(id(), msg);
 }
 
-void ToServerMessageSocket::sendMessage(std::shared_ptr<const bt_messages::ToServer> message) {
+void ToServerMessageSocket::sendMessage(std::shared_ptr<const bt_messages::ToServerMessage> message) {
+#ifdef USE_TEXT_FORMAT
+    std::string buf;
+    google::protobuf::TextFormat::PrintToString(*message.get(), &buf);
+    sendBuffer(buf);
+#else
     sendBuffer(message->SerializeAsString());
+#endif
 }
 
-void FromServerMessageSocket::parseBuffer(QByteArrayView buf) {
-    auto msg = std::make_shared<bt_messages::ToServer>();
+void ToClientMessageSocket::parseBuffer(QByteArrayView buf) {
+    auto msg = std::make_shared<bt_messages::ToServerMessage>();
+#ifdef USE_TEXT_FORMAT
+    google::protobuf::io::ArrayInputStream s(buf.constData(), buf.size());
+    google::protobuf::TextFormat::Parse(&s, msg.get());
+#else
     msg->ParseFromArray(buf.constData(), buf.size());
+#endif
     emit messageRecieved(id(), msg);
 }
 
-void FromServerMessageSocket::sendMessage(std::shared_ptr<const bt_messages::FromServer> message) {
+void ToClientMessageSocket::sendMessage(std::shared_ptr<const bt_messages::ToClientMessage> message) {
+#ifdef USE_TEXT_FORMAT
+    std::string buf;
+    google::protobuf::TextFormat::PrintToString(*message.get(), &buf);
+    sendBuffer(buf);
+#else
     sendBuffer(message->SerializeAsString());
+#endif
 }

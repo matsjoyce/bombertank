@@ -24,16 +24,16 @@ class BaseObjectState : public QObject {
 
    public:
     using QObject::QObject;
-    virtual void loadMessage(Message& msg);
+    virtual void loadMessage(const bt_messages::ToClientMessage_ObjectUpdated& msg);
     void setFromEditor(constants::ObjectType type, float x, float y, float rotation);
 
-    int type() { return _typeProp.value(); }
+    int type() const { return _typeProp.value(); }
     QBindable<int> bindableType() { return &_typeProp; }
-    float x() { return _xProp.value(); }
+    float x() const { return _xProp.value(); }
     QBindable<float> bindableX() { return &_xProp; }
-    float y() { return _yProp.value(); }
+    float y() const { return _yProp.value(); }
     QBindable<float> bindableY() { return &_yProp; }
-    float rotation() { return _rotationProp.value(); }
+    float rotation() const { return _rotationProp.value(); }
     QBindable<float> bindableRotation() { return &_rotationProp; }
     float health() const { return _healthProp.value(); }
     QBindable<float> bindableHealth() { return &_healthProp; }
@@ -42,7 +42,6 @@ class BaseObjectState : public QObject {
     float speed() const { return _speedProp.value(); }
     QBindable<float> bindableSpeed() { return &_speedProp; }
     bool destroyed() const { return _destroyedProp.value(); }
-    void setDestroyed(bool value) { _destroyedProp.setValue(value); }
     QBindable<bool> bindableDestroyed() { return &_destroyedProp; }
     int status() const { return _statusProp.value(); }
     QBindable<int> bindableStatus() { return &_statusProp; }
