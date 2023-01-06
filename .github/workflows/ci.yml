@@ -25,7 +25,7 @@ jobs:
 
       - name: Install other deps
         run: |
-          brew install box2d msgpack-cxx
+          brew install box2d protobuf
         shell: bash
 
       - name: Configure
@@ -74,7 +74,7 @@ jobs:
 
       - name: Install other deps
         run: |
-          vcpkg install box2d msgpack boost-variant boost-fusion boost-optional boost-core --triplet x64-windows
+          vcpkg install box2d protobuf --triplet x64-windows
         shell: pwsh
 
       - name: Configure
